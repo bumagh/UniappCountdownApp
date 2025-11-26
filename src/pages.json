@@ -1,0 +1,104 @@
+{
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+    }
+  },
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "倒数日",
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": false
+      }
+    },
+    {
+      "path": "pages/categories/categories",
+      "style": {
+        "navigationBarTitleText": "倒数本",
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": false
+      }
+    },
+    {
+      "path": "pages/calendar/calendar",
+      "style": {
+        "navigationBarTitleText": "日历",
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": false
+      }
+    },
+    {
+      "path": "pages/profile/profile",
+      "style": {
+        "navigationBarTitleText": "我的",
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": false
+      }
+    },
+    {
+      "path": "pages/detail/detail",
+      "style": {
+        "navigationBarTitleText": "倒数日详情",
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": false
+      }
+    },
+    {
+      "path": "pages/edit/edit",
+      "style": {
+        "navigationBarTitleText": "编辑倒数日",
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": false
+      }
+    },
+    {
+      "path": "pages/book-edit/book-edit",
+      "style": {
+        "navigationBarTitleText": "编辑倒数本",
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": false
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "时光倒数 By HAISNAP",
+    "navigationBarBackgroundColor": "#1890ff",
+    "backgroundColor": "#f0f7ff"
+  },
+  "tabBar": {
+    "color": "#aaaaaa",
+    "selectedColor": "#1890ff",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "倒数日",
+        "iconPath": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjYWFhYWFhIiBkPSJNMTEgNGMtMS4xIDAtMiAuOS0yIDJ2MzhjMCAxLjEuOSAyIDIgMmgyOGMxLjEgMCAyLS45IDItMlY2YzAtMS4xLS45LTItMi0ySDExek0xMSA2aDI4djM2SDExVjZ6bTQgNHYyaDE0VjEwSDE1em0wIDZ2MmgxNHYtMkgxNXptMCA2djJoMTR2LTJIMTV6bTAgNnYyaDE0di0ySDE1em0wIDZ2MmgxNHYtMkgxNXoiLz48L3N2Zz4=",
+        "selectedIconPath": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjMTg5MGZmIiBkPSJNMTEgNGMtMS4xIDAtMiAuOS0yIDJ2MzhjMCAxLjEuOSAyIDIgMmgyOGMxLjEgMCAyLS45IDItMlY2YzAtMS4xLS45LTItMi0ySDExek0xNSAxMGgxNHYySDE1di0yem0wIDZoMTR2MkgxNXYtMnptMCA2aDE0djJIMTV2LTJ6bTAgNmgxNHYySDE1di0yeiIvPjwvc3ZnPg=="
+      },
+      {
+        "pagePath": "pages/categories/categories",
+        "text": "倒数本",
+        "iconPath": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjYWFhYWFhIiBkPSJNOSA0Yy0xLjEgMC0yIC45LTIgMnY0MGgydi0yaDMydjJoMlY2YzAtMS4xLS45LTItMi0ySDl6TTkgNmgzMnYzNkg5VjZ6bTQgNHYyaDE4di0ySDF6bTAgNnYyaDE4di0ySDF6bTAgNnYyaDE4di0ySDF6Ii8+PC9zdmc+",
+        "selectedIconPath": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjMTg5MGZmIiBkPSJNOSA0Yy0xLjEgMC0yIC45LTIgMnY0MGgydi0yaDMydjJoMlY2YzAtMS4xLS45LTItMi0ySDl6bTQgNmgxOHYySDF6bTAgNmgxOHYySDF6bTggMGg2djJoNHYtNGgtNHoiLz48L3N2Zz4="
+      },
+      {
+        "pagePath": "pages/calendar/calendar",
+        "text": "日历",
+        "iconPath": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjYWFhYWFhIiBkPSJNMTAgNGMtMS4xIDAtMiAuOS0yIDJ2NDBoNHYtMmgyNHYyaDRWNmMwLTEuMS0uOS0yLTItMkgxMHptMCAyaDI4djhIMTBWNnptNCA2djRoNHYtNGgtNHptOCAwdjRoNHYtNGgtNHptOCAwdjRoNHYtNGgtNHptLTE2IDh2NGg0di00aC00em04IDB2NGg0di00aC00em04IDB2NGg0di00aC00em0tMTYgOHY0aDRvLTRoLTR6bTggMHY0aDR2LTRoLTR6bTggMHY0aDR2LTRoNHoiLz48L3N2Zz4=",
+        "selectedIconPath": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjMTg5MGZmIiBkPSJNMTAgNGMtMS4xIDAtMiAuOS0yIDJ2NDBoNHYtMmgyNHYyaDRWNmMwLTEuMS0uOS0yLTItMkgxMHptMCAyaDI4djhIMTBWNnptNCA2djRoNHYtNGgtNHptOCAwdjRoNHYtNGgtNHptOCAwdjRoNHYtNGgtNHptLTE2IDh2NGg0di00aC00em04IDB2NGg0di00aC00em04IDB2NGg0di00aC00em0tMTYgOHY0aDRvLTRoLTR6bTggMHY0aDR2LTRoLTR6bTggMHY0aDR2LTRoNHoiLz48L3N2Zz4="
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjYWFhYWFhIiBkPSJNMjUgNGMtMy45IDAtNyAzLjEtNyA3czMuMSA3IDcgN3M3LTMuMSA3LTctMy4xLTctNy03em0wIDJjMi44IDAgNSAyLjIgNSA1cy0yLjIgNS01IDUtNS0yLjItNS01IDIuMi01IDUtNXptMCAxMmMtNy4yIDAtMTMgMy42LTEzIDh2MjBoMjZWMjZjMC00LjQtNS44LTgtMTMtOHptMCAyYzYgMCAxMSAyLjcgMTEgNnYxOEgxNFYyNmMwLTMuMyA1LTYgMTEtNnoiLz48L3N2Zz4=",
+        "selectedIconPath": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjMTg5MGZmIiBkPSJNMjUgNGMtMy45IDAtNyAzLjEtNyA3czMuMSA3IDcgN3M3LTMuMSA3LTctMy4xLTctNy03em0wIDE0Yy03LjIgMC0xMyAzLjYtMTMgOHYyMGgyNlYyNmMwLTQuNC01LjgtOC0xMy04eiIvPjwvc3ZnPg=="
+      }
+    ]
+  }
+}

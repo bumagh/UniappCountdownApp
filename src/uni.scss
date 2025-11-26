@@ -1,0 +1,446 @@
+/* 全局样式文件 - ColorUI主题和自定义样式 */
+
+/* ==================== ColorUI 基础变量 ==================== */
+$colorPrimary: #1890ff; /* 蓝色主色调 */
+$colorWarning: #fbbd08;
+$colorDanger: #e54d42;
+$colorSuccess: #39b54a;
+$colorInfo: #1cbbb4;
+
+$colorBg: #f5f9ff; /* 浅蓝白背景 */
+$colorText: #333333; /* 深灰文字 */
+$colorTextLight: #666666;
+$colorTextGray: #aaaaaa;
+
+$colorBorder: #e8f4ff;
+$colorWhite: #ffffff;
+
+/* ==================== 全局重置样式 ==================== */
+page {
+  background-color: $colorBg;
+  color: $colorText;
+  font-size: 28rpx;
+  line-height: 1.6;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ==================== 通用间距 ==================== */
+.padding {
+  padding: 30rpx;
+}
+
+.padding-sm {
+  padding: 20rpx;
+}
+
+.padding-lg {
+  padding: 40rpx;
+}
+
+.margin {
+  margin: 30rpx;
+}
+
+.margin-top {
+  margin-top: 30rpx;
+}
+
+.margin-bottom {
+  margin-bottom: 30rpx;
+}
+
+.margin-bottom-xl {
+  margin-bottom: 120rpx;
+}
+
+/* ==================== Flex 布局 ==================== */
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+/* ==================== 文字样式 ==================== */
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-bold {
+  font-weight: bold;
+}
+
+.text-primary {
+  color: $colorPrimary;
+}
+
+.text-gray {
+  color: $colorTextGray;
+}
+
+.text-light {
+  color: $colorTextLight;
+}
+
+.text-xs {
+  font-size: 20rpx;
+}
+
+.text-sm {
+  font-size: 24rpx;
+}
+
+.text-df {
+  font-size: 28rpx;
+}
+
+.text-lg {
+  font-size: 32rpx;
+}
+
+.text-xl {
+  font-size: 36rpx;
+}
+
+.text-xxl {
+  font-size: 44rpx;
+}
+
+.text-huge {
+  font-size: 80rpx;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+/* ==================== 背景色 ==================== */
+.bg-white {
+  background-color: $colorWhite;
+}
+
+.bg-primary {
+  background-color: $colorPrimary;
+  color: $colorWhite;
+}
+
+.bg-gray {
+  background-color: #f5f5f5;
+}
+
+/* ==================== 圆角 ==================== */
+.radius {
+  border-radius: 12rpx;
+}
+
+.radius-sm {
+  border-radius: 6rpx;
+}
+
+.radius-lg {
+  border-radius: 20rpx;
+}
+
+.radius-round {
+  border-radius: 999rpx;
+}
+
+/* ==================== 阴影 ==================== */
+.shadow {
+  box-shadow: 0 4rpx 16rpx rgba(24, 144, 255, 0.08);
+}
+
+.shadow-sm {
+  box-shadow: 0 2rpx 8rpx rgba(24, 144, 255, 0.06);
+}
+
+.shadow-lg {
+  box-shadow: 0 8rpx 32rpx rgba(24, 144, 255, 0.12);
+}
+
+/* ==================== 倒数日卡片样式 ==================== */
+.countdown-card {
+  background-color: $colorWhite;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(24, 144, 255, 0.08);
+}
+
+.countdown-number {
+  font-size: 80rpx;
+  font-weight: bold;
+  color: $colorPrimary;
+  line-height: 1.2;
+}
+
+.countdown-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: $colorText;
+  margin-top: 10rpx;
+}
+
+.countdown-date {
+  font-size: 24rpx;
+  color: $colorTextLight;
+  margin-top: 8rpx;
+}
+
+/* ==================== 分类标签样式 ==================== */
+.category-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  color: $colorWhite;
+  background-color: $colorPrimary;
+}
+
+.category-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  margin-right: 8rpx;
+}
+
+/* ==================== 按钮样式 ==================== */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx 40rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  background-color: $colorPrimary;
+  color: $colorWhite;
+  border: none;
+}
+
+.btn-primary {
+  background-color: $colorPrimary;
+  color: $colorWhite;
+}
+
+.btn-ghost {
+  background-color: transparent;
+  border: 2rpx solid $colorPrimary;
+  color: $colorPrimary;
+}
+
+.btn-round {
+  border-radius: 999rpx;
+}
+
+.btn-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $colorPrimary;
+  color: $colorWhite;
+  font-size: 40rpx;
+}
+
+/* ==================== 输入框样式 ==================== */
+.input-wrapper {
+  background-color: $colorWhite;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  border: 2rpx solid $colorBorder;
+}
+
+.input-wrapper input {
+  font-size: 28rpx;
+  color: $colorText;
+}
+
+/* ==================== 日历样式 ==================== */
+.calendar-day {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  position: relative;
+}
+
+.calendar-day-number {
+  font-size: 28rpx;
+  color: $colorText;
+}
+
+.calendar-day-dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 8rpx;
+}
+
+.calendar-day-today {
+  background-color: $colorPrimary;
+  color: $colorWhite;
+  border-radius: 50%;
+}
+
+/* ==================== 顶部导航栏样式 ==================== */
+.navbar {
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30rpx;
+  background-color: $colorPrimary;
+  border-bottom: 2rpx solid #0d7de0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+}
+
+.navbar-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: $colorWhite;
+}
+
+.navbar-icon {
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: $colorWhite;
+}
+
+/* ==================== 底部TabBar样式 ==================== */
+.tabbar {
+  height: 100rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background-color: $colorWhite;
+  border-top: 2rpx solid $colorBorder;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: $colorTextGray;
+  font-size: 20rpx;
+}
+
+.tabbar-item-active {
+  color: $colorPrimary;
+}
+
+.tabbar-icon {
+  font-size: 48rpx;
+  margin-bottom: 4rpx;
+}
+
+/* ==================== 侧边栏样式 ==================== */
+.drawer {
+  position: fixed;
+  top: 0;
+  left: -600rpx;
+  width: 600rpx;
+  height: 100vh;
+  background-color: $colorWhite;
+  transition: left 0.3s ease;
+  z-index: 9999;
+  box-shadow: 4rpx 0 16rpx rgba(0, 0, 0, 0.1);
+}
+
+.drawer-open {
+  left: 0;
+}
+
+.drawer-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+}
+
+/* ==================== uni-input 高度修复 ==================== */
+uni-input {
+  height: auto !important;
+  min-height: 0 !important;
+  line-height: normal !important;
+}
+
+/* ==================== 页面内容区域 ==================== */
+.page-content {
+  padding-top: 88rpx;
+  padding-bottom: 120rpx;
+  min-height: 100vh;
+}
+
+/* ==================== 空状态样式 ==================== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+  color: $colorTextGray;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+}

@@ -1,0 +1,73 @@
+# 日志文件
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+static/game/*
+# 运行时数据
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# 依赖目录
+node_modules/
+*/node_modules/
+
+# 编译输出目录
+unpackage/dist/
+unpackage/release/
+
+# 缓存文件
+.unifiedjs-cache/
+.cache/
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# 用户配置
+project.config.json
+project.private.config.json
+
+# IDE和编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统生成文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# HBuilderX 相关
+.hbuilder/
+.hbuilderx/
+unpackage/.tmp/
+
+# 平台特定文件
+**/android/
+**/ios/
+**/weapp/
+**/alipay/
+**/swan/
+**/tt/
+**/qq/
+**/jd/
+**/quickapp/
+**/h5/
+**/mp-*/
+
+# 类型Script
+*.tsbuildinfo
+
+# 可执行文件
+*.exe
