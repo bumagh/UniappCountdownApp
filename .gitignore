@@ -68,6 +68,6 @@ unpackage/.tmp/
 
 # 类型Script
 *.tsbuildinfo
-
+**/dist/
 # 可执行文件
 *.exe
