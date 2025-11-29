@@ -8,7 +8,7 @@ interface RequestOptions
 // 请求封装
 class Request
 {
-    private baseURL: string = '';
+    private baseURL: string = 'http://app.tutlabtech';
 
     // 通用请求方法
     async request<T = any> (

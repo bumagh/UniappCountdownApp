@@ -2,13 +2,13 @@
   <view class="page-container">
     <!-- 顶部导航栏 -->
     <view class="navbar">
-      <view class="navbar-icon" @click="goBack">
+      <view class="navbar-icon" @click=" goBack ">
         <text>‹</text>
       </view>
       <view class="navbar-title">
         <text>{{ isEdit ? '编辑倒数日' : '添加倒数日' }}</text>
       </view>
-      <view class="navbar-icon" @click="handleSubmit">
+      <view class="navbar-icon" @click=" handleSubmit ">
         <text>✓</text>
       </view>
     </view>
@@ -18,27 +18,16 @@
       <view class="form-container">
         <view class="form-item">
           <text class="form-label">日程名称</text>
-          <input 
-            class="form-input" 
-            v-model="formData.title" 
-            placeholder="请输入日程名称"
-            maxlength="20"
-          />
+          <input class="form-input" v-model=" formData.title " placeholder="请输入日程名称" maxlength="20" />
         </view>
 
         <view class="form-item">
           <text class="form-label">选择日期</text>
           <view class="date-picker-container">
-            <picker 
-              mode="date" 
-              :value="formData.date" 
-              @change="onDateChange" 
-              :start="minDate" 
-              :end="maxDate"
-              class="date-picker"
-            >
+            <picker mode="date" :value=" formData.date " @change=" onDateChange " :start=" minDate " :end=" maxDate "
+              class="date-picker">
               <view class="date-input">
-                <text v-if="formData.date" class="date-text">{{ formatDateDisplay(formData.date) }}</text>
+                <text v-if=" formData.date " class="date-text">{{ formatDateDisplay( formData.date ) }}</text>
                 <text v-else class="date-placeholder">请选择日期</text>
                 <text class="date-icon">📅</text>
               </view>
@@ -49,14 +38,10 @@
         <view class="form-item">
           <text class="form-label">选择分类</text>
           <view class="category-list">
-            <view 
-              v-for="category in categories" 
-              :key="category.id"
-              class="category-item"
-              :class="{ 'category-active': formData.categoryId === category.id }"
-              @click="selectCategory(category.id)"
-            >
-              <view class="category-icon" :style="{ backgroundColor: category.color }">
+            <view v-for=" category in categories " :key=" category.id " class="category-item"
+              :class=" { 'category-active': formData.category_id === category.id } "
+              @click="selectCategory( category.id )">
+              <view class="category-icon" :style=" { backgroundColor: category.color } ">
                 <text class="icon-text">{{ category.icon }}</text>
               </view>
               <text class="category-name">{{ category.name }}</text>
@@ -67,29 +52,21 @@
         <view class="form-item">
           <view class="form-label-row">
             <text class="form-label">置顶显示</text>
-            <switch 
-              :checked="formData.isPinned" 
-              @change="onPinnedChange"
-              color="#1890ff"
-            />
+            <switch :checked=" formData.is_pinned " @change=" onPinnedChange " color="#1890ff" />
           </view>
         </view>
 
         <view class="form-item">
           <view class="form-label-row">
             <text class="form-label">重复设置</text>
-            <switch 
-              :checked="isRepeatEnabled" 
-              @change="toggleRepeat"
-              color="#1890ff"
-            />
+            <switch :checked=" isRepeatEnabled " @change=" toggleRepeat " color="#1890ff" />
           </view>
         </view>
 
         <!-- 重复设置选择器（弹出选项框版本） -->
-        <view v-if="isRepeatEnabled" class="repeat-selector-section">
+        <view v-if=" isRepeatEnabled " class="repeat-selector-section">
           <view class="repeat-button-wrapper">
-            <button class="repeat-button" @click="showRepeatOptions">
+            <button class="repeat-button" @click=" showRepeatOptions ">
               {{ repeatOption || '请选择重复频率' }}
             </button>
           </view>
@@ -104,307 +81,416 @@
     </scroll-view>
 
     <!-- 删除/归档按钮（仅在编辑模式下显示） -->
-    <view v-if="isEdit" class="danger-section">
+    <view v-if=" isEdit " class="danger-section">
       <view class="danger-actions">
-        <view class="btn btn-archive" @click="handleArchive">
+        <view class="btn btn-archive" @click=" handleArchive ">
           <text>归档</text>
         </view>
-        <view class="btn btn-danger" @click="handleDelete">
+        <view class="btn btn-danger" @click=" handleDelete ">
           <text>删除</text>
         </view>
       </view>
     </view>
   </view>
 </template>
+<script lang="ts">
+import { defineComponent } from 'vue';
+import apiService from '@/services/apiService';
+import { formatDate, getRepeatText } from '@/utils/countdownUtils';
+import { Category, Countdown, CountdownForm } from 'types';
 
-<script>
-import db from '../../utils/db.js';
+interface EditPageData
+{
+  countdownId: number | null;
+  isEdit: boolean;
+  formData: CountdownForm & {
+    is_pinned: boolean;
+  };
+  categories: Category[];
+  repeatOptions: string[];
+  repeatOption: string;
+  isRepeatEnabled: boolean;
+}
 
-export default {
+export default defineComponent( {
   name: 'Edit',
-  data() {
+
+  data (): EditPageData
+  {
     return {
       countdownId: null,
       isEdit: false,
       formData: {
         title: '',
         date: this.getCurrentDate(),
-        categoryId: null,
-        isPinned: false,
-        repeatCycle: 0,
-        repeatFrequency: '不重复'
+        category_id: 0,
+        is_pinned: false,
+        repeat_cycle: 0,
+        repeat_frequency: '不重复' as const
       },
       categories: [],
-      repeatOptions: ['不重复', '每天', '每周', '每月', '每年', '每2天', '每3天', '每4天', '每5天', '每6天', '每7天', '每2周', '每3周', '每2月', '每3月', '每6月', '每2年', '每3年', '每5年'],
-      repeatOption: '',
+      repeatOptions: [ '不重复', '每天', '每周', '每月', '每年', '每2天', '每3天', '每4天', '每5天', '每6天', '每7天', '每2周', '每3周', '每2月', '每3月', '每6月', '每2年', '每3年', '每5年' ],
+      repeatOption: '不重复',
       isRepeatEnabled: false
     };
   },
+
   computed: {
-    minDate() {
+    minDate (): string
+    {
       const date = new Date();
-      date.setFullYear(date.getFullYear() - 10);
-      return date.toISOString().split('T')[0];
+      date.setFullYear( date.getFullYear() - 10 );
+      return date.toISOString().split( 'T' )[ 0 ];
     },
-    maxDate() {
+
+    maxDate (): string
+    {
       const date = new Date();
-      date.setFullYear(date.getFullYear() + 10);
-      return date.toISOString().split('T')[0];
+      date.setFullYear( date.getFullYear() + 10 );
+      return date.toISOString().split( 'T' )[ 0 ];
     }
   },
-  onLoad(options) {
-    if (options.id) {
-      this.countdownId = parseInt(options.id);
+
+  onLoad ( options: any ): void
+  {
+    if ( options.id )
+    {
+      this.countdownId = parseInt( options.id );
       this.isEdit = true;
       this.loadCountdownData();
-    } else {
+    } else
+    {
       this.loadCategories();
     }
   },
+
   methods: {
-    getCurrentDate() {
+    getCurrentDate (): string
+    {
       const date = new Date();
       const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
+      const month = String( date.getMonth() + 1 ).padStart( 2, '0' );
+      const day = String( date.getDate() ).padStart( 2, '0' );
+      return `${ year }-${ month }-${ day }`;
     },
-    loadCountdownData() {
-      const countdown = db.getCountdown(this.countdownId);
-      if (countdown) {
-        this.formData = {
-          title: countdown.title,
-          date: countdown.date,
-          categoryId: countdown.categoryId,
-          isPinned: countdown.isPinned || false,
-          repeatCycle: countdown.repeatCycle || 0,
-          repeatFrequency: countdown.repeatFrequency || '不重复'
-        };
-        this.checkRepeatEnabled();
-        this.setRepeatOption();
-      }
-      this.loadCategories();
-    },
-    loadCategories() {
-      const user = db.getCurrentUser();
-      if (user) {
-        this.categories = db.getCategories(user.id);
-        if (this.categories.length > 0 && !this.formData.categoryId) {
-          this.formData.categoryId = this.categories[0].id;
+
+    async loadCountdownData (): Promise<void>
+    {
+      if ( !this.countdownId ) return;
+
+      try
+      {
+        const countdown = await apiService.getCountdown( this.countdownId );
+        if ( countdown )
+        {
+          this.formData = {
+            title: countdown.title,
+            date: countdown.date,
+            category_id: countdown.category_id,
+            is_pinned: countdown.is_pinned || false,
+            repeat_cycle: countdown.repeat_cycle || 0,
+            repeat_frequency: countdown.repeat_frequency || '不重复'
+          };
+          this.checkRepeatEnabled();
+          this.setRepeatOption();
         }
+        this.loadCategories();
+      } catch ( error )
+      {
+        console.error( '加载倒数日数据失败:', error );
+        uni.showToast( {
+          title: '加载数据失败',
+          icon: 'none'
+        } );
       }
     },
-    checkRepeatEnabled() {
-      this.isRepeatEnabled = this.formData.repeatCycle > 0 && this.formData.repeatFrequency !== '不重复';
+
+    async loadCategories (): Promise<void>
+    {
+      try
+      {
+        const categories = await apiService.getCategories();
+        this.categories = categories;
+
+        if ( this.categories.length > 0 && !this.formData.category_id )
+        {
+          this.formData.category_id = this.categories[ 0 ].id;
+        }
+      } catch ( error )
+      {
+        console.error( '加载分类失败:', error );
+        uni.showToast( {
+          title: '加载分类失败',
+          icon: 'none'
+        } );
+      }
     },
-    setRepeatOption() {
-      if (this.formData.repeatCycle === 0 || this.formData.repeatFrequency === '不重复') {
+
+    checkRepeatEnabled (): void
+    {
+      this.isRepeatEnabled = this.formData.repeat_cycle > 0 && this.formData.repeat_frequency !== '不重复';
+    },
+
+    setRepeatOption (): void
+    {
+      if ( this.formData.repeat_cycle === 0 || this.formData.repeat_frequency === '不重复' )
+      {
         this.repeatOption = '不重复';
-      } else {
-        this.repeatOption = db.getRepeatText(this.formData.repeatCycle, this.formData.repeatFrequency);
+      } else
+      {
+        this.repeatOption = getRepeatText( this.formData.repeat_cycle, this.formData.repeat_frequency );
       }
     },
-    onDateChange(e) {
+
+    onDateChange ( e: any ): void
+    {
       this.formData.date = e.detail.value;
     },
-    selectCategory(categoryId) {
-      this.formData.categoryId = categoryId;
+
+    selectCategory ( category_id: number ): void
+    {
+      this.formData.category_id = category_id;
     },
-    onPinnedChange(e) {
-      this.formData.isPinned = e.detail.value;
+
+    onPinnedChange ( e: any ): void
+    {
+      this.formData.is_pinned = e.detail.value;
     },
-    toggleRepeat(e) {
+
+    toggleRepeat ( e: any ): void
+    {
       this.isRepeatEnabled = e.detail.value;
-      if (this.isRepeatEnabled) {
+      if ( this.isRepeatEnabled )
+      {
         // 开启重复，设置默认值
         this.repeatOption = '每天';
-        this.formData.repeatCycle = 1;
-        this.formData.repeatFrequency = '天重复';
-      } else {
+        this.formData.repeat_cycle = 1;
+        this.formData.repeat_frequency = '天重复';
+      } else
+      {
         // 关闭重复，重置为不重复
         this.repeatOption = '不重复';
-        this.formData.repeatCycle = 0;
-        this.formData.repeatFrequency = '不重复';
+        this.formData.repeat_cycle = 0;
+        this.formData.repeat_frequency = '不重复';
       }
     },
-    showRepeatOptions() {
-      uni.showActionSheet({
+
+    showRepeatOptions (): void
+    {
+      uni.showActionSheet( {
         itemList: this.repeatOptions,
-        success: (res) => {
-          this.repeatOption = this.repeatOptions[res.tapIndex];
-          this.parseRepeatOption(this.repeatOption);
+        success: ( res ) =>
+        {
+          this.repeatOption = this.repeatOptions[ res.tapIndex ];
+          this.parseRepeatOption( this.repeatOption );
         }
-      });
+      } );
     },
-    parseRepeatOption(option) {
-      if (option === '不重复') {
-        this.formData.repeatCycle = 0;
-        this.formData.repeatFrequency = '不重复';
-      } else if (option === '每天') {
-        this.formData.repeatCycle = 1;
-        this.formData.repeatFrequency = '天重复';
-      } else if (option === '每周') {
-        this.formData.repeatCycle = 1;
-        this.formData.repeatFrequency = '周重复';
-      } else if (option === '每月') {
-        this.formData.repeatCycle = 1;
-        this.formData.repeatFrequency = '月重复';
-      } else if (option === '每年') {
-        this.formData.repeatCycle = 1;
-        this.formData.repeatFrequency = '年重复';
-      } else if (option.includes('每')) {
-        const match = option.match(/每(\d+)(天|周|月|年)/);
-        if (match) {
-          this.formData.repeatCycle = parseInt(match[1]);
-          this.formData.repeatFrequency = match[2] + '重复';
+
+    parseRepeatOption ( option: string ): void
+    {
+      if ( option === '不重复' )
+      {
+        this.formData.repeat_cycle = 0;
+        this.formData.repeat_frequency = '不重复';
+      } else if ( option === '每天' )
+      {
+        this.formData.repeat_cycle = 1;
+        this.formData.repeat_frequency = '天重复';
+      } else if ( option === '每周' )
+      {
+        this.formData.repeat_cycle = 1;
+        this.formData.repeat_frequency = '周重复';
+      } else if ( option === '每月' )
+      {
+        this.formData.repeat_cycle = 1;
+        this.formData.repeat_frequency = '月重复';
+      } else if ( option === '每年' )
+      {
+        this.formData.repeat_cycle = 1;
+        this.formData.repeat_frequency = '年重复';
+      } else if ( option.includes( '每' ) )
+      {
+        const match = option.match( /每(\d+)(天|周|月|年)/ );
+        if ( match )
+        {
+          this.formData.repeat_cycle = parseInt( match[ 1 ] );
+          const frequencyMap = {
+            '天': '天重复',
+            '周': '周重复',
+            '月': '月重复',
+            '年': '年重复'
+          } as const;
+          this.formData.repeat_frequency = frequencyMap[ match[ 2 ] as keyof typeof frequencyMap ];
         }
       }
     },
-    getRepeatText() {
-      if (this.repeatOption === '不重复') {
+
+    getRepeatText (): string
+    {
+      if ( this.repeatOption === '不重复' )
+      {
         return '不重复';
       }
       return this.repeatOption;
     },
-    formatDateDisplay(dateStr) {
-      if (!dateStr) return '';
-      const date = new Date(dateStr);
-      const year = date.getFullYear();
-      const month = date.getMonth() + 1;
-      const day = date.getDate();
-      const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
-      const weekDay = weekDays[date.getDay()];
-      return `${year}年${month}月${day}日 星期${weekDay}`;
+
+    formatDateDisplay ( dateStr: string ): string
+    {
+      return formatDate( dateStr );
     },
-    goBack() {
-      uni.navigateBack({
+
+    goBack (): void
+    {
+      uni.navigateBack( {
         delta: 1
-      });
+      } );
     },
-    handleArchive() {
-      uni.showModal({
+
+    async handleArchive (): Promise<void>
+    {
+      if ( !this.countdownId ) return;
+
+      uni.showModal( {
         title: '确认归档',
-        content: `确定要归档「${this.formData.title}」吗？归档后可在"我的"模块中查看。`,
+        content: `确定要归档「${ this.formData.title }」吗？归档后可在"我的"模块中查看。`,
         confirmText: '归档',
-        success: (res) => {
-          if (res.confirm) {
-            try {
-              db.archiveCountdown(this.countdownId);
-              uni.showToast({
+        success: async ( res ) =>
+        {
+          if ( res.confirm )
+          {
+            try
+            {
+              await apiService.archiveCountdown( this.countdownId! );
+              uni.showToast( {
                 title: '归档成功',
                 icon: 'success'
-              });
-              setTimeout(() => {
+              } );
+              setTimeout( () =>
+              {
                 this.goBack();
-              }, 1000);
-            } catch (e) {
-              uni.showToast({
+              }, 1000 );
+            } catch ( error )
+            {
+              console.error( '归档失败:', error );
+              uni.showToast( {
                 title: '归档失败',
                 icon: 'none'
-              });
+              } );
             }
           }
         }
-      });
+      } );
     },
-    handleDelete() {
-      uni.showModal({
+
+    async handleDelete (): Promise<void>
+    {
+      if ( !this.countdownId ) return;
+
+      uni.showModal( {
         title: '确认删除',
         content: '确定要删除这个倒数日吗？',
-        success: (res) => {
-          if (res.confirm) {
-            try {
-              db.deleteCountdown(this.countdownId);
-              uni.showToast({
+        success: async ( res ) =>
+        {
+          if ( res.confirm )
+          {
+            try
+            {
+              await apiService.deleteCountdown( this.countdownId! );
+              uni.showToast( {
                 title: '删除成功',
                 icon: 'success'
-              });
+              } );
               this.goBack();
-            } catch (e) {
-              uni.showToast({
+            } catch ( error )
+            {
+              console.error( '删除失败:', error );
+              uni.showToast( {
                 title: '删除失败',
                 icon: 'none'
-              });
+              } );
             }
           }
         }
-      });
+      } );
     },
-    handleSubmit() {
-      if (!this.formData.title.trim()) {
-        uni.showToast({
+
+    async handleSubmit (): Promise<void>
+    {
+      if ( !this.formData.title.trim() )
+      {
+        uni.showToast( {
           title: '请输入日程名称',
           icon: 'none'
-        });
+        } );
         return;
       }
 
-      if (!this.formData.date) {
-        uni.showToast({
+      if ( !this.formData.date )
+      {
+        uni.showToast( {
           title: '请选择日期',
           icon: 'none'
-        });
+        } );
         return;
       }
 
-      if (!this.formData.categoryId) {
-        uni.showToast({
+      if ( !this.formData.category_id )
+      {
+        uni.showToast( {
           title: '请选择分类',
           icon: 'none'
-        });
+        } );
         return;
       }
 
-      const user = db.getCurrentUser();
-      if (!user) {
-        uni.showToast({
-          title: '用户信息获取失败',
-          icon: 'none'
-        });
-        return;
-      }
-
-      try {
-        if (this.isEdit) {
-          db.updateCountdown(this.countdownId, {
+      try
+      {
+        if ( this.isEdit && this.countdownId )
+        {
+          await apiService.updateCountdown( this.countdownId, {
             title: this.formData.title,
             date: this.formData.date,
-            categoryId: this.formData.categoryId,
-            isPinned: this.formData.isPinned,
-            repeatCycle: this.formData.repeatCycle,
-            repeatFrequency: this.formData.repeatFrequency
-          });
-          uni.showToast({
+            category_id: this.formData.category_id,
+            is_pinned: this.formData.is_pinned,
+            repeat_cycle: this.formData.repeat_cycle,
+            repeat_frequency: this.formData.repeat_frequency
+          } );
+          uni.showToast( {
             title: '修改成功',
             icon: 'success'
-          });
-        } else {
-          db.addCountdown({
+          } );
+        } else
+        {
+          await apiService.createCountdown( {
+            is_pinned: false,
             title: this.formData.title,
             date: this.formData.date,
-            categoryId: this.formData.categoryId,
-            userId: user.id,
-            isPinned: this.formData.isPinned,
-            repeatCycle: this.formData.repeatCycle,
-            repeatFrequency: this.formData.repeatFrequency
-          });
-          uni.showToast({
+            category_id: this.formData.category_id,
+            repeat_cycle: this.formData.repeat_cycle,
+            repeat_frequency: this.formData.repeat_frequency
+          } );
+          uni.showToast( {
             title: '添加成功',
             icon: 'success'
-          });
+          } );
         }
-        setTimeout(() => {
+
+        setTimeout( () =>
+        {
           this.goBack();
-        }, 1000);
-      } catch (e) {
-        uni.showToast({
+        }, 1000 );
+      } catch ( error )
+      {
+        console.error( '操作失败:', error );
+        uni.showToast( {
           title: '操作失败',
           icon: 'none'
-        });
+        } );
       }
     }
   }
-};
+} );
 </script>
 
 <style scoped>

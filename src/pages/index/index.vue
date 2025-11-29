@@ -2,13 +2,13 @@
   <view class="page-container">
     <!-- 顶部导航栏 -->
     <view class="navbar">
-      <view class="navbar-icon" @click="toggleDrawer">
+      <view class="navbar-icon" @click=" toggleDrawer ">
         <text>☰</text>
       </view>
       <view class="navbar-title">
         <text>{{ user.nickname }}的倒数日</text>
       </view>
-      <view class="navbar-icon" @click="showAddCountdown">
+      <view class="navbar-icon" @click=" showAddCountdown ">
         <text>+</text>
       </view>
     </view>
@@ -16,115 +16,94 @@
     <!-- 主体内容 -->
     <scroll-view scroll-y class="page-content">
       <!-- 置顶日程容器（独立显示在最上方） -->
-      <view v-if="pinnedCountdowns.length > 0" class="countdown-section">
+      <view v-if=" pinnedCountdowns.length > 0 " class="countdown-section">
         <view class="section-header">
           <text class="section-title">置顶</text>
           <text class="section-count">{{ pinnedCountdowns.length }}个</text>
         </view>
-        <view 
-          v-for="countdown in pinnedCountdowns" 
-          :key="countdown.id"
-          class="countdown-card shadow pinned-card"
-          :class="{ 'past-card': calculateDays(countdown.displayDate) < 0 }"
-          @click="handleCountdownClick(countdown)"
-        >
+        <view v-for=" countdown in pinnedCountdowns " :key=" countdown.id " class="countdown-card shadow pinned-card"
+          :class=" { 'past-card': calculateDays( countdown.displayDate ) < 0 } "
+          @click="handleCountdownClick( countdown )">
           <view class="pin-badge">
             <text>📌</text>
           </view>
-          <view class="countdown-main" :class="{ 'past-main': calculateDays(countdown.displayDate) < 0 }">
-            <text class="countdown-number">{{ getAbsoluteDays(countdown.displayDate) }}</text>
+          <view class="countdown-main" :class=" { 'past-main': calculateDays( countdown.displayDate ) < 0 } ">
+            <text class="countdown-number">{{ getAbsoluteDays( countdown.displayDate ) }}</text>
             <text class="countdown-unit">天</text>
           </view>
           <view class="countdown-info">
             <text class="countdown-title">{{ countdown.title }}</text>
-            <text class="countdown-date">{{ formatDate(countdown.displayDate) }}</text>
+            <text class="countdown-date">{{ formatDate( countdown.displayDate ) }}</text>
             <view class="countdown-category">
-              <view 
-                class="category-dot" 
-                :style="{ backgroundColor: getCategoryColor(countdown.categoryId) }"
-              ></view>
-              <text class="category-name">{{ getCategoryName(countdown.categoryId) }}</text>
+              <view class="category-dot" :style=" { backgroundColor: getCategoryColor( countdown.category_id ) } ">
+              </view>
+              <text class="category-name">{{ getCategoryName( countdown.category_id ) }}</text>
             </view>
           </view>
         </view>
       </view>
 
       <!-- 未来倒数日（包含置顶的） -->
-      <view v-if="futureCountdowns.length > 0" class="countdown-section">
+      <view v-if=" futureCountdowns.length > 0 " class="countdown-section">
         <view class="section-header">
           <text class="section-title">未来</text>
           <text class="section-count">{{ futureCountdowns.length }}个</text>
         </view>
-        <view 
-          v-for="countdown in futureCountdowns" 
-          :key="countdown.id"
-          class="countdown-card shadow"
-          :class="{ 
-            'pinned-card': countdown.isPinned,
-            'past-card': calculateDays(countdown.displayDate) < 0 
-          }"
-          @click="handleCountdownClick(countdown)"
-        >
-          <view v-if="countdown.isPinned" class="pin-badge">
+        <view v-for=" countdown in futureCountdowns " :key=" countdown.id " class="countdown-card shadow" :class=" {
+          'pinned-card': countdown.is_pinned,
+          'past-card': calculateDays( countdown.displayDate ) < 0
+        } " @click="handleCountdownClick( countdown )">
+          <view v-if=" countdown.is_pinned " class="pin-badge">
             <text>📌</text>
           </view>
-          <view class="countdown-main" :class="{ 'past-main': calculateDays(countdown.displayDate) < 0 }">
-            <text class="countdown-number">{{ getAbsoluteDays(countdown.displayDate) }}</text>
+          <view class="countdown-main" :class=" { 'past-main': calculateDays( countdown.displayDate ) < 0 } ">
+            <text class="countdown-number">{{ getAbsoluteDays( countdown.displayDate ) }}</text>
             <text class="countdown-unit">天</text>
           </view>
           <view class="countdown-info">
             <text class="countdown-title">{{ countdown.title }}</text>
-            <text class="countdown-date">{{ formatDate(countdown.displayDate) }}</text>
+            <text class="countdown-date">{{ formatDate( countdown.displayDate ) }}</text>
             <view class="countdown-category">
-              <view 
-                class="category-dot" 
-                :style="{ backgroundColor: getCategoryColor(countdown.categoryId) }"
-              ></view>
-              <text class="category-name">{{ getCategoryName(countdown.categoryId) }}</text>
+              <view class="category-dot" :style=" { backgroundColor: getCategoryColor( countdown.category_id ) } ">
+              </view>
+              <text class="category-name">{{ getCategoryName( countdown.category_id ) }}</text>
             </view>
           </view>
         </view>
       </view>
 
       <!-- 已经倒数日（包含置顶的） -->
-      <view v-if="pastCountdowns.length > 0" class="countdown-section">
+      <view v-if=" pastCountdowns.length > 0 " class="countdown-section">
         <view class="section-header">
           <text class="section-title">已经</text>
           <text class="section-count">{{ pastCountdowns.length }}个</text>
         </view>
-        <view 
-          v-for="countdown in pastCountdowns" 
-          :key="countdown.id"
-          class="countdown-card shadow past-card"
-          :class="{ 'pinned-card': countdown.isPinned }"
-          @click="handleCountdownClick(countdown)"
-        >
-          <view v-if="countdown.isPinned" class="pin-badge">
+        <view v-for=" countdown in pastCountdowns " :key=" countdown.id " class="countdown-card shadow past-card"
+          :class=" { 'pinned-card': countdown.is_pinned } " @click="handleCountdownClick( countdown )">
+          <view v-if=" countdown.is_pinned " class="pin-badge">
             <text>📌</text>
           </view>
           <view class="countdown-main past-main">
-            <text class="countdown-number">{{ getAbsoluteDays(countdown.displayDate) }}</text>
+            <text class="countdown-number">{{ getAbsoluteDays( countdown.displayDate ) }}</text>
             <text class="countdown-unit">天</text>
           </view>
           <view class="countdown-info">
             <text class="countdown-title">{{ countdown.title }}</text>
-            <text class="countdown-date">{{ formatDate(countdown.displayDate) }}</text>
+            <text class="countdown-date">{{ formatDate( countdown.displayDate ) }}</text>
             <view class="countdown-category">
-              <view 
-                class="category-dot" 
-                :style="{ backgroundColor: getCategoryColor(countdown.categoryId) }"
-              ></view>
-              <text class="category-name">{{ getCategoryName(countdown.categoryId) }}</text>
+              <view class="category-dot" :style=" { backgroundColor: getCategoryColor( countdown.category_id ) } ">
+              </view>
+              <text class="category-name">{{ getCategoryName( countdown.category_id ) }}</text>
             </view>
           </view>
         </view>
       </view>
 
       <!-- 空状态 -->
-      <view v-if="allCountdowns.length === 0" class="empty-state">
+      <view v-if=" allCountdowns.length === 0 " class="empty-state">
         <text class="empty-icon">📅</text>
         <text class="empty-text">还没有倒数日</text>
-        <view class="btn btn-primary" @click="showAddCountdown">
+        <view class="btn btn-primary" @click=" showAddCountdown ">
           <text>添加第一个倒数日</text>
         </view>
       </view>
@@ -134,37 +113,30 @@
     </scroll-view>
 
     <!-- 侧边抽屉 -->
-    <view v-if="drawerVisible" class="drawer-mask" @click="toggleDrawer"></view>
-    <view class="drawer" :class="{ 'drawer-open': drawerVisible }">
+    <view v-if=" drawerVisible " class="drawer-mask" @click=" toggleDrawer "></view>
+    <view class="drawer" :class=" { 'drawer-open': drawerVisible } ">
       <view class="drawer-header">
         <text class="drawer-title">倒数本</text>
-        <view class="drawer-close" @click="toggleDrawer">
+        <view class="drawer-close" @click=" toggleDrawer ">
           <text>✕</text>
         </view>
       </view>
       <scroll-view scroll-y class="drawer-content">
         <view class="category-list">
-          <view 
-            class="category-drawer-item"
-            @click="handleAllCategory"
-          >
+          <view class="category-drawer-item" @click=" handleAllCategory ">
             <view class="category-drawer-icon" style="background-color: #1890ff;">
               <text>📋</text>
             </view>
             <text class="category-drawer-name">全部</text>
             <text class="category-drawer-count">{{ allCountdowns.length }}</text>
           </view>
-          <view 
-            v-for="category in categories" 
-            :key="category.id"
-            class="category-drawer-item"
-            @click="handleCategoryClick(category)"
-          >
-            <view class="category-drawer-icon" :style="{ backgroundColor: category.color }">
+          <view v-for=" category in categories " :key=" category.id " class="category-drawer-item"
+            @click="handleCategoryClick( category )">
+            <view class="category-drawer-icon" :style=" { backgroundColor: category.color } ">
               <text>{{ category.icon }}</text>
             </view>
             <text class="category-drawer-name">{{ category.name }}</text>
-            <text class="category-drawer-count">{{ getCategoryCount(category.id) }}</text>
+            <text class="category-drawer-count">{{ getCategoryCount( category.id ) }}</text>
           </view>
         </view>
       </scroll-view>
@@ -172,117 +144,275 @@
 
   </view>
 </template>
+<script lang="ts">
+import { defineComponent } from 'vue';
+import apiService from '@/services/apiService';
+import { calculateDays, getAbsoluteDays, formatDate, getRepeatText } from '@/utils/countdownUtils';
+import { User, Category, Countdown } from 'types';
 
-<script>
-import db from '../../utils/db.js';
+// 扩展 Countdown 接口，添加 displayDate 字段
+interface CountdownWithDisplayDate extends Countdown
+{
+  displayDate: string;
+}
 
-export default {
+interface IndexPageData
+{
+  user: User;
+  allCountdowns: Countdown[];
+  categories: Category[];
+  drawerVisible: boolean;
+}
+
+export default defineComponent( {
   name: 'Index',
-  components: {},
 
-  data() {
+  data (): IndexPageData
+  {
     return {
       user: {
         id: 1,
-        nickname: '张三'
+        nickname: '张三',
+        avatar: '',
+        created_at: '',
+        updated_at: ''
       },
       allCountdowns: [],
       categories: [],
       drawerVisible: false
     };
   },
+
   computed: {
     // 为每个倒数日计算显示日期（考虑重复日程的未来最近日期）
-    countdownsWithDisplayDate() {
-      return this.allCountdowns.map(countdown => {
+    countdownsWithDisplayDate (): CountdownWithDisplayDate[]
+    {
+      return this.allCountdowns.map( countdown =>
+      {
         let displayDate = countdown.date;
-        
+
         // 如果是重复日程，计算未来最近的日期
-        if (countdown.repeatCycle > 0 && countdown.repeatFrequency !== '不重复') {
-          displayDate = db.getNextRepeatDate(countdown.date, countdown.repeatCycle, countdown.repeatFrequency);
+        if ( countdown.repeat_cycle > 0 && countdown.repeat_frequency !== '不重复' )
+        {
+          displayDate = this.getNextRepeatDate( countdown.date, countdown.repeat_cycle, countdown.repeat_frequency );
         }
-        
+
         return {
           ...countdown,
           displayDate
         };
-      });
+      } );
     },
+
     // 置顶日程（独立的置顶容器）- 按编辑时间排序，最新编辑的在前
-    pinnedCountdowns() {
+    pinnedCountdowns (): CountdownWithDisplayDate[]
+    {
       return this.countdownsWithDisplayDate
-        .filter(cd => cd.isPinned)
-        .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        .filter( cd => cd.is_pinned )
+        .sort( ( a, b ) => new Date( b.updated_at ).getTime() - new Date( a.updated_at ).getTime() );
     },
-    // 未来倒数日（包含置顶的）- 按日期排序
-    futureCountdowns() {
-      const future = this.countdownsWithDisplayDate.filter(cd => db.calculateDays(cd.displayDate) >= 0);
-      return future.sort((a, b) => db.calculateDays(a.displayDate) - db.calculateDays(b.displayDate));
+
+    // 未来倒数日（不包含置顶的）- 按日期排序
+    futureCountdowns (): CountdownWithDisplayDate[]
+    {
+      const future = this.countdownsWithDisplayDate
+        .filter( cd => !cd.is_pinned && calculateDays( cd.displayDate ) >= 0 );
+      return future.sort( ( a, b ) => calculateDays( a.displayDate ) - calculateDays( b.displayDate ) );
     },
-    // 已经倒数日（包含置顶的）- 按日期排序
-    pastCountdowns() {
-      const past = this.countdownsWithDisplayDate.filter(cd => db.calculateDays(cd.displayDate) < 0);
-      return past.sort((a, b) => db.calculateDays(b.displayDate) - db.calculateDays(a.displayDate));
+
+    // 已经倒数日（不包含置顶的）- 按日期排序
+    pastCountdowns (): CountdownWithDisplayDate[]
+    {
+      const past = this.countdownsWithDisplayDate
+        .filter( cd => !cd.is_pinned && calculateDays( cd.displayDate ) < 0 );
+      return past.sort( ( a, b ) => calculateDays( b.displayDate ) - calculateDays( a.displayDate ) );
     }
   },
-  onShow() {
+
+  onShow (): void
+  {
     this.loadData();
   },
+
   methods: {
-    loadData() {
-      const currentUser = db.getCurrentUser();
-      if (currentUser) {
+    async loadData (): Promise<void>
+    {
+      try
+      {
+        // 获取当前用户信息
+        const currentUser = await apiService.getCurrentUser();
         this.user = currentUser;
-        this.allCountdowns = db.getCountdowns(currentUser.id);
-        this.categories = db.getCategories(currentUser.id);
+
+        // 获取分类和倒数日数据
+        const [ countdownsRes, categoriesRes ] = await Promise.all( [
+          apiService.getCountdowns(),
+          apiService.getCategories()
+        ] );
+
+        this.allCountdowns = countdownsRes;
+        this.categories = categoriesRes;
+      } catch ( error )
+      {
+        console.error( '加载数据失败:', error );
+        uni.showToast( {
+          title: '加载失败',
+          icon: 'none'
+        } );
       }
     },
-    calculateDays(targetDate) {
-      return db.calculateDays(targetDate);
+
+    calculateDays ( targetDate: string ): number
+    {
+      return calculateDays( targetDate );
     },
-    getAbsoluteDays(targetDate) {
-      return Math.abs(db.calculateDays(targetDate));
+
+    getAbsoluteDays ( targetDate: string ): number
+    {
+      return getAbsoluteDays( targetDate );
     },
-    formatDate(dateStr) {
-      return db.formatDate(dateStr);
+
+    formatDate ( dateStr: string ): string
+    {
+      return formatDate( dateStr );
     },
-    getCategoryColor(categoryId) {
-      const category = this.categories.find(c => c.id === categoryId);
+
+    getCategoryColor ( category_id: number ): string
+    {
+      const category = this.categories.find( c => c.id === category_id );
       return category ? category.color : '#1890ff';
     },
-    getCategoryName(categoryId) {
-      const category = this.categories.find(c => c.id === categoryId);
+
+    getCategoryName ( category_id: number ): string
+    {
+      const category = this.categories.find( c => c.id === category_id );
       return category ? category.name : '未分类';
     },
-    getCategoryCount(categoryId) {
-      return this.allCountdowns.filter(cd => cd.categoryId === categoryId).length;
+
+    getCategoryCount ( category_id: number ): number
+    {
+      return this.allCountdowns.filter( cd => cd.category_id === category_id ).length;
     },
-    toggleDrawer() {
+
+    toggleDrawer (): void
+    {
       this.drawerVisible = !this.drawerVisible;
     },
-    showAddCountdown() {
-      uni.navigateTo({
+
+    showAddCountdown (): void
+    {
+      uni.navigateTo( {
         url: '/pages/edit/edit'
-      });
+      } );
     },
 
-    handleCountdownClick(countdown) {
-      uni.navigateTo({
-        url: `/pages/detail/detail?id=${countdown.id}`
-      });
+    handleCountdownClick ( countdown: CountdownWithDisplayDate ): void
+    {
+      uni.navigateTo( {
+        url: `/pages/detail/detail?id=${ countdown.id }`
+      } );
     },
 
-    handleAllCategory() {
+    handleAllCategory (): void
+    {
       this.drawerVisible = false;
     },
-    handleCategoryClick(category) {
+
+    handleCategoryClick ( category: Category ): void
+    {
       this.drawerVisible = false;
-      uni.navigateTo({
-        url: `/pages/categories/categories?categoryId=${category.id}`
-      });
+      uni.navigateTo( {
+        url: `/pages/categories/categories?category_id=${ category.id }`
+      } );
+    },
+
+    // 获取重复日程的未来最近日期
+    getNextRepeatDate (
+      originalDate: string,
+      repeatCycle: number,
+      repeatFrequency: '不重复' | '天重复' | '周重复' | '月重复' | '年重复'
+    ): string
+    {
+      // 如果不是重复日程，返回原日期
+      if ( repeatCycle === 0 || repeatFrequency === '不重复' )
+      {
+        return originalDate;
+      }
+
+      const today = new Date();
+      today.setHours( 0, 0, 0, 0 );
+
+      let nextDate = new Date( originalDate );
+      nextDate.setHours( 0, 0, 0, 0 );
+
+      // 如果起始日期在未来，直接返回
+      if ( nextDate > today )
+      {
+        return originalDate;
+      }
+
+      // 循环计算下一个未来日期
+      while ( nextDate <= today )
+      {
+        switch ( repeatFrequency )
+        {
+          case '天重复':
+            nextDate.setDate( nextDate.getDate() + repeatCycle );
+            break;
+          case '周重复':
+            nextDate.setDate( nextDate.getDate() + repeatCycle * 7 );
+            break;
+          case '月重复':
+            nextDate.setMonth( nextDate.getMonth() + repeatCycle );
+            break;
+          case '年重复':
+            nextDate.setFullYear( nextDate.getFullYear() + repeatCycle );
+            break;
+        }
+      }
+
+      // 格式化为 YYYY-MM-DD
+      const year = nextDate.getFullYear();
+      const month = String( nextDate.getMonth() + 1 ).padStart( 2, '0' );
+      const day = String( nextDate.getDate() ).padStart( 2, '0' );
+      return `${ year }-${ month }-${ day }`;
+    },
+
+    // 获取重复文本
+    getRepeatText ( repeatCycle: number, repeatFrequency: string ): string
+    {
+      return getRepeatText( repeatCycle, repeatFrequency as any );
+    },
+
+    // 切换置顶状态
+    async handleTogglePin ( countdown: CountdownWithDisplayDate ): Promise<void>
+    {
+      try
+      {
+        await apiService.togglePinCountdown( countdown.id );
+
+        // 更新本地数据
+        const index = this.allCountdowns.findIndex( cd => cd.id === countdown.id );
+        if ( index !== -1 )
+        {
+          this.allCountdowns[ index ].is_pinned = !this.allCountdowns[ index ].is_pinned;
+          this.allCountdowns[ index ].updated_at = new Date().toISOString();
+        }
+
+        uni.showToast( {
+          title: countdown.is_pinned ? '已取消置顶' : '已置顶',
+          icon: 'success'
+        } );
+      } catch ( error )
+      {
+        console.error( '操作失败:', error );
+        uni.showToast( {
+          title: '操作失败',
+          icon: 'none'
+        } );
+      }
     }
   }
-};
+} );
 </script>
 
 <style scoped>

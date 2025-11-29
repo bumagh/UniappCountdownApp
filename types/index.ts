@@ -50,6 +50,7 @@ export interface ApiResponse<T = any>
 // 表单类型
 export interface CountdownForm
 {
+    is_pinned: boolean;
     title: string;
     date: string;
     category_id: number;
