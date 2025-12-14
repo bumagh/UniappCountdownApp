@@ -38,6 +38,7 @@
     "@dcloudio/uni-cli-shared": "3.0.0-4030620241128001",
     "@dcloudio/uni-stacktracey": "3.0.0-4030620241128001",
     "@dcloudio/vite-plugin-uni": "3.0.0-4030620241128001",
+    "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/runtime-core": "^3.4.21",
     "@vue/tsconfig": "^0.1.3",
