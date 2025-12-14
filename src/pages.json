@@ -37,35 +37,47 @@
         "navigationStyle": "custom",
         "enablePullDownRefresh": false
       }
-    },
+    }
+  ],
+  "subPackages": [
     {
-      "path": "pages/detail/detail",
-      "style": {
-        "navigationBarTitleText": "倒数日详情",
-        "navigationStyle": "custom",
-        "enablePullDownRefresh": false
-      }
-    },
-    {
-      "path": "pages/edit/edit",
-      "style": {
-        "navigationBarTitleText": "编辑倒数日",
-        "navigationStyle": "custom",
-        "enablePullDownRefresh": false
-      }
-    },
-    {
-      "path": "pages/book-edit/book-edit",
+      "path": "subpackages/book-edit/book-edit",
       "style": {
         "navigationBarTitleText": "编辑倒数本",
         "navigationStyle": "custom",
         "enablePullDownRefresh": false
       }
+    },
+    {
+      "root": "subpackages/detail",
+      "pages": [
+        {
+          "path": "detail",
+          "style": {
+            "navigationBarTitleText": "倒数日详情",
+            "navigationStyle": "custom",
+            "enablePullDownRefresh": false
+          }
+        }
+      ]
+    },
+    {
+      "root": "subpackages/edit",
+      "pages": [
+        {
+          "path": "edit",
+          "style": {
+            "navigationBarTitleText": "编辑倒数日",
+            "navigationStyle": "custom",
+            "enablePullDownRefresh": false
+          }
+        }
+      ]
     }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "white",
-    "navigationBarTitleText": "时光倒数 By HAISNAP",
+    "navigationBarTitleText": "",
     "navigationBarBackgroundColor": "#1890ff",
     "backgroundColor": "#f0f7ff"
   },
