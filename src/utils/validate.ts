@@ -1,11 +1,11 @@
 /**
  * 验证手机号
- * @param phone 手机号
+ * @param username 手机号
  * @returns 是否有效
  */
-export function validatePhone(phone: string): boolean {
+export function validateUsername(username: string): boolean {
     const reg = /^1[3-9]\d{9}$/;
-    return reg.test(phone);
+    return reg.test(username);
   }
   
   /**

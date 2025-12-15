@@ -8,7 +8,7 @@ import
     CountdownForm,
     CountdownQueryParams
 } from 'types';
-import { LoginByPasswordParams, LoginByPhoneParams, LoginResponse } from '@/types/index';
+import { LoginByPasswordParams, LoginByUsernameParams, LoginResponse } from '@/types/index';
 
 /**
  * 密码登录
@@ -25,8 +25,8 @@ export async function loginByPassword(params: LoginByPasswordParams): Promise<Lo
           token: 'mock_token_' + Date.now(),
           user: {
             id: 1,
-            // nickname: '用户' + params.phone.slice(-4),
-            nickname: params.phone,
+            // nickname: '用户' + params.username.slice(-4),
+            nickname: params.username,
             avatar: '',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
@@ -36,7 +36,32 @@ export async function loginByPassword(params: LoginByPasswordParams): Promise<Lo
     }, 1000);
   });
 }
-
+/**
+ * 密码登录
+ */
+export async function register(params: LoginByPasswordParams): Promise<LoginResponse> {
+  // 实际项目中替换为真实的API调用
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // 模拟登录成功
+      resolve({
+        success: true,
+        message: '登录成功',
+        data: {
+          token: 'mock_token_' + Date.now(),
+          user: {
+            id: 1,
+            // nickname: '用户' + params.username.slice(-4),
+            nickname: params.username,
+            avatar: '',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        }
+      });
+    }, 1000);
+  });
+}
 /**
  * 获取当前用户信息
  */
