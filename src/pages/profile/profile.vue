@@ -266,6 +266,7 @@
 </template>
 
 <script>
+import apiService from '@/services/apiService';
 import db from '../../utils/db.js';
 
 export default {
@@ -370,6 +371,16 @@ export default {
       });
     },
     handleAvatarClick() {
+      uni.showModal({
+        title: '提示',
+        content: '功能未开放',
+        showCancel: false,
+        confirmText: '确定',
+        success: (res) => {
+        
+        }
+      });
+      return;
       uni.showActionSheet({
         itemList: ['从相册选择', '拍照', '恢复默认'],
         success: (res) => {
@@ -464,7 +475,7 @@ export default {
       this.nicknameModalVisible = false;
       this.newNickname = '';
     },
-    saveNickname() {
+    async saveNickname() {
       if (!this.newNickname.trim()) {
         uni.showToast({
           title: '昵称不能为空',
@@ -472,9 +483,9 @@ export default {
         });
         return;
       }
-
-      const updated = db.updateUser(this.user.id, { nickname: this.newNickname });
-      if (updated) {
+      const updated=  await apiService.updateUser({id:this.user.id, nickname: this.newNickname });
+      // const updated = db.updateUser(this.user.id, { nickname: this.newNickname });
+      if (updated) { 
         this.user.nickname = this.newNickname;
         uni.showToast({
           title: '修改成功',
