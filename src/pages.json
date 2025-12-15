@@ -41,7 +41,7 @@
   ],
   "subPackages": [
     {
-      "path": "subpackages/book-edit/book-edit",
+      "root": "src/subpackages/book-edit/book-edit",
       "style": {
         "navigationBarTitleText": "编辑倒数本",
         "navigationStyle": "custom",
@@ -49,7 +49,7 @@
       }
     },
     {
-      "root": "subpackages/detail",
+      "root": "src/subpackages/detail",
       "pages": [
         {
           "path": "detail",
@@ -62,12 +62,25 @@
       ]
     },
     {
-      "root": "subpackages/edit",
+      "root": "src/subpackages/edit",
       "pages": [
         {
           "path": "edit",
           "style": {
             "navigationBarTitleText": "编辑倒数日",
+            "navigationStyle": "custom",
+            "enablePullDownRefresh": false
+          }
+        }
+      ]
+    },
+    {
+      "root": "src/subpackages/login",
+      "pages": [
+        {
+          "path": "login",
+          "style": {
+            "navigationBarTitleText": "登录",
             "navigationStyle": "custom",
             "enablePullDownRefresh": false
           }

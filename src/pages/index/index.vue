@@ -308,7 +308,7 @@ export default defineComponent( {
     handleCountdownClick ( countdown: CountdownWithDisplayDate ): void
     {
       uni.navigateTo( {
-        url: `/pages/detail/detail?id=${ countdown.id }`
+        url: `/subpackages/detail/detail?id=${ countdown.id }`
       } );
     },
 

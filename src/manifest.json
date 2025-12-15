@@ -5,6 +5,9 @@
     "versionName" : "1.0.0",
     "versionCode" : "100",
     "transformPx" : false,
+    "optimization" : {
+        "subPackages" : true
+    },
     "app-plus" : {
         "usingComponents" : true,
         "nvueStyleCompiler" : "uni-app",

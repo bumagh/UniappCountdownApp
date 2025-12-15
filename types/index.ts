@@ -64,3 +64,23 @@ export interface CountdownQueryParams
     category_id?: number;
     include_archived?: number;
 }
+// 登录请求参数
+export interface LoginByPasswordParams {
+    phone: string;
+    password: string;
+  }
+  
+  export interface LoginByPhoneParams {
+    phone: string;
+    code: string;
+  }
+  
+  // 登录响应
+  export interface LoginResponse {
+    success: boolean;
+    message: string;
+    data: {
+      token: string;
+      user: User;
+    };
+  }

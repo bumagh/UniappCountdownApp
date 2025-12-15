@@ -8,7 +8,51 @@ import
     CountdownForm,
     CountdownQueryParams
 } from 'types';
+import { LoginByPasswordParams, LoginByPhoneParams, LoginResponse } from '@/types/index';
 
+/**
+ * 密码登录
+ */
+export async function loginByPassword(params: LoginByPasswordParams): Promise<LoginResponse> {
+  // 实际项目中替换为真实的API调用
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // 模拟登录成功
+      resolve({
+        success: true,
+        message: '登录成功',
+        data: {
+          token: 'mock_token_' + Date.now(),
+          user: {
+            id: 1,
+            // nickname: '用户' + params.phone.slice(-4),
+            nickname: params.phone,
+            avatar: '',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        }
+      });
+    }, 1000);
+  });
+}
+
+/**
+ * 获取当前用户信息
+ */
+export async function getCurrentUser(): Promise<any> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        id: 1,
+        nickname: '张三',
+        avatar: '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    }, 500);
+  });
+}
 class ApiService
 {
     // 用户相关
