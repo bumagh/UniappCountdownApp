@@ -16,12 +16,7 @@
       <!-- 用户信息卡片 -->
       <view class="user-card shadow-lg">
         <view class="user-avatar-wrapper">
-          <image 
-            class="user-avatar" 
-            :src="user.avatar" 
-            mode="aspectFill"
-            @click="handleAvatarClick"
-          />
+          <image class="user-avatar" :src="user.avatar" mode="aspectFill" @click="handleAvatarClick" />
           <view class="avatar-edit-btn">
             <text>✎</text>
           </view>
@@ -87,11 +82,7 @@
               <text class="menu-label">提醒功能</text>
             </view>
             <view class="menu-item-right">
-              <switch 
-                :checked="reminderEnabled" 
-                @change="handleReminderToggle"
-                color="#1890ff"
-              />
+              <switch :checked="reminderEnabled" @change="handleReminderToggle" color="#1890ff" />
             </view>
           </view>
         </view>
@@ -115,7 +106,6 @@
               <text class="menu-arrow">›</text>
             </view>
           </view>
-
           <view class="menu-item" @click="handleDataManagement">
             <view class="menu-item-left">
               <view class="menu-icon" style="background-color: #39b54a;">
@@ -160,6 +150,24 @@
               <text class="menu-arrow">›</text>
             </view>
           </view>
+
+          <view class="menu-item" @click="handleLogout">
+            <view class="menu-item-left">
+              <view class="menu-icon" style="background-color: #8799a3;">
+                <svg t="1765798759622" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                  xmlns="http://www.w3.org/2000/svg" p-id="5673" width="200" height="200">
+                  <path
+                    d="M874.666667 855.744a19.093333 19.093333 0 0 1-19.136 18.922667H168.469333A19.2 19.2 0 0 1 149.333333 855.530667V168.469333A19.2 19.2 0 0 1 168.469333 149.333333h687.061334c10.581333 0 19.136 8.533333 19.136 18.922667V320h42.666666V168.256A61.717333 61.717333 0 0 0 855.530667 106.666667H168.469333A61.866667 61.866667 0 0 0 106.666667 168.469333v687.061334A61.866667 61.866667 0 0 0 168.469333 917.333333h687.061334A61.76 61.76 0 0 0 917.333333 855.744V704h-42.666666v151.744zM851.84 533.333333l-131.797333 131.754667a21.141333 21.141333 0 0 0 0.213333 29.973333 21.141333 21.141333 0 0 0 29.973333 0.192l165.589334-165.589333a20.821333 20.821333 0 0 0 6.122666-14.976 21.44 21.44 0 0 0-6.314666-14.997333l-168.533334-168.533334a21.141333 21.141333 0 0 0-29.952-0.213333 21.141333 21.141333 0 0 0 0.213334 29.973333L847.296 490.666667H469.333333v42.666666h382.506667z"
+                    fill="#3D3D3D" p-id="5674"></path>
+                </svg>
+
+              </view>
+              <text class="menu-label">退出登录</text>
+            </view>
+            <view class="menu-item-right">
+              <text class="menu-arrow">›</text>
+            </view>
+          </view>
         </view>
       </view>
 
@@ -178,12 +186,8 @@
       </view>
       <scroll-view scroll-y class="drawer-content">
         <view class="category-list">
-          <view 
-            v-for="category in categories" 
-            :key="category.id"
-            class="category-drawer-item"
-            @click="handleCategoryClick(category)"
-          >
+          <view v-for="category in categories" :key="category.id" class="category-drawer-item"
+            @click="handleCategoryClick(category)">
             <view class="category-drawer-icon" :style="{ backgroundColor: category.color }">
               <text>{{ category.icon }}</text>
             </view>
@@ -204,12 +208,7 @@
           </view>
         </view>
         <view class="modal-body">
-          <input 
-            class="nickname-input" 
-            v-model="newNickname" 
-            placeholder="请输入新昵称"
-            maxlength="10"
-          />
+          <input class="nickname-input" v-model="newNickname" placeholder="请输入新昵称" maxlength="10" />
         </view>
         <view class="modal-footer">
           <view class="btn btn-ghost" @click="closeNicknameModal">
@@ -233,11 +232,7 @@
         </view>
         <scroll-view scroll-y class="archive-body">
           <view v-if="archivedCountdowns.length > 0" class="archived-list">
-            <view 
-              v-for="countdown in archivedCountdowns" 
-              :key="countdown.id"
-              class="archived-item shadow"
-            >
+            <view v-for="countdown in archivedCountdowns" :key="countdown.id" class="archived-item shadow">
               <view class="archived-item-content">
                 <view class="archived-item-left">
                   <view class="archived-icon" :style="{ backgroundColor: getCategoryColor(countdown.categoryId) }">
@@ -322,13 +317,13 @@ export default {
     },
     calculateStats() {
       if (!this.user.id) return;
-      
+
       const countdowns = db.getCountdowns(this.user.id);
       this.countdownStats.total = countdowns.length;
-      
+
       let future = 0;
       let past = 0;
-      
+
       countdowns.forEach(countdown => {
         const days = db.calculateDays(countdown.date);
         if (days >= 0) {
@@ -337,7 +332,7 @@ export default {
           past++;
         }
       });
-      
+
       this.countdownStats.future = future;
       this.countdownStats.past = past;
     },
@@ -477,7 +472,7 @@ export default {
         });
         return;
       }
-      
+
       const updated = db.updateUser(this.user.id, { nickname: this.newNickname });
       if (updated) {
         this.user.nickname = this.newNickname;
@@ -600,6 +595,40 @@ export default {
         title: '关于时光倒数',
         content: '时光倒数 v1.0.0\n一款简洁优雅的倒数日管理工具\n\nBy HAISNAP',
         showCancel: false
+      });
+    }
+    ,
+    handleLogout() {
+      uni.showModal({
+        title: '退出登录',
+        content: '确定要退出登录吗？',
+        success: (res) => {
+          if (res.confirm) {
+            // 1. 清除本地存储
+            uni.clearStorageSync();
+
+            // 2. 清除数据库中的登录状态（如果需要）
+            // db.logout();
+
+            // 3. 跳转到登录页
+            uni.reLaunch({
+              url: '/subpackages/login/login',
+              success: () => {
+                uni.showToast({
+                  title: '已退出登录',
+                  icon: 'success'
+                });
+              },
+              fail: (err) => {
+                uni.showToast({
+                  title: '跳转失败',
+                  icon: 'none'
+                });
+                console.error('跳转到登录页失败:', err);
+              }
+            });
+          }
+        }
       });
     }
   }
