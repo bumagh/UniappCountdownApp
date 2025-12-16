@@ -3,16 +3,13 @@
     <!-- 顶部导航栏 -->
     <view class="navbar">
       <view class="navbar-title">
-        <text>登录</text>
+        <text>注册</text>
       </view>
     </view>
 
     <!-- 主体内容 -->
     <scroll-view class="page-content">
       <view class="login-container">
-        <!-- 欢迎标题 -->
-
-        <!-- 登录表单 -->
         <view class="form-section">
           <!-- 用户名输入 -->
           <view class="input-group">
@@ -41,73 +38,27 @@
               </view>
             </view>
           </view>
-
-          <!-- 记住密码和忘记密码 -->
-          <view class="form-options">
-            <view class="remember-me" @click="toggleRemember">
-              <view class="checkbox" :class="{ 'checkbox-checked': form.remember }">
-                <text v-if="form.remember" class="checkbox-icon">✓</text>
-              </view>
-              <text class="checkbox-label">记住密码</text>
+          <view class="input-group">
+            <view class="input-label">
+              <text>确认密码</text>
             </view>
-            <view class="forgot-password" @click="">
-              <text>忘记密码？</text>
+            <view class="input-wrapper">
+              <input v-model="form.passwordCheck" :type="showPassword ? 'text' : 'password'" placeholder="请输入密码"
+                placeholder-class="input-placeholder" class="input-field" maxlength="20" />
+              <view class="input-action" @click="togglePassword">
+                <text>{{ showPassword ? '👁️‍🗨️' : '👁️' }}</text>
+              </view>
             </view>
           </view>
 
           <!-- 登录按钮 -->
-          <view class="btn btn-primary login-btn" :class="{ 'btn-disabled': !isFormValid }" @click="handleLogin">
-            <text>登录</text>
+          <view class="btn btn-primary login-btn" :class="{ 'btn-disabled': !isFormValid }" @click="handleRegister">
+            <text>注册</text>
           </view>
-
-          <!-- 注册链接 -->
-          <view class="register-link">
-            <text>还没有账号？</text>
-            <text class="register-text" @click="handleRegister">立即注册</text>
-          </view>
-
-          <!-- 其他登录方式 -->
-          <!-- <view class="other-login">
-              <view class="divider">
-                <view class="divider-line"></view>
-                <text class="divider-text">其他方式登录</text>
-                <view class="divider-line"></view>
-              </view>
-              <view class="login-methods">
-                <view class="method-item" @click="handleWechatLogin">
-                  <view class="method-icon wechat">
-                    <text>💬</text>
-                  </view>
-                  <text class="method-name">微信</text>
-                </view>
-                <view class="method-item" @click="handleQQLogin">
-                  <view class="method-icon qq">
-                    <text>🐧</text>
-                  </view>
-                  <text class="method-name">QQ</text>
-                </view>
-                <view class="method-item" @click="handleusernameLogin">
-                  <view class="method-icon username">
-                    <text>📱</text>
-                  </view>
-                  <text class="method-name">短信验证</text>
-                </view>
-              </view>
-            </view> -->
-        </view>
-
-        <!-- 协议声明 -->
-        <view class="agreement">
-          <text class="agreement-text">登录即表示同意</text>
-          <text class="agreement-link" @click="">《用户协议》</text>
-          <text class="agreement-text">和</text>
-          <text class="agreement-link" @click="">《隐私政策》</text>
         </view>
       </view>
     </scroll-view>
 
-    <!-- 加载提示 -->
-    <!-- // <uni-load-more v-if="loading" :status="loading ? 'loading' : 'more'" color="#1890ff"></uni-load-more> -->
   </view>
 </template>
 
@@ -117,27 +68,27 @@ import apiService from '@/services/apiService';
 import { validateUsername, validatePassword } from '@/utils/validate';
 import { showToast, } from '@/utils/uniUtils';
 
-interface LoginForm {
+interface RegForm {
   username: string;
   password: string;
-  remember: boolean;
+  passwordCheck: string;
 }
 
-interface LoginPageData {
-  form: LoginForm;
-  showPassword: boolean;
+interface RegPageData {
+  form: RegForm;
   loading: boolean;
+  showPassword: boolean;
 }
 
 export default defineComponent({
   name: 'Login',
 
-  data(): LoginPageData {
+  data(): RegPageData {
     return {
       form: {
         username: '',
         password: '',
-        remember: true
+        passwordCheck: ''
       },
       showPassword: false,
       loading: false
@@ -153,37 +104,9 @@ export default defineComponent({
   },
 
   onLoad() {
-    this.loadSavedAccount();
   },
 
   methods: {
-    // 加载保存的账号信息
-    loadSavedAccount() {
-      try {
-        const savedAccount = uni.getStorageSync('saved_account');
-        if (savedAccount) {
-          this.form.username = savedAccount.username || '';
-          this.form.password = savedAccount.password || '';
-          this.form.remember = savedAccount.remember || false;
-        }
-      } catch (error) {
-        console.error('加载保存的账号失败:', error);
-      }
-    },
-
-    // 保存账号信息
-    saveAccount() {
-      if (this.form.remember) {
-        uni.setStorageSync('saved_account', {
-          username: this.form.username,
-          password: this.form.password,
-          remember: this.form.remember,
-        });
-      } else {
-        uni.removeStorageSync('saved_account');
-      }
-    },
-
     // 清除用户名
     clearusername() {
       this.form.username = '';
@@ -192,11 +115,6 @@ export default defineComponent({
     // 切换密码显示
     togglePassword() {
       this.showPassword = !this.showPassword;
-    },
-
-    // 切换记住密码
-    toggleRemember() {
-      this.form.remember = !this.form.remember;
     },
 
     // 验证表单
@@ -214,55 +132,53 @@ export default defineComponent({
       return true;
     },
 
-    async handleLogin() {
-      // 1. 表单验证（可选的）
+    // 处理登录
+    async handleRegister() {
+      // 1. 表单验证
+      if (this.form.password !== this.form.passwordCheck) {
+        showToast('两次输入的密码不一致', 'none');
+        return;
+      }
+
+      // 2. 可选的表单验证（如果需要）
       // if (!this.validateForm()) {
       //   return;
       // }
-      uni.redirectTo({
-            url: '/pages/index/index'
-          });
-          return;
-      // 2. 防止重复提交
-      if (this.loading) return;
-      this.loading = true;
 
       // 3. 显示加载状态
       uni.showLoading({
-        title: '登录中...',
+        title: '注册中...',
         mask: true
       });
 
       try {
         // 4. 调用注册接口
-        const retLogin = await apiService.loginUser({
+        const retReg = await apiService.registerUser({
           username: this.form.username,
           password: this.form.password
         });
 
         // 5. 注册成功处理
         uni.hideLoading();
-        showToast('登录成功', 'success');
+        showToast('注册成功，请登录', 'success');
         uni.setStorageSync('saved_account', {
           username: this.form.username,
           password: this.form.password,
         });
-        uni.setStorageSync('token', retLogin.data.token);
-        uni.setStorageSync('userid', retLogin.data.userid);
         // 6. 延迟跳转，确保用户能看到成功提示
         setTimeout(() => {
           // 使用重定向而非导航，避免用户能返回注册页
           uni.redirectTo({
-            url: '/pages/index/index'
+            url: '/subpackages/login/login'
           });
-        }, 800);
+        }, 1500);
 
       } catch (error: any) {
         // 7. 隐藏加载状态
         uni.hideLoading();
 
         // 8. 错误处理逻辑
-        let errorMessage = '登录失败，请稍后重试';
+        let errorMessage = '注册失败，请稍后重试';
 
         // 根据错误类型显示不同的提示
         if (error.response) {
@@ -293,14 +209,10 @@ export default defineComponent({
 
         // 9. 显示错误提示
         showToast(errorMessage, 'none');
+        }
       }
     },
-    // 处理注册
-    handleRegister() {
-      uni.navigateTo({
-        url: '/subpackages/register/register'
-      });
-    },
+
 
     // 处理忘记密码
     handleForgotPassword() {
@@ -347,9 +259,7 @@ export default defineComponent({
         url: '/pages/agreement/privacy-policy'
       });
     }
-  },
-
-});
+  });
 </script>
 
 <style scoped>

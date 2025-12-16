@@ -93,6 +93,19 @@
           }
         }
       ]
+    },
+    {
+      "root": "subpackages/register",
+      "pages": [
+        {
+          "path": "register",
+          "style": {
+            "navigationBarTitleText": "注册",
+            "navigationStyle": "custom",
+            "enablePullDownRefresh": false
+          }
+        }
+      ]
     }
   ],
   "globalStyle": {
