@@ -158,7 +158,7 @@ interface CountdownWithDisplayDate extends Countdown
 
 interface IndexPageData
 {
-  user: User;
+  user: any;
   allCountdowns: Countdown[];
   categories: Category[];
   drawerVisible: boolean;
@@ -239,8 +239,16 @@ export default defineComponent( {
     {
       try
       {
+        if( !uni.getStorageSync('userid') )
+        {
+          uni.navigateTo( {
+            url: '/subpackages/login/login'
+          } );
+          return;
+        }
         // 获取当前用户信息
-        const currentUser = await apiService.getCurrentUser();
+        const currentUser = await apiService.getCurrentUser(uni.getStorageSync('userid') || '1');
+
         this.user = currentUser;
 
         // 获取分类和倒数日数据

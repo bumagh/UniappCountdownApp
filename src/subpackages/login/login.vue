@@ -50,7 +50,7 @@
               </view>
               <text class="checkbox-label">记住密码</text>
             </view>
-            <view class="forgot-password" @click="handleForgotPassword">
+            <view class="forgot-password" @click="">
               <text>忘记密码？</text>
             </view>
           </view>
@@ -99,9 +99,9 @@
         <!-- 协议声明 -->
         <view class="agreement">
           <text class="agreement-text">登录即表示同意</text>
-          <text class="agreement-link" @click="handleUserAgreement">《用户协议》</text>
+          <text class="agreement-link" @click="">《用户协议》</text>
           <text class="agreement-text">和</text>
-          <text class="agreement-link" @click="handlePrivacyPolicy">《隐私政策》</text>
+          <text class="agreement-link" @click="">《隐私政策》</text>
         </view>
       </view>
     </scroll-view>
@@ -113,10 +113,9 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { loginByPassword, getCurrentUser, register } from '@/services/apiService';
+import apiService from '@/services/apiService';
 import { validateUsername, validatePassword } from '@/utils/validate';
-import { showToast, navigateTo } from '@/utils/uniUtils';
-import { User } from '@/types/index';
+import { showToast, } from '@/utils/uniUtils';
 
 interface LoginForm {
   username: string;
@@ -178,7 +177,7 @@ export default defineComponent({
         uni.setStorageSync('saved_account', {
           username: this.form.username,
           password: this.form.password,
-          remember: this.form.remember
+          remember: this.form.remember,
         });
       } else {
         uni.removeStorageSync('saved_account');
@@ -223,105 +222,98 @@ export default defineComponent({
       if (this.loading) return;
       this.loading = true;
 
-      try {
-        // 调用登录接口
-        const result = await loginByPassword({
-          username: this.form.username,
-          password: this.form.password
-        });
-        return 1;
+      // 调用登录接口
+      const result = await apiService.loginUser({
+        username: this.form.username,
+        password: this.form.password
+      });
 
-        if (result.code == 1) {
-          //注册
-          const retReg = await register({
+      if (result.code == 1) {
+        //注册
+        const retReg = await apiService.registerUser(
+          {
             username: this.form.username,
             password: this.form.password
-          });
-          console.log(retReg)
-          if (retReg.code != 0) {
-            showToast(retReg.msg || '注册失败', 'none');
-            this.loading = false;
-            return;
-          } else {
-            showToast(retReg.msg);
           }
-        } else if (result.code == 2) {
-          showToast('密码错误', 'none');
+        );
+        if (retReg.code != 0) {
+          showToast(retReg.msg || '注册失败', 'none');
           this.loading = false;
-          return;
+        } else {
+          showToast(retReg.msg);
         }
-          // 保存token
-          uni.setStorageSync('token', result.data.token);
-
-          // 保存账号信息（如果需要）
-          this.saveAccount();
-
-          // 跳转到首页
-          uni.switchTab({
-            url: '/pages/index/index'
-          });
-
-          showToast('登录成功', 'success');
-      } catch (error: any) {
-        console.error('登录失败:', error);
-        showToast(error.message || '登录失败，请稍后重试', 'none');
-      } finally {
+      } else if (result.code == 2) {
+        showToast('密码错误', 'none');
         this.loading = false;
+        return;
       }
-    },
+      // 保存token
+      uni.setStorageSync('token', result.data.token);
+      uni.setStorageSync('userid', result.data.id);
 
-    // 处理注册
-    handleRegister() {
-      uni.navigateTo({
-        url: '/pages/register/register'
-      });
-    },
+      // 保存账号信息（如果需要）
+      this.saveAccount();
 
-    // 处理忘记密码
-    handleForgotPassword() {
-      uni.navigateTo({
-        url: '/pages/forgot/forgot'
+      // 跳转到首页
+      uni.switchTab({
+        url: '/pages/index/index'
       });
-    },
 
-    // 处理微信登录
-    handleWechatLogin() {
-      uni.showModal({
-        title: '提示',
-        content: '微信登录功能暂未开放',
-        showCancel: false
-      });
-    },
-
-    // 处理QQ登录
-    handleQQLogin() {
-      uni.showModal({
-        title: '提示',
-        content: 'QQ登录功能暂未开放',
-        showCancel: false
-      });
-    },
-
-    // 处理手机验证码登录
-    handleusernameLogin() {
-      uni.navigateTo({
-        url: '/pages/login-username/login-username'
-      });
-    },
-
-    // 处理用户协议
-    handleUserAgreement() {
-      uni.navigateTo({
-        url: '/pages/agreement/user-agreement'
-      });
-    },
-
-    // 处理隐私政策
-    handlePrivacyPolicy() {
-      uni.navigateTo({
-        url: '/pages/agreement/privacy-policy'
-      });
+      showToast('登录成功', 'success');
     }
+  },
+
+  // 处理注册
+  handleRegister() {
+    uni.navigateTo({
+      url: '/pages/register/register'
+    });
+  },
+
+  // 处理忘记密码
+  handleForgotPassword() {
+    uni.navigateTo({
+      url: '/pages/forgot/forgot'
+    });
+  },
+
+  // 处理微信登录
+  handleWechatLogin() {
+    uni.showModal({
+      title: '提示',
+      content: '微信登录功能暂未开放',
+      showCancel: false
+    });
+  },
+
+  // 处理QQ登录
+  handleQQLogin() {
+    uni.showModal({
+      title: '提示',
+      content: 'QQ登录功能暂未开放',
+      showCancel: false
+    });
+  },
+
+  // 处理手机验证码登录
+  handleusernameLogin() {
+    uni.navigateTo({
+      url: '/pages/login-username/login-username'
+    });
+  },
+
+  // 处理用户协议
+  handleUserAgreement() {
+    uni.navigateTo({
+      url: '/pages/agreement/user-agreement'
+    });
+  },
+
+  // 处理隐私政策
+  handlePrivacyPolicy() {
+    uni.navigateTo({
+      url: '/pages/agreement/privacy-policy'
+    });
   }
 });
 </script>

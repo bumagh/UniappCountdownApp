@@ -5,6 +5,8 @@ export const API = {
     // 用户相关
     user: {
         current: `${ API_BASE_URL }user/index`,
+        login: `${ API_BASE_URL }user/login`,
+        register: `${ API_BASE_URL }user/register`,
         update: `${ API_BASE_URL }user/update`
     },
     // 分类相关

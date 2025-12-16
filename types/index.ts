@@ -2,6 +2,8 @@
 export interface User {
   id: number;
   nickname: string;
+  username: string;
+  password: string;
   avatar: string;
   created_at: string;
   updated_at: string;
@@ -77,4 +79,9 @@ export interface LoginResponse {
     token: string;
     user: User;
   };
+}
+export interface CommonResponse {
+  code: number;
+  msg: string;
+  data: any;
 }
