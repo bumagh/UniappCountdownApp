@@ -300,16 +300,34 @@ export default {
     this.loadArchivedCountdowns();
   },
   methods: {
-    loadUserData() {
-      const currentUser = db.getCurrentUser();
-      if (currentUser) {
-        // 从本地存储加载头像
-        const savedAvatar = uni.getStorageSync('user_avatar');
-        if (savedAvatar) {
-          currentUser.avatar = savedAvatar;
+    async loadUserData() {
+      try {
+        if (!uni.getStorageSync('userid')) {
+          uni.navigateTo({
+            url: '/subpackages/login/login'
+          });
+          return;
         }
+        // 获取当前用户信息
+        const userid = uni.getStorageSync('userid');
+        const currentUser = await apiService.getCurrentUser(userid || '1');
+
         this.user = currentUser;
+        if (currentUser) {
+          // 从本地存储加载头像
+          const savedAvatar = uni.getStorageSync('user_avatar');
+          if (savedAvatar) {
+            currentUser.avatar = savedAvatar;
+          }
+        }
+      } catch (error) {
+        console.error('操作失败:', error);
+        uni.showToast({
+          title: '操作失败',
+          icon: 'none'
+        });
       }
+
     },
     loadCategories() {
       if (this.user.id) {
@@ -377,7 +395,7 @@ export default {
         showCancel: false,
         confirmText: '确定',
         success: (res) => {
-        
+
         }
       });
       return;
@@ -483,9 +501,9 @@ export default {
         });
         return;
       }
-      const updated=  await apiService.updateUser({id:this.user.id, nickname: this.newNickname });
+      const updated = await apiService.updateUser({ id: this.user.id, nickname: this.newNickname });
       // const updated = db.updateUser(this.user.id, { nickname: this.newNickname });
-      if (updated) { 
+      if (updated) {
         this.user.nickname = this.newNickname;
         uni.showToast({
           title: '修改成功',
