@@ -247,7 +247,8 @@ export default defineComponent( {
           return;
         }
         // 获取当前用户信息
-        const currentUser = await apiService.getCurrentUser(uni.getStorageSync('userid') || '1');
+        const userid = uni.getStorageSync('userid');
+        const currentUser = await apiService.getCurrentUser(userid || '1');
 
         this.user = currentUser;
 

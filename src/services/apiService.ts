@@ -13,7 +13,7 @@ CommonResponse
 class ApiService {
   // 用户相关
   async getCurrentUser(id: string): Promise<User> {
-    const res = await request.get<User>(API.user.current, id);
+    const res = await request.get<User>(API.user.current, {id});
     return res.data;
   }
 
