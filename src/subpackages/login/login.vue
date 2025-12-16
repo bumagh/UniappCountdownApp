@@ -65,44 +65,8 @@
             <text>还没有账号？</text>
             <text class="register-text" @click="handleRegister">立即注册</text>
           </view>
-
-          <!-- 其他登录方式 -->
-          <!-- <view class="other-login">
-              <view class="divider">
-                <view class="divider-line"></view>
-                <text class="divider-text">其他方式登录</text>
-                <view class="divider-line"></view>
-              </view>
-              <view class="login-methods">
-                <view class="method-item" @click="handleWechatLogin">
-                  <view class="method-icon wechat">
-                    <text>💬</text>
-                  </view>
-                  <text class="method-name">微信</text>
-                </view>
-                <view class="method-item" @click="handleQQLogin">
-                  <view class="method-icon qq">
-                    <text>🐧</text>
-                  </view>
-                  <text class="method-name">QQ</text>
-                </view>
-                <view class="method-item" @click="handleusernameLogin">
-                  <view class="method-icon username">
-                    <text>📱</text>
-                  </view>
-                  <text class="method-name">短信验证</text>
-                </view>
-              </view>
-            </view> -->
         </view>
 
-        <!-- 协议声明 -->
-        <view class="agreement">
-          <text class="agreement-text">登录即表示同意</text>
-          <text class="agreement-link" @click="">《用户协议》</text>
-          <text class="agreement-text">和</text>
-          <text class="agreement-link" @click="">《隐私政策》</text>
-        </view>
       </view>
     </scroll-view>
 
@@ -214,15 +178,11 @@ export default defineComponent({
       return true;
     },
 
-    async handleLogin() {
+  async  handleLogin() {
       // 1. 表单验证（可选的）
       // if (!this.validateForm()) {
       //   return;
       // }
-      uni.redirectTo({
-            url: '/pages/index/index'
-          });
-          return;
       // 2. 防止重复提交
       if (this.loading) return;
       this.loading = true;
@@ -252,7 +212,7 @@ export default defineComponent({
         // 6. 延迟跳转，确保用户能看到成功提示
         setTimeout(() => {
           // 使用重定向而非导航，避免用户能返回注册页
-          uni.redirectTo({
+          uni.switchTab({
             url: '/pages/index/index'
           });
         }, 800);
