@@ -18,15 +18,15 @@ class ApiService {
   }
 
   async loginUser(data: Partial<User>): Promise<CommonResponse> {
-    const res = await request.put<User>(API.user.login, data);
+    const res = await request.post<User>(API.user.login, data);
     return res;
   }
   async registerUser(data: Partial<User>): Promise<CommonResponse> {
-    const res = await request.put<User>(API.user.register, data);
+    const res = await request.post<User>(API.user.register, data);
     return res;
   }
   async updateUser(data: Partial<User>): Promise<User> {
-    const res = await request.put<User>(API.user.update, data);
+    const res = await request.post<User>(API.user.update, data);
     return res.data;
   }
 
@@ -42,7 +42,7 @@ class ApiService {
   }
 
   async updateCategory(id: number, data: Partial<Category>): Promise<Category> {
-    const res = await request.put<Category>(`${API.category.update}/${id}`, data);
+    const res = await request.post<Category>(`${API.category.update}/${id}`, data);
     return res.data;
   }
 
@@ -81,17 +81,17 @@ class ApiService {
   }
 
   async archiveCountdown(id: number): Promise<Countdown> {
-    const res = await request.put<Countdown>(`${API.countdown.archive}/${id}/archive`);
+    const res = await request.post<Countdown>(`${API.countdown.archive}/${id}/archive`);
     return res.data;
   }
 
   async unarchiveCountdown(id: number): Promise<Countdown> {
-    const res = await request.put<Countdown>(`${API.countdown.unarchive}/${id}/unarchive`);
+    const res = await request.post<Countdown>(`${API.countdown.unarchive}/${id}/unarchive`);
     return res.data;
   }
 
   async togglePinCountdown(id: number): Promise<Countdown> {
-    const res = await request.put<Countdown>(`${API.countdown.togglePin}/${id}/toggle-pin`);
+    const res = await request.post<Countdown>(`${API.countdown.togglePin}/${id}/toggle-pin`);
     return res.data;
   }
 
