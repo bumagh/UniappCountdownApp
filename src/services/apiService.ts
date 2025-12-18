@@ -62,7 +62,7 @@ class ApiService {
   }
 
   async getCountdown(id: number): Promise<Countdown> {
-    const res = await request.get<Countdown>(`${API.countdown.detail}/${id}`);
+    const res = await request.get<Countdown>(`${API.countdown.detail}`,{id});
     return res.data;
   }
 
