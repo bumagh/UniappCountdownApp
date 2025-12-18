@@ -22,7 +22,7 @@ export const API = {
         archived: `${ API_BASE_URL }countdown/archived`,
         detail: `${ API_BASE_URL }countdown/read`,
         create: `${ API_BASE_URL }countdown/save`,
-        update: `${ API_BASE_URL }countdown/save`,
+        update: `${ API_BASE_URL }countdown/update`,
         delete: `${ API_BASE_URL }countdown`,
         archive: `${ API_BASE_URL }countdown`,
         unarchive: `${ API_BASE_URL }countdown`,

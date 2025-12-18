@@ -72,7 +72,7 @@ class ApiService {
   }
 
   async updateCountdown(id: number, data: Partial<CountdownForm>): Promise<Countdown> {
-    const res = await request.post<Countdown>(`${API.countdown.update}/${id}`, data);
+    const res = await request.post<Countdown>(`${API.countdown.update}`, {id,data});
     return res.data;
   }
 
