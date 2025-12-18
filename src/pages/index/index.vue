@@ -254,10 +254,9 @@ export default defineComponent( {
 
         // 获取分类和倒数日数据
         const [ countdownsRes, categoriesRes ] = await Promise.all( [
-          apiService.getCountdowns(),
-          apiService.getCategories()
+          apiService.getCountdowns({userid}),
+          apiService.getCategories(userid||'1')
         ] );
-
         this.allCountdowns = countdownsRes;
         this.categories = categoriesRes;
       } catch ( error )
@@ -310,7 +309,7 @@ export default defineComponent( {
     showAddCountdown (): void
     {
       uni.navigateTo( {
-        url: '/pages/edit/edit'
+        url: '/subpackages/edit/edit'
       } );
     },
 
@@ -330,7 +329,7 @@ export default defineComponent( {
     {
       this.drawerVisible = false;
       uni.navigateTo( {
-        url: `/pages/categories/categories?category_id=${ category.id }`
+        url: `/subpackages/categories/categories?category_id=${ category.id }`
       } );
     },
 

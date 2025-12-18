@@ -23,7 +23,7 @@
               <text class="category-icon">{{ categoryIcon }}</text>
               <text class="category-name">{{ categoryName }}</text>
             </view>
-            <view v-if="countdown.isPinned" class="pin-badge">
+            <view v-if="countdown.is_pinned" class="pin-badge">
               <text>📌 已置顶</text>
             </view>
           </view>
@@ -46,7 +46,7 @@
         </view>
 
         <!-- 详细信息卡片 -->
-        <view class="info-card shadow">
+        <view class="info-card shfadow">
           <view class="info-header">
             <text class="info-title">详细信息</text>
           </view>
@@ -81,7 +81,7 @@
                 <text class="info-icon">📌</text>
                 <text>置顶状态</text>
               </view>
-              <text class="info-item-value">{{ countdown.isPinned ? '已置顶' : '未置顶' }}</text>
+              <text class="info-item-value">{{ countdown.is_pinned ? '已置顶' : '未置顶' }}</text>
             </view>
 
             <view class="info-item">
@@ -89,7 +89,7 @@
                 <text class="info-icon">🗂️</text>
                 <text>归档状态</text>
               </view>
-              <text class="info-item-value">{{ countdown.isArchived ? '已归档' : '未归档' }}</text>
+              <text class="info-item-value">{{ countdown.is_archived ? '已归档' : '未归档' }}</text>
             </view>
 
             <view class="info-item">
@@ -97,7 +97,7 @@
                 <text class="info-icon">⏰</text>
                 <text>创建时间</text>
               </view>
-              <text class="info-item-value">{{ formatCreateTime(countdown.createdAt) }}</text>
+              <text class="info-item-value">{{ formatCreateTime(countdown.created_at) }}</text>
             </view>
           </view>
         </view>
@@ -120,17 +120,22 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+import apiService from '@/services/apiService';
+import { defineComponent } from 'vue';
 import db from '../../utils/db.js';
-
-export default {
+import { Category, Countdown } from '../../../types/index';
+interface DetailPageData {
+  countdownId: number,
+  countdown: Countdown |null,
+  categories: Category[]
+}
+export default defineComponent( {
   name: 'Detail',
-  components: {},
-
-  data() {
+  data() :DetailPageData{
     return {
-      countdownId: null,
-      countdown: null,
+      countdownId: 1,
+      countdown:  null,
       categories: []
     };
   },
@@ -150,27 +155,27 @@ export default {
     },
     categoryColor() {
       if (!this.countdown) return '#1890ff';
-      const category = this.categories.find(c => c.id === this.countdown.categoryId);
+      const category = this.categories.find(c => c.id === this.countdown?.category_id);
       return category ? category.color : '#1890ff';
     },
     categoryIcon() {
       if (!this.countdown) return '📋';
-      const category = this.categories.find(c => c.id === this.countdown.categoryId);
+      const category = this.categories.find(c => c.id === this.countdown?.category_id);
       return category ? category.icon : '📋';
     },
     categoryName() {
       if (!this.countdown) return '未分类';
-      const category = this.categories.find(c => c.id === this.countdown.categoryId);
+      const category = this.categories.find(c => c.id === this.countdown?.category_id);
       return category ? category.name : '未分类';
     },
     repeatText() {
       if (!this.countdown) return '不重复';
-      return db.getRepeatText(this.countdown.repeatCycle, this.countdown.repeatFrequency);
+      return db.getRepeatText(this.countdown.repeat_cycle, this.countdown.repeat_frequency);
     }
   },
-  onLoad(options) {
+  onLoad(options:any) {
     if (options.id) {
-      this.countdownId = parseInt(options.id);
+      this.countdownId = options.id;
       this.loadData();
     }
   },
@@ -180,19 +185,22 @@ export default {
     }
   },
   methods: {
-    loadData() {
-      this.countdown = db.getCountdown(this.countdownId);
-      if (this.countdown) {
-        const user = db.getCurrentUser();
-        if (user) {
-          this.categories = db.getCategories(user.id);
+    async loadData() {
+      try {
+        const userid = uni.getStorageSync('userid');
+        this.countdown = await apiService.getCountdown(this.countdownId);
+        if (this.countdown) {
+          this.categories = await apiService.getCategories(userid);
         }
+      } catch (error) {
+        console.error('数据库初始化失败:', error);
       }
+
     },
-    formatFullDate(dateStr) {
+    formatFullDate(dateStr:any) {
       return db.formatDate(dateStr);
     },
-    formatCreateTime(isoString) {
+    formatCreateTime(isoString:any) {
       if (!isoString) return '未知';
       const date = new Date(isoString);
       const year = date.getFullYear();
@@ -209,13 +217,13 @@ export default {
     },
     handleEdit() {
       uni.navigateTo({
-        url: `/pages/edit/edit?id=${this.countdownId}`
+        url: `/subpackages/edit/edit?id=${this.countdownId}`
       });
     },
 
 
   }
-};
+});
 </script>
 
 <style scoped>

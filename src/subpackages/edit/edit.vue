@@ -209,7 +209,8 @@ export default defineComponent( {
     {
       try
       {
-        const categories = await apiService.getCategories();
+        const userid = uni.getStorageSync('userid');
+        const categories = await apiService.getCategories(userid);
         this.categories = categories;
 
         if ( this.categories.length > 0 && !this.formData.category_id )

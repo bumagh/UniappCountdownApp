@@ -31,8 +31,8 @@ class ApiService {
   }
 
   // 分类相关
-  async getCategories(): Promise<Category[]> {
-    const res = await request.get<Category[]>(API.category.list);
+  async getCategories(userid:string): Promise<Category[]> {
+    const res = await request.get<Category[]>(API.category.list,{userid});
     return res.data;
   }
 
@@ -51,7 +51,7 @@ class ApiService {
   }
 
   // 倒数日相关
-  async getCountdowns(params: CountdownQueryParams = {}): Promise<Countdown[]> {
+  async getCountdowns(params: CountdownQueryParams): Promise<Countdown[]> {
     const res = await request.get<Countdown[]>(API.countdown.list, params);
     return res.data;
   }
@@ -62,7 +62,7 @@ class ApiService {
   }
 
   async getCountdown(id: number): Promise<Countdown> {
-    const res = await request.get<Countdown>(`${API.countdown.detail}/${id}`);
+    const res = await request.get<Countdown>(`${API.countdown.detail}`,{id});
     return res.data;
   }
 
@@ -72,7 +72,7 @@ class ApiService {
   }
 
   async updateCountdown(id: number, data: Partial<CountdownForm>): Promise<Countdown> {
-    const res = await request.post<Countdown>(`${API.countdown.update}/${id}`, data);
+    const res = await request.post<Countdown>(`${API.countdown.update}`, {id,data});
     return res.data;
   }
 

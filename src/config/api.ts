@@ -1,6 +1,7 @@
 // API配置
 const API_BASE_URL: string = 'https://app.tutlab.tech/api/v1.'; // 替换为你的实际域名
 
+
 export const API = {
     // 用户相关
     user: {
@@ -20,9 +21,9 @@ export const API = {
     countdown: {
         list: `${ API_BASE_URL }countdown`,
         archived: `${ API_BASE_URL }countdown/archived`,
-        detail: `${ API_BASE_URL }countdown`,
+        detail: `${ API_BASE_URL }countdown/read`,
         create: `${ API_BASE_URL }countdown/save`,
-        update: `${ API_BASE_URL }countdown/save`,
+        update: `${ API_BASE_URL }countdown/update`,
         delete: `${ API_BASE_URL }countdown`,
         archive: `${ API_BASE_URL }countdown`,
         unarchive: `${ API_BASE_URL }countdown`,
