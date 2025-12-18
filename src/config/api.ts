@@ -1,5 +1,5 @@
 // API配置
-const API_BASE_URL: string = 'https://app.tutlabtech/api/v1.'; // 替换为你的实际域名
+const API_BASE_URL: string = 'https://app.tutlab.tech/api/v1.'; // 替换为你的实际域名
 
 export const API = {
     // 用户相关
