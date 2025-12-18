@@ -144,7 +144,8 @@ export default defineComponent({
       // if (!this.validateForm()) {
       //   return;
       // }
-
+      if (this.loading) return;
+      this.loading = true;
       // 3. 显示加载状态
       uni.showLoading({
         title: '注册中...',
@@ -209,6 +210,8 @@ export default defineComponent({
 
         // 9. 显示错误提示
         showToast(errorMessage, 'none');
+        }finally{
+          this.loading = false;
         }
       }
     },

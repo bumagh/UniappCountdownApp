@@ -220,7 +220,6 @@ export default defineComponent({
       } catch (error: any) {
         // 7. 隐藏加载状态
         uni.hideLoading();
-
         // 8. 错误处理逻辑
         let errorMessage = '登录失败，请稍后重试';
 
@@ -253,6 +252,9 @@ export default defineComponent({
 
         // 9. 显示错误提示
         showToast(errorMessage, 'none');
+      }finally{
+        this.loading = false;
+
       }
     },
     // 处理注册
