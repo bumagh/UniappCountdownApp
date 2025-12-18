@@ -57,6 +57,7 @@ export interface CountdownForm {
 
 // 请求参数类型
 export interface CountdownQueryParams {
+  userid:string,
   category_id?: number;
   include_archived?: number;
 }
