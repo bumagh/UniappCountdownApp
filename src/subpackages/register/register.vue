@@ -215,7 +215,7 @@ export default defineComponent({
     // 验证表单
     validateForm(): boolean {
       if (!validateUsername(this.form.username)) {
-        showToast('用户名长度需在3-20位之间', 'none');
+        showToast('用户名长度需在3-20位之间,英文开头', 'none');
         return false;
       }
 
@@ -270,7 +270,7 @@ export default defineComponent({
           username: this.form.username,
           name: this.form.name,
           gender: this.form.gender,
-          birthday: this.form.birthday,
+          birth_date: this.form.birthday,
           password: this.form.password
         });
 
