@@ -103,7 +103,7 @@
             "port" : 8080,
             "disableHostCheck" : true,
             "proxy" : {},
-            "https" : false
+            "https" : true
         },
         "sdkConfigs" : {}
     },
