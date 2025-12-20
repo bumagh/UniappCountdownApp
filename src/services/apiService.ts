@@ -4,7 +4,6 @@ import {
 User,
 Category,
 Countdown,
-CountdownForm,
 CountdownQueryParams,
 CommonResponse
 } from 'types';
@@ -66,12 +65,12 @@ class ApiService {
     return res.data;
   }
 
-  async createCountdown(data: CountdownForm): Promise<Countdown> {
+  async createCountdown(data: Countdown): Promise<Countdown> {
     const res = await request.post<Countdown>(API.countdown.create, data);
     return res.data;
   }
 
-  async updateCountdown(id: number, data: Partial<CountdownForm>): Promise<Countdown> {
+  async updateCountdown(id: number, data: Partial<Countdown>): Promise<Countdown> {
     const res = await request.post<Countdown>(`${API.countdown.update}`, {id,data});
     return res.data;
   }

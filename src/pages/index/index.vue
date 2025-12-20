@@ -145,6 +145,7 @@
   </view>
 </template>
 <script lang="ts">
+
 import { defineComponent } from 'vue';
 import apiService from '@/services/apiService';
 import { calculateDays, getAbsoluteDays, formatDate, getRepeatText } from '@/utils/countdownUtils';
@@ -164,7 +165,8 @@ interface IndexPageData
   drawerVisible: boolean;
 }
 
-export default defineComponent( {
+export default defineComponent( 
+  {
   name: 'Index',
 
   data (): IndexPageData

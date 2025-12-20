@@ -22,7 +22,7 @@ export interface Category {
 
 // 倒数日类型
 export interface Countdown {
-  id: number;
+  id?: number;
   title: string;
   date: string;
   category_id: number;
@@ -31,8 +31,8 @@ export interface Countdown {
   repeat_cycle: number;
   repeat_frequency: '不重复' | '天重复' | '周重复' | '月重复' | '年重复';
   is_archived: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
   days_left?: number;
   status_text?: string;
   repeat_text?: string;
