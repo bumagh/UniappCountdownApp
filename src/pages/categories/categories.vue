@@ -290,7 +290,7 @@ export default {
     },
     goToBookEdit() {
       uni.navigateTo({
-        url: '/pages/book-edit/book-edit'
+        url: '/subpackages/book-edit/book-edit'
       });
     },
     showAddCountdown() {
@@ -327,7 +327,7 @@ export default {
         success: (res) => {
           if (res.tapIndex === 0) {
             uni.navigateTo({
-              url: `/pages/book-edit/book-edit?id=${category.id}`
+              url: `/subpackages/book-edit/book-edit?id=${category.id}`
             });
           } else if (res.tapIndex === 1) {
             uni.showModal({
@@ -356,7 +356,7 @@ export default {
     },
     handleCountdownClick(countdown) {
       uni.navigateTo({
-        url: `/pages/detail/detail?id=${countdown.id}`
+        url: `/subpackages/detail/detail?id=${countdown.id}`
       });
     },
     handleCountdownSuccess() {
@@ -395,7 +395,7 @@ export default {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 999;
+  z-index: 998;
 }
 
 .navbar-title {
@@ -532,7 +532,7 @@ export default {
   height: 100vh;
   background-color: #ffffff;
   transition: left 0.3s ease;
-  z-index: 9999;
+  z-index: 997;
   box-shadow: 4rpx 0 16rpx rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
@@ -549,7 +549,7 @@ export default {
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 9998;
+  z-index: 996;
 }
 
 .drawer-header {
@@ -628,7 +628,7 @@ export default {
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 9999;
+  z-index: 999;
   display: flex;
   align-items: flex-end;
 }
