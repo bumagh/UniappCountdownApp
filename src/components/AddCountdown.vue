@@ -124,10 +124,35 @@
   </view>
 </template>
 
-<script>
-import db from '../utils/db.js';
+<script lang="ts">
+  interface AddCountdownPageData {
+    formData: {
+      title: string;
+      date: string;
+      categoryId: number | null;
+      isPinned: boolean;
+      repeatCycle: number;
+      repeatFrequency: any;
+      is_archived:boolean;
+      
+    };
+    categories: Array<{
+      id: number;
+      name: string;
+      icon: string;
+      color: string;
+    }>;
+    cycleOptions: string[];
+    frequencyOptions: string[];
+    cycleIndex: number;
+    frequencyIndex: number;
+    isRepeatEnabled: boolean;
+  }
+import apiService from '@/services/apiService';
+import { defineComponent } from 'vue';
+import { formatDate } from '../utils/countdownUtils';
 
-export default {
+export default defineComponent({ 
   name: 'AddCountdown',
   props: {
     visible: {
@@ -139,7 +164,7 @@ export default {
       default: null
     }
   },
-  data() {
+  data():AddCountdownPageData {
     return {
       formData: {
         title: '',
@@ -147,7 +172,8 @@ export default {
         categoryId: null,
         isPinned: false,
         repeatCycle: 0,
-        repeatFrequency: '不重复'
+        repeatFrequency: '不重复',
+        is_archived: false
       },
       categories: [],
       cycleOptions: ['每1', '每2', '每3', '每4', '每5', '每6', '每7', '每8', '每9', '每10'],
@@ -180,7 +206,8 @@ export default {
             categoryId: this.countdownData.categoryId,
             isPinned: this.countdownData.isPinned || false,
             repeatCycle: this.countdownData.repeatCycle || 0,
-            repeatFrequency: this.countdownData.repeatFrequency || '不重复'
+            repeatFrequency: this.countdownData.repeatFrequency || '不重复',
+            is_archived: this.countdownData.is_archived || false
           };
           this.checkRepeatEnabled();
           this.syncRepeatIndexes();
@@ -198,10 +225,11 @@ export default {
       const day = String(date.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
     },
-    loadCategories() {
-      const user = db.getCurrentUser();
+    async loadCategories() {
+      const userid = uni.getStorageSync('userid');
+      const user = await apiService.getCurrentUser(userid);
       if (user) {
-        this.categories = db.getCategories(user.id);
+        this.categories = await apiService.getCategories(user.id.toString());
         if (this.categories.length > 0 && !this.formData.categoryId) {
           this.formData.categoryId = this.categories[0].id;
         }
@@ -210,16 +238,16 @@ export default {
     checkRepeatEnabled() {
       this.isRepeatEnabled = this.formData.repeatCycle > 0 && this.formData.repeatFrequency !== '不重复';
     },
-    onDateChange(e) {
+    onDateChange(e:any) {
       this.formData.date = e.detail.value;
     },
-    selectCategory(categoryId) {
+    selectCategory(categoryId:number) {
       this.formData.categoryId = categoryId;
     },
-    onPinnedChange(e) {
+    onPinnedChange(e:any) {
       this.formData.isPinned = e.detail.value;
     },
-    toggleRepeat(e) {
+    toggleRepeat(e:any) {
       this.isRepeatEnabled = e.detail.value;
       if (this.isRepeatEnabled) {
         // 开启重复，设置默认值
@@ -235,11 +263,11 @@ export default {
         this.formData.repeatFrequency = '不重复';
       }
     },
-    onCycleChange(e) {
+    onCycleChange(e:any) {
       this.cycleIndex = e.detail.value[0];
       this.formData.repeatCycle = parseInt(this.cycleOptions[this.cycleIndex].replace('每', ''));
     },
-    onFrequencyChange(e) {
+    onFrequencyChange(e:any) {
       this.frequencyIndex = e.detail.value[0];
       this.formData.repeatFrequency = this.frequencyOptions[this.frequencyIndex];
     },
@@ -259,7 +287,7 @@ export default {
       const frequency = this.frequencyOptions[this.frequencyIndex];
       return `${cycle}${frequency}`;
     },
-    formatDateDisplay(dateStr) {
+    formatDateDisplay(dateStr:string) {
       if (!dateStr) return '';
       const date = new Date(dateStr);
       const year = date.getFullYear();
@@ -281,10 +309,10 @@ export default {
             uni.showModal({
               title: '确认删除',
               content: '确定要删除这个倒数日吗？',
-              success: (modalRes) => {
+              success: async (modalRes) => {
                 if (modalRes.confirm) {
                   try {
-                    db.deleteCountdown(this.countdownData.id);
+                    await apiService.deleteCountdown(this.countdownData.id);
                     uni.showToast({
                       title: '删除成功',
                       icon: 'success'
@@ -305,10 +333,10 @@ export default {
               title: '确认归档',
               content: '确定要归档这个倒数日吗？归档后可在"我的"模块中查看。',
               confirmText: '归档',
-              success: (modalRes) => {
+              success: async (modalRes) => {
                 if (modalRes.confirm) {
                   try {
-                    db.archiveCountdown(this.countdownData.id);
+                  await apiService.archiveCountdown(this.countdownData.id);
                     uni.showToast({
                       title: '归档成功',
                       icon: 'success'
@@ -328,7 +356,7 @@ export default {
         }
       });
     },
-    handleSubmit() {
+    async handleSubmit() {
       if (!this.formData.title.trim()) {
         uni.showToast({
           title: '请输入日程名称',
@@ -353,7 +381,7 @@ export default {
         return;
       }
 
-      const user = db.getCurrentUser();
+      const user = await apiService.getCurrentUser(uni.getStorageSync('userid'));
       if (!user) {
         uni.showToast({
           title: '用户信息获取失败',
@@ -364,27 +392,28 @@ export default {
 
       try {
         if (this.countdownData) {
-          db.updateCountdown(this.countdownData.id, {
+          await apiService.updateCountdown(this.countdownData.id, {
             title: this.formData.title,
             date: this.formData.date,
-            categoryId: this.formData.categoryId,
-            isPinned: this.formData.isPinned,
-            repeatCycle: this.formData.repeatCycle,
-            repeatFrequency: this.formData.repeatFrequency
+            category_id: this.formData.categoryId,
+            is_pinned: this.formData.isPinned,
+            repeat_cycle: this.formData.repeatCycle,
+            repeat_frequency: this.formData.repeatFrequency
           });
           uni.showToast({
             title: '修改成功',
             icon: 'success'
           });
         } else {
-          db.addCountdown({
+          await apiService.createCountdown({
+            user_id: user.id,
             title: this.formData.title,
             date: this.formData.date,
-            categoryId: this.formData.categoryId,
-            userId: user.id,
-            isPinned: this.formData.isPinned,
-            repeatCycle: this.formData.repeatCycle,
-            repeatFrequency: this.formData.repeatFrequency
+            category_id: this.formData.categoryId,
+            is_pinned: this.formData.isPinned,
+            repeat_cycle: this.formData.repeatCycle,
+            repeat_frequency: this.formData.repeatFrequency,
+            is_archived: this.formData.is_archived,
           });
           uni.showToast({
             title: '添加成功',
@@ -407,14 +436,15 @@ export default {
         categoryId: this.categories.length > 0 ? this.categories[0].id : null,
         isPinned: false,
         repeatCycle: 0,
-        repeatFrequency: '不重复'
+        repeatFrequency: '不重复',
+        is_archived:false
       };
       this.cycleIndex = 0;
       this.frequencyIndex = 0;
       this.isRepeatEnabled = false;
     }
   }
-};
+});
 </script>
 
 <style scoped>

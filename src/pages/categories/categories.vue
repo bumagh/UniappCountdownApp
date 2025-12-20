@@ -126,7 +126,7 @@
             </view>
             <view class="detail-title-wrapper">
               <text class="detail-title">{{ selectedCategory ? selectedCategory.name : '全部' }}</text>
-              <text class="detail-subtitle">{{ detailCountdowns.length }}个倒数日</text>
+              <text class="detail-subtitle">{{ detailCountdowns?.length }}个倒数日</text>
             </view>
           </view>
           <view class="detail-close" @click="closeDetail">
@@ -136,9 +136,9 @@
 
         <scroll-view scroll-y class="detail-body">
           <!-- 未来倒数日 -->
-          <view v-if="futureCountdowns.length > 0" class="countdown-group">
+          <view v-if="(futureCountdowns ?? []).length > 0" class="countdown-group">
             <view class="group-title">
-              <text>未来 ({{ futureCountdowns.length }})</text>
+              <text>未来 ({{ (futureCountdowns ?? []).length }})</text>
             </view>
             <view 
               v-for="countdown in futureCountdowns" 
@@ -157,9 +157,9 @@
           </view>
 
           <!-- 已经倒数日 -->
-          <view v-if="pastCountdowns.length > 0" class="countdown-group">
+          <view v-if="pastCountdowns!.length > 0" class="countdown-group">
             <view class="group-title">
-              <text>已经 ({{ pastCountdowns.length }})</text>
+              <text>已经 ({{ pastCountdowns!.length }})</text>
             </view>
             <view 
               v-for="countdown in pastCountdowns" 
@@ -178,7 +178,7 @@
           </view>
 
           <!-- 空状态 -->
-          <view v-if="detailCountdowns.length === 0" class="empty-state">
+          <view v-if="detailCountdowns!.length === 0" class="empty-state">
             <text class="empty-icon">📋</text>
             <text class="empty-text">还没有倒数日</text>
             <view class="btn btn-primary" @click="showAddCountdown">
@@ -195,27 +195,47 @@
     <!-- 添加倒数日弹窗 -->
     <AddCountdown 
       :visible="addCountdownVisible" 
-      :countdownData="editingCountdown"
+      :countdownData!="editingCountdown"
       @close="closeAddCountdown"
       @success="handleCountdownSuccess"
     />
   </view>
 </template>
 
-<script>
-import db from '../../utils/db.js';
-import AddCountdown from '../../components/AddCountdown.vue';
+<script lang="ts">
+import db from '@/utils/db.js';
+import { User, Category, Countdown } from 'types';
 
-export default {
+import AddCountdown from '@/components/AddCountdown.vue';
+import { defineComponent } from 'vue';
+import apiService from '@/services/apiService';
+interface CategoryPageData{
+  user: User,
+      categories: Category[]|null,
+      countdowns: Countdown[]|null,
+      drawerVisible: boolean,
+      addCountdownVisible: boolean,
+      editingCountdown: Countdown|null,
+      detailVisible: boolean,
+      selectedCategory: Category|null,
+      detailCountdowns: Countdown[]|null,
+      categoryIdFromQuery: number
+}
+export default defineComponent({
   name: 'Categories',
   components: {
     AddCountdown
   },
-  data() {
+  data():CategoryPageData {
     return {
       user: {
         id: 1,
-        nickname: '张三'
+        nickname: '张三',
+        username: '',
+        password: '',
+        avatar: '',
+        created_at: '',
+        updated_at: ''
       },
       categories: [],
       countdowns: [],
@@ -225,22 +245,23 @@ export default {
       detailVisible: false,
       selectedCategory: null,
       detailCountdowns: [],
-      categoryIdFromQuery: null
+      categoryIdFromQuery: 0
     };
   },
+  
   computed: {
     futureCountdowns() {
       return this.detailCountdowns
-        .filter(cd => db.calculateDays(cd.date) >= 0)
+        ?.filter(cd => db.calculateDays(cd.date) >= 0)
         .sort((a, b) => db.calculateDays(a.date) - db.calculateDays(b.date));
     },
     pastCountdowns() {
       return this.detailCountdowns
-        .filter(cd => db.calculateDays(cd.date) < 0)
+        ?.filter(cd => db.calculateDays(cd.date) < 0)
         .sort((a, b) => db.calculateDays(b.date) - db.calculateDays(a.date));
     }
   },
-  onLoad(options) {
+  onLoad(options:any) {
     if (options.categoryId) {
       this.categoryIdFromQuery = parseInt(options.categoryId);
     }
@@ -251,37 +272,38 @@ export default {
     this.loadCountdowns();
     
     if (this.categoryIdFromQuery) {
-      const category = this.categories.find(c => c.id === this.categoryIdFromQuery);
+      const category = this.categories?.find(c => c.id === this.categoryIdFromQuery);
       if (category) {
         this.handleCategoryClick(category);
       }
-      this.categoryIdFromQuery = null;
+      this.categoryIdFromQuery = 0;
     }
   },
   methods: {
-    loadUserData() {
-      const currentUser = db.getCurrentUser();
+    async loadUserData() {
+      const userid = uni.getStorageSync('userid');
+      const currentUser = await apiService.getCurrentUser(userid);
       if (currentUser) {
         this.user = currentUser;
       }
     },
-    loadCategories() {
+    async loadCategories() {
       if (this.user.id) {
-        this.categories = db.getCategories(this.user.id);
+        this.categories = await apiService.getCategories(this.user.id.toString());
       }
     },
-    loadCountdowns() {
+    async loadCountdowns() {
       if (this.user.id) {
-        this.countdowns = db.getCountdowns(this.user.id);
+        this.countdowns = await apiService.getCountdowns({userid: this.user.id.toString()});// eslint-disable-line no-undef
       }
     },
-    getCategoryCount(categoryId) {
-      return this.countdowns.filter(cd => cd.categoryId === categoryId).length;
+    getCategoryCount(categoryId:number) {
+      return this.countdowns?.filter(cd => cd.category_id === categoryId).length;
     },
     getAllCountdownCount() {
-      return this.countdowns.length;
+      return this.countdowns?.length;
     },
-    getCategoryCountText(categoryId) {
+    getCategoryCountText(categoryId:number) {
       const count = this.getCategoryCount(categoryId);
       return `${count}个倒数日`;
     },
@@ -310,18 +332,18 @@ export default {
       this.drawerVisible = false;
       this.handleAllCategory();
     },
-    handleCategoryClick(category) {
+    handleCategoryClick(category:Category) {
       this.selectedCategory = category;
-      this.detailCountdowns = this.countdowns.filter(cd => cd.categoryId === category.id);
+      this.detailCountdowns =  this.countdowns?.filter(cd => cd.category_id === category.id) ??null;
       this.detailVisible = true;
     },
-    handleCategoryDrawerClick(category) {
+    handleCategoryDrawerClick(category:Category) {
       this.drawerVisible = false;
       this.selectedCategory = category;
-      this.detailCountdowns = this.countdowns.filter(cd => cd.categoryId === category.id);
+      this.detailCountdowns = this.countdowns?.filter(cd => cd.category_id === category.id)??null;
       this.detailVisible = true;
     },
-    handleCategoryLongPress(category) {
+    handleCategoryLongPress(category:Category) {
       uni.showActionSheet({
         itemList: ['编辑', '删除'],
         success: (res) => {
@@ -333,9 +355,9 @@ export default {
             uni.showModal({
               title: '确认删除',
               content: `确定要删除"${category.name}"分类吗？该分类下的倒数日也会被删除。`,
-              success: (modalRes) => {
+              success: async (modalRes) => {
                 if (modalRes.confirm) {
-                  db.deleteCategory(category.id);
+                  await apiService.deleteCategory(category.id);
                   this.loadCategories();
                   this.loadCountdowns();
                   uni.showToast({
@@ -354,7 +376,7 @@ export default {
       this.selectedCategory = null;
       this.detailCountdowns = [];
     },
-    handleCountdownClick(countdown) {
+    handleCountdownClick(countdown:Countdown) {
       uni.navigateTo({
         url: `/subpackages/detail/detail?id=${countdown.id}`
       });
@@ -362,20 +384,20 @@ export default {
     handleCountdownSuccess() {
       this.loadCountdowns();
       if (this.selectedCategory) {
-        this.detailCountdowns = this.countdowns.filter(cd => cd.categoryId === this.selectedCategory.id);
+        this.detailCountdowns = this.countdowns?.filter(cd => cd.category_id === this.selectedCategory?.id)??null;
       } else {
         this.detailCountdowns = this.countdowns;
       }
     },
-    calculateDaysNumber(targetDate) {
+    calculateDaysNumber(targetDate:any) {
       const days = db.calculateDays(targetDate);
       return Math.abs(days);
     },
-    formatDate(dateStr) {
+    formatDate(dateStr:string) {
       return db.formatDate(dateStr);
     }
   }
-};
+});
 </script>
 
 <style scoped>
