@@ -80,7 +80,7 @@ class ApiService {
   }
 
   async archiveCountdown(id: number): Promise<Countdown> {
-    const res = await request.post<Countdown>(`${API.countdown.archive}/${id}/archive`);
+    const res = await request.post<Countdown>(`${API.countdown.archive}/archive`, {id});
     return res.data;
   }
 
