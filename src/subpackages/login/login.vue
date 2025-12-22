@@ -59,6 +59,10 @@
           <view class="btn btn-primary login-btn" :class="{ 'btn-disabled': !isFormValid }" @click="handleLogin">
             <text>登录</text>
           </view>
+          <view class="btn btn-primary login-btn" :class="{ 'btn-disabled': !isFormValid }"
+            @click="handleWechatLogin">
+            <text>微信号登录</text>
+          </view>
 
           <!-- 注册链接 -->
           <view class="register-link">
@@ -80,6 +84,7 @@ import { defineComponent } from 'vue';
 import apiService from '@/services/apiService';
 import { validateUsername, validatePassword } from '@/utils/validate';
 import { showToast, } from '@/utils/uniUtils';
+import wxauth from '@/utils/wxauth';
 
 interface LoginForm {
   username: string;
@@ -91,6 +96,7 @@ interface LoginPageData {
   form: LoginForm;
   showPassword: boolean;
   loading: boolean;
+  isWechat: boolean;
 }
 
 export default defineComponent({
@@ -104,7 +110,8 @@ export default defineComponent({
         remember: true
       },
       showPassword: false,
-      loading: false
+      loading: false,
+      isWechat:false,
     };
   },
 
@@ -117,10 +124,65 @@ export default defineComponent({
   },
 
   onLoad() {
+    // 1. 判断环境
+    this.isWechat = wxauth.isInWechat();
+
+    // 2. 处理微信授权回调（如果是从微信跳转回来，URL会带code）
+    this.handleWxCallback(); // Ensure this method is defined below
     this.loadSavedAccount();
   },
 
   methods: {
+     // 处理微信授权回调
+     async handleWxCallback() {
+      const code = wxauth.handleAuthCallback();
+      if (code) {
+        // 如果URL中有code，表示是从微信授权后跳转回来的
+        uni.showLoading({ title: '登录中...', mask: true });
+        try {
+          // 调用后端接口，用code换取用户信息
+          // const loginRes = await apiService.loginByWeixin({ code: code });
+          const loginRes = {
+            data: {
+              token: 'mocked_token_from_wechat_login',
+              userInfo: {
+                userid: 'mocked_userid',
+                username: 'WeChatUser'
+              }
+            }
+          };
+          
+          // 登录成功处理
+          uni.setStorageSync('token', loginRes.data.token);
+          uni.setStorageSync('userInfo', JSON.stringify(loginRes.data.userInfo));
+          
+          showToast('微信登录成功', 'success');
+          setTimeout(() => {
+            uni.switchTab({ url: '/pages/index/index' });
+          }, 800);
+        } catch (error: any) {
+          console.error('微信登录失败:', error);
+          showToast(error.message || '微信登录失败，请重试', 'none');
+        } finally {
+          uni.hideLoading();
+        }
+      }
+    },
+
+    // 处理微信登录按钮点击（重写此方法）
+    handleWechatLogin() {
+      if (!this.isWechat) {
+        uni.showModal({
+          title: '提示',
+          content: '请在微信内打开此页面使用一键登录',
+          showCancel: false
+        });
+        return;
+      }
+      // 跳转到微信授权页面
+      wxauth.authorize('snsapi_userinfo'); // 需要用户信息，如需静默则用 'snsapi_base'
+    },
+
     // 加载保存的账号信息
     loadSavedAccount() {
       try {
@@ -178,7 +240,7 @@ export default defineComponent({
       return true;
     },
 
-  async  handleLogin() {
+    async handleLogin() {
       // 1. 表单验证（可选的）
       // if (!this.validateForm()) {
       //   return;
@@ -252,7 +314,7 @@ export default defineComponent({
 
         // 9. 显示错误提示
         showToast(errorMessage, 'none');
-      }finally{
+      } finally {
         this.loading = false;
 
       }

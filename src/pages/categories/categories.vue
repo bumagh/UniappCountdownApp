@@ -283,19 +283,16 @@ export default defineComponent({
     async loadUserData() {
       const userid = uni.getStorageSync('userid');
       const currentUser = await apiService.getCurrentUser(userid);
-      if (currentUser) {
         this.user = currentUser;
-      }
+
     },
     async loadCategories() {
-      if (this.user.id) {
-        this.categories = await apiService.getCategories(this.user.id.toString());
-      }
+      const userid = uni.getStorageSync('userid');
+        this.categories = await apiService.getCategories(userid);
     },
     async loadCountdowns() {
-      if (this.user.id) {
-        this.countdowns = await apiService.getCountdowns({userid: this.user.id.toString()});// eslint-disable-line no-undef
-      }
+      const userid = uni.getStorageSync('userid');
+        this.countdowns = await apiService.getCountdowns({userid});// eslint-disable-line no-undef
     },
     getCategoryCount(categoryId:number) {
       return this.countdowns?.filter(cd => cd.category_id === categoryId).length;
