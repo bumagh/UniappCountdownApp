@@ -84,4 +84,4 @@ class WxAuth
 }
 
 // 导出单例，请替换为您的真实公众号AppID
-export default new WxAuth( 'wx01e898364923998d' );
+export default new WxAuth( 'wxc164b903f978d83d' );
