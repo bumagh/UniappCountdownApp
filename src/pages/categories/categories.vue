@@ -2,13 +2,13 @@
   <view class="page-container">
     <!-- 顶部导航栏 -->
     <view class="navbar">
-      <view class="navbar-icon" @click="toggleDrawer">
+      <view class="navbar-icon" @click=" toggleDrawer ">
         <text>☰</text>
       </view>
       <view class="navbar-title">
         <text>{{ user.nickname }}的倒数本</text>
       </view>
-      <view class="navbar-icon" @click="goToBookEdit">
+      <view class="navbar-icon" @click=" goToBookEdit ">
         <text>+</text>
       </view>
     </view>
@@ -17,7 +17,7 @@
     <scroll-view scroll-y class="page-content">
       <!-- 添加新倒数本按钮 -->
       <view class="add-category-section">
-        <view class="add-category-btn shadow" @click="goToBookEdit">
+        <view class="add-category-btn shadow" @click=" goToBookEdit ">
           <view class="add-icon">
             <text>+</text>
           </view>
@@ -32,7 +32,7 @@
         </view>
 
         <!-- 全部分类卡片 -->
-        <view class="category-card shadow" @click="handleAllCategory">
+        <view class="category-card shadow" @click=" handleAllCategory ">
           <view class="category-card-left">
             <view class="category-icon" style="background-color: #1890ff;">
               <text>📋</text>
@@ -49,24 +49,19 @@
         </view>
 
         <!-- 分类卡片列表 -->
-        <view 
-          v-for="category in categories" 
-          :key="category.id"
-          class="category-card shadow"
-          @click="handleCategoryClick(category)"
-          @longpress="handleCategoryLongPress(category)"
-        >
+        <view v-for=" category in categories " :key=" category.id " class="category-card shadow"
+          @click="handleCategoryClick( category )" @longpress="handleCategoryLongPress( category )">
           <view class="category-card-left">
-            <view class="category-icon" :style="{ backgroundColor: category.color }">
+            <view class="category-icon" :style=" { backgroundColor: category.color } ">
               <text>{{ category.icon }}</text>
             </view>
             <view class="category-info">
               <text class="category-name">{{ category.name }}</text>
-              <text class="category-desc">{{ getCategoryCountText(category.id) }}</text>
+              <text class="category-desc">{{ getCategoryCountText( category.id ) }}</text>
             </view>
           </view>
           <view class="category-card-right">
-            <text class="category-count">{{ getCategoryCount(category.id) }}</text>
+            <text class="category-count">{{ getCategoryCount( category.id ) }}</text>
             <text class="category-arrow">›</text>
           </view>
         </view>
@@ -77,51 +72,42 @@
     </scroll-view>
 
     <!-- 侧边抽屉 -->
-    <view v-if="drawerVisible" class="drawer-mask" @click="toggleDrawer"></view>
-    <view class="drawer" :class="{ 'drawer-open': drawerVisible }">
+    <view v-if=" drawerVisible " class="drawer-mask" @click=" toggleDrawer "></view>
+    <view class="drawer" :class=" { 'drawer-open': drawerVisible } ">
       <view class="drawer-header">
         <text class="drawer-title">倒数本</text>
-        <view class="drawer-close" @click="toggleDrawer">
+        <view class="drawer-close" @click=" toggleDrawer ">
           <text>✕</text>
         </view>
       </view>
       <scroll-view scroll-y class="drawer-content">
         <view class="category-list">
-          <view 
-            class="category-drawer-item"
-            @click="handleAllCategoryDrawer"
-          >
+          <view class="category-drawer-item" @click=" handleAllCategoryDrawer ">
             <view class="category-drawer-icon" style="background-color: #1890ff;">
               <text>📋</text>
             </view>
             <text class="category-drawer-name">全部</text>
             <text class="category-drawer-count">{{ getAllCountdownCount() }}</text>
           </view>
-          <view 
-            v-for="category in categories" 
-            :key="category.id"
-            class="category-drawer-item"
-            @click="handleCategoryDrawerClick(category)"
-          >
-            <view class="category-drawer-icon" :style="{ backgroundColor: category.color }">
+          <view v-for=" category in categories " :key=" category.id " class="category-drawer-item"
+            @click="handleCategoryDrawerClick( category )">
+            <view class="category-drawer-icon" :style=" { backgroundColor: category.color } ">
               <text>{{ category.icon }}</text>
             </view>
             <text class="category-drawer-name">{{ category.name }}</text>
-            <text class="category-drawer-count">{{ getCategoryCount(category.id) }}</text>
+            <text class="category-drawer-count">{{ getCategoryCount( category.id ) }}</text>
           </view>
         </view>
       </scroll-view>
     </view>
 
     <!-- 分类详情页面（倒数日列表） -->
-    <view v-if="detailVisible" class="detail-mask" @click="closeDetail">
+    <view v-if=" detailVisible " class="detail-mask" @click=" closeDetail ">
       <view class="detail-content" @click.stop>
         <view class="detail-header">
           <view class="detail-header-left">
-            <view 
-              class="detail-icon" 
-              :style="{ backgroundColor: selectedCategory ? selectedCategory.color : '#1890ff' }"
-            >
+            <view class="detail-icon"
+              :style=" { backgroundColor: selectedCategory ? selectedCategory.color : '#1890ff' } ">
               <text>{{ selectedCategory ? selectedCategory.icon : '📋' }}</text>
             </view>
             <view class="detail-title-wrapper">
@@ -129,59 +115,51 @@
               <text class="detail-subtitle">{{ detailCountdowns?.length }}个倒数日</text>
             </view>
           </view>
-          <view class="detail-close" @click="closeDetail">
+          <view class="detail-close" @click=" closeDetail ">
             <text>✕</text>
           </view>
         </view>
 
         <scroll-view scroll-y class="detail-body">
           <!-- 未来倒数日 -->
-          <view v-if="(futureCountdowns ?? []).length > 0" class="countdown-group">
+          <view v-if=" ( futureCountdowns ?? [] ).length > 0 " class="countdown-group">
             <view class="group-title">
-              <text>未来 ({{ (futureCountdowns ?? []).length }})</text>
+              <text>未来 ({{ ( futureCountdowns ?? [] ).length }})</text>
             </view>
-            <view 
-              v-for="countdown in futureCountdowns" 
-              :key="countdown.id"
-              class="countdown-card shadow"
-              @click="handleCountdownClick(countdown)"
-            >
+            <view v-for=" countdown in futureCountdowns " :key=" countdown.id " class="countdown-card shadow"
+              @click="handleCountdownClick( countdown )">
               <view class="countdown-number">
-                <text>{{ calculateDaysNumber(countdown.date) }}</text>
+                <text>{{ calculateDaysNumber( countdown.date ) }}</text>
               </view>
               <view class="countdown-info">
                 <text class="countdown-title">{{ countdown.title }}</text>
-                <text class="countdown-date">{{ formatDate(countdown.date) }}</text>
+                <text class="countdown-date">{{ formatDate( countdown.date ) }}</text>
               </view>
             </view>
           </view>
 
           <!-- 已经倒数日 -->
-          <view v-if="pastCountdowns!.length > 0" class="countdown-group">
+          <view v-if=" pastCountdowns!.length > 0 " class="countdown-group">
             <view class="group-title">
               <text>已经 ({{ pastCountdowns!.length }})</text>
             </view>
-            <view 
-              v-for="countdown in pastCountdowns" 
-              :key="countdown.id"
-              class="countdown-card shadow past-card"
-              @click="handleCountdownClick(countdown)"
-            >
+            <view v-for=" countdown in pastCountdowns " :key=" countdown.id " class="countdown-card shadow past-card"
+              @click="handleCountdownClick( countdown )">
               <view class="countdown-number past-number">
-                <text>{{ calculateDaysNumber(countdown.date) }}</text>
+                <text>{{ calculateDaysNumber( countdown.date ) }}</text>
               </view>
               <view class="countdown-info">
                 <text class="countdown-title">{{ countdown.title }}</text>
-                <text class="countdown-date">{{ formatDate(countdown.date) }}</text>
+                <text class="countdown-date">{{ formatDate( countdown.date ) }}</text>
               </view>
             </view>
           </view>
 
           <!-- 空状态 -->
-          <view v-if="detailCountdowns!.length === 0" class="empty-state">
+          <view v-if=" detailCountdowns!.length === 0 " class="empty-state">
             <text class="empty-icon">📋</text>
             <text class="empty-text">还没有倒数日</text>
-            <view class="btn btn-primary" @click="showAddCountdown">
+            <view class="btn btn-primary" @click=" showAddCountdown ">
               <text>添加第一个</text>
             </view>
           </view>
@@ -193,12 +171,8 @@
     </view>
 
     <!-- 添加倒数日弹窗 -->
-    <AddCountdown 
-      :visible="addCountdownVisible" 
-      :countdownData!="editingCountdown"
-      @close="closeAddCountdown"
-      @success="handleCountdownSuccess"
-    />
+    <AddCountdown :visible=" addCountdownVisible " :countdownData!=" editingCountdown " @close=" closeAddCountdown "
+      @success=" handleCountdownSuccess " />
   </view>
 </template>
 
@@ -209,24 +183,26 @@ import { User, Category, Countdown } from 'types';
 import AddCountdown from '@/components/AddCountdown.vue';
 import { defineComponent } from 'vue';
 import apiService from '@/services/apiService';
-interface CategoryPageData{
+interface CategoryPageData
+{
   user: User,
-      categories: Category[]|null,
-      countdowns: Countdown[]|null,
-      drawerVisible: boolean,
-      addCountdownVisible: boolean,
-      editingCountdown: Countdown|null,
-      detailVisible: boolean,
-      selectedCategory: Category|null,
-      detailCountdowns: Countdown[]|null,
-      categoryIdFromQuery: number
+  categories: Category[] | null,
+  countdowns: Countdown[] | null,
+  drawerVisible: boolean,
+  addCountdownVisible: boolean,
+  editingCountdown: Countdown | null,
+  detailVisible: boolean,
+  selectedCategory: Category | null,
+  detailCountdowns: Countdown[] | null,
+  categoryIdFromQuery: number
 }
-export default defineComponent({
+export default defineComponent( {
   name: 'Categories',
   components: {
     AddCountdown
   },
-  data():CategoryPageData {
+  data (): CategoryPageData
+  {
     return {
       user: {
         id: 1,
@@ -248,153 +224,190 @@ export default defineComponent({
       categoryIdFromQuery: 0
     };
   },
-  
+
   computed: {
-    futureCountdowns() {
+    futureCountdowns ()
+    {
       return this.detailCountdowns
-        ?.filter(cd => db.calculateDays(cd.date) >= 0)
-        .sort((a, b) => db.calculateDays(a.date) - db.calculateDays(b.date));
+        ?.filter( cd => db.calculateDays( cd.date ) >= 0 )
+        .sort( ( a, b ) => db.calculateDays( a.date ) - db.calculateDays( b.date ) );
     },
-    pastCountdowns() {
+    pastCountdowns ()
+    {
       return this.detailCountdowns
-        ?.filter(cd => db.calculateDays(cd.date) < 0)
-        .sort((a, b) => db.calculateDays(b.date) - db.calculateDays(a.date));
+        ?.filter( cd => db.calculateDays( cd.date ) < 0 )
+        .sort( ( a, b ) => db.calculateDays( b.date ) - db.calculateDays( a.date ) );
     }
   },
-  onLoad(options:any) {
-    if (options.categoryId) {
-      this.categoryIdFromQuery = parseInt(options.categoryId);
+  onLoad ( options: any )
+  {
+    if ( options.categoryId )
+    {
+      this.categoryIdFromQuery = parseInt( options.categoryId );
     }
   },
-  onShow() {
+  onShow ()
+  {
     this.loadUserData();
     this.loadCategories();
     this.loadCountdowns();
-    
-    if (this.categoryIdFromQuery) {
-      const category = this.categories?.find(c => c.id === this.categoryIdFromQuery);
-      if (category) {
-        this.handleCategoryClick(category);
+
+    if ( this.categoryIdFromQuery )
+    {
+      const category = this.categories?.find( c => c.id === this.categoryIdFromQuery );
+      if ( category )
+      {
+        this.handleCategoryClick( category );
       }
       this.categoryIdFromQuery = 0;
     }
   },
   methods: {
-    async loadUserData() {
-      const userid = uni.getStorageSync('userid');
-      const currentUser = await apiService.getCurrentUser(userid);
-        this.user = currentUser;
+    async loadUserData ()
+    {
+      const userid = uni.getStorageSync( 'userid' );
+      const currentUser = await apiService.getCurrentUser( userid );
+      this.user = currentUser;
 
     },
-    async loadCategories() {
-      const userid = uni.getStorageSync('userid');
-        this.categories = await apiService.getCategories(userid);
+    async loadCategories ()
+    {
+      const userid = uni.getStorageSync( 'userid' );
+      this.categories = await apiService.getCategories( userid );
     },
-    async loadCountdowns() {
-      const userid = uni.getStorageSync('userid');
-        this.countdowns = await apiService.getCountdowns({userid});// eslint-disable-line no-undef
+    async loadCountdowns ()
+    {
+      const userid = uni.getStorageSync( 'userid' );
+      this.countdowns = await apiService.getCountdowns( { userid } );// eslint-disable-line no-undef
     },
-    getCategoryCount(categoryId:number) {
-      return this.countdowns?.filter(cd => cd.category_id === categoryId).length;
+    getCategoryCount ( categoryId: number )
+    {
+      return this.countdowns?.filter( cd => cd.category_id === categoryId ).length;
     },
-    getAllCountdownCount() {
+    getAllCountdownCount ()
+    {
       return this.countdowns?.length;
     },
-    getCategoryCountText(categoryId:number) {
-      const count = this.getCategoryCount(categoryId);
-      return `${count}个倒数日`;
+    getCategoryCountText ( categoryId: number )
+    {
+      const count = this.getCategoryCount( categoryId );
+      return `${ count }个倒数日`;
     },
-    toggleDrawer() {
+    toggleDrawer ()
+    {
       this.drawerVisible = !this.drawerVisible;
     },
-    goToBookEdit() {
-      uni.navigateTo({
+    goToBookEdit ()
+    {
+      uni.navigateTo( {
         url: '/subpackages/book-edit/book-edit'
-      });
+      } );
     },
-    showAddCountdown() {
+    showAddCountdown ()
+    {
       this.editingCountdown = null;
       this.addCountdownVisible = true;
     },
-    closeAddCountdown() {
+    async closeAddCountdown ()
+    {
       this.addCountdownVisible = false;
       this.editingCountdown = null;
+      const userid = uni.getStorageSync( 'userid' );
+      this.countdowns = await apiService.getCountdowns( { userid } );// eslint-disable-line no-undef
+      this.detailCountdowns = this.countdowns?.filter( cd => cd.category_id === this.selectedCategory?.id ) ?? null;
     },
-    handleAllCategory() {
+    handleAllCategory ()
+    {
       this.selectedCategory = null;
       this.detailCountdowns = this.countdowns;
       this.detailVisible = true;
     },
-    handleAllCategoryDrawer() {
+    handleAllCategoryDrawer ()
+    {
       this.drawerVisible = false;
       this.handleAllCategory();
     },
-    handleCategoryClick(category:Category) {
+    handleCategoryClick ( category: Category )
+    {
       this.selectedCategory = category;
-      this.detailCountdowns =  this.countdowns?.filter(cd => cd.category_id === category.id) ??null;
+      this.detailCountdowns = this.countdowns?.filter( cd => cd.category_id === category.id ) ?? null;
       this.detailVisible = true;
     },
-    handleCategoryDrawerClick(category:Category) {
+    handleCategoryDrawerClick ( category: Category )
+    {
       this.drawerVisible = false;
       this.selectedCategory = category;
-      this.detailCountdowns = this.countdowns?.filter(cd => cd.category_id === category.id)??null;
+      this.detailCountdowns = this.countdowns?.filter( cd => cd.category_id === category.id ) ?? null;
       this.detailVisible = true;
     },
-    handleCategoryLongPress(category:Category) {
-      uni.showActionSheet({
-        itemList: ['编辑', '删除'],
-        success: (res) => {
-          if (res.tapIndex === 0) {
-            uni.navigateTo({
-              url: `/subpackages/book-edit/book-edit?id=${category.id}`
-            });
-          } else if (res.tapIndex === 1) {
-            uni.showModal({
+    handleCategoryLongPress ( category: Category )
+    {
+      uni.showActionSheet( {
+        itemList: [ '编辑', '删除' ],
+        success: ( res ) =>
+        {
+          if ( res.tapIndex === 0 )
+          {
+            uni.navigateTo( {
+              url: `/subpackages/book-edit/book-edit?id=${ category.id }`
+            } );
+          } else if ( res.tapIndex === 1 )
+          {
+            uni.showModal( {
               title: '确认删除',
-              content: `确定要删除"${category.name}"分类吗？该分类下的倒数日也会被删除。`,
-              success: async (modalRes) => {
-                if (modalRes.confirm) {
-                  await apiService.deleteCategory(category.id);
+              content: `确定要删除"${ category.name }"分类吗？该分类下的倒数日也会被删除。`,
+              success: async ( modalRes ) =>
+              {
+                if ( modalRes.confirm )
+                {
+                  await apiService.deleteCategory( category.id );
                   this.loadCategories();
                   this.loadCountdowns();
-                  uni.showToast({
+                  uni.showToast( {
                     title: '删除成功',
                     icon: 'success'
-                  });
+                  } );
                 }
               }
-            });
+            } );
           }
         }
-      });
+      } );
     },
-    closeDetail() {
+    closeDetail ()
+    {
       this.detailVisible = false;
       this.selectedCategory = null;
       this.detailCountdowns = [];
     },
-    handleCountdownClick(countdown:Countdown) {
-      uni.navigateTo({
-        url: `/subpackages/detail/detail?id=${countdown.id}`
-      });
+    handleCountdownClick ( countdown: Countdown )
+    {
+      uni.navigateTo( {
+        url: `/subpackages/detail/detail?id=${ countdown.id }`
+      } );
     },
-    handleCountdownSuccess() {
+    handleCountdownSuccess ()
+    {
       this.loadCountdowns();
-      if (this.selectedCategory) {
-        this.detailCountdowns = this.countdowns?.filter(cd => cd.category_id === this.selectedCategory?.id)??null;
-      } else {
+      if ( this.selectedCategory )
+      {
+        this.detailCountdowns = this.countdowns?.filter( cd => cd.category_id === this.selectedCategory?.id ) ?? null;
+      } else
+      {
         this.detailCountdowns = this.countdowns;
       }
     },
-    calculateDaysNumber(targetDate:any) {
-      const days = db.calculateDays(targetDate);
-      return Math.abs(days);
+    calculateDaysNumber ( targetDate: any )
+    {
+      const days = db.calculateDays( targetDate );
+      return Math.abs( days );
     },
-    formatDate(dateStr:string) {
-      return db.formatDate(dateStr);
+    formatDate ( dateStr: string )
+    {
+      return db.formatDate( dateStr );
     }
   }
-});
+} );
 </script>
 
 <style scoped>
