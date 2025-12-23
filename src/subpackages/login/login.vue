@@ -195,13 +195,16 @@ export default defineComponent( {
           icon: 'success',
           duration: 1500
         } );
-
-        setTimeout( () =>
-        {
-          uni.navigateTo( { url: `/subpackages/register/reginfo?nickname=${ loginRes.userInfo.nickname }&gender=${ loginRes.userInfo.sex }` } );
-
-        }, 1500 );
-
+        if ( loginRes.userInfo.isfirst == 'yes' )
+          setTimeout( () =>
+          {
+            uni.navigateTo( { url: `/subpackages/register/reginfo?nickname=${ loginRes.userInfo.nickname }&gender=${ loginRes.userInfo.sex }` } );
+          }, 1500 );
+        else
+          setTimeout( () =>
+          {
+            uni.switchTab( { url: '/pages/index/index' } )
+          }, 1500 );
       } catch ( error: any )
       {
         console.error( '微信登录失败:', error );
