@@ -131,34 +131,27 @@ export default defineComponent( {
   {
     // 1. 判断环境
     this.isWechat = wxauth.isInWechat();
-    this.handleWechatCallback();
+    if ( this.isWechat )
+      this.handleWechatCallback();
     // 2. 处理微信授权回调（如果是从微信跳转回来，URL会带code）
     this.loadSavedAccount();
   },
 
   methods: {
-    // 处理微信授权回调（自动处理URL中的code）
     async handleWechatCallback ()
     {
-      // 检查URL中是否有微信回调的code
       const code = wxauth.handleAuthCallback();
-      wxauth.clearAuthParamsFromUrl();
-
       if ( code )
       {
-        // 如果有code，说明是微信授权后跳转回来的，自动进行登录
         await this.processWechatLogin( code );
+        wxauth.clearAuthParamsFromUrl();
       }
-      // 如果没有code，不执行任何操作，等待用户点击按钮
     },
 
-    // 处理微信登录按钮点击
     async handleWechatLogin ()
     {
-      // 1. 防止重复点击
       if ( this.loading ) return;
 
-      // 2. 检查是否在微信环境
       if ( !this.isWechat )
       {
         uni.showModal( {
@@ -169,28 +162,22 @@ export default defineComponent( {
         return;
       }
 
-      // 3. 先检查URL中是否已经有code（可能在页面加载后用户又点了按钮）
-      let code = wxauth.handleAuthCallback();
-
+      const code = wxauth.handleAuthCallback();
       if ( code )
       {
-        // 如果有code，直接使用它登录
         await this.processWechatLogin( code );
+        wxauth.clearAuthParamsFromUrl();
       } else
       {
-        // 如果没有code，跳转到微信授权页面获取code
         wxauth.authorize();
       }
     },
 
-    // 执行微信登录逻辑
     async processWechatLogin ( code: string )
     {
-      // 1. 防止重复提交
       if ( this.loading ) return;
-      this.loading = true;
 
-      // 2. 显示加载状态
+      this.loading = true;
       uni.showLoading( {
         title: '微信登录中...',
         mask: true
@@ -198,37 +185,27 @@ export default defineComponent( {
 
       try
       {
-        // 3. 调用后端接口，用code换取用户信息
         const loginRes = await apiService.loginByWeixin( { code: code } );
-        console.log( loginRes )
-        // 4. 登录成功处理
+
         uni.setStorageSync( 'token', loginRes.token );
         uni.setStorageSync( 'userInfo', JSON.stringify( loginRes.userInfo ) );
 
-        // 5. 显示成功提示
         uni.showToast( {
           title: '微信登录成功',
           icon: 'success',
           duration: 1500
         } );
 
-        // 6. 延迟跳转，确保用户能看到成功提示
         setTimeout( () =>
         {
           uni.switchTab( { url: '/pages/index/index' } );
         }, 1500 );
 
-        // 7. 清除URL中的code参数（可选，避免刷新页面重复提交）
-        wxauth.clearAuthParamsFromUrl();
-
       } catch ( error: any )
       {
         console.error( '微信登录失败:', error );
 
-        // 8. 错误处理
         let errorMessage = '微信登录失败，请重试';
-
-        // 根据错误类型显示不同的提示
         if ( error.code )
         {
           switch ( error.code )
@@ -254,17 +231,16 @@ export default defineComponent( {
           duration: 3000
         } );
 
-        // 9. 登录失败后，可以清除存储的登录信息
         uni.removeStorageSync( 'token' );
         uni.removeStorageSync( 'userInfo' );
 
       } finally
       {
-        // 10. 隐藏加载状态
         uni.hideLoading();
         this.loading = false;
       }
-    },
+    }
+    ,
 
 
     // 加载保存的账号信息
