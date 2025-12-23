@@ -21,14 +21,14 @@ class ApiService
   // 微信登录
   async loginByWeixin ( data: { code: string } ): Promise<{ token: string; userInfo: any }>
   {
-    const res = await request.post( '/api/loginByWeixin', data );
+    const res = await request.post( '/api/v1.wechat/loginByWeixin', data );
     return res.data;
   }
 
   // 获取用户信息（通过openid，需要token）
   async getUserInfo ( data: { openid: string } ): Promise<{ userInfo: any }>
   {
-    const res = await request.post( '/api/wechat/userInfo', data );
+    const res = await request.post( '/api/v1.wechat/userInfo', data );
     return res.data;
   }
   async loginUser ( data: Partial<User> ): Promise<CommonResponse>
