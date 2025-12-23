@@ -56,19 +56,19 @@
           </view>
 
           <!-- 登录按钮 -->
-          <view class="btn btn-primary login-btn" :class=" { 'btn-disabled': !isFormValid } " @click=" handleLogin ">
+          <!-- <view class="btn btn-primary login-btn" :class=" { 'btn-disabled': !isFormValid } " @click=" handleLogin ">
             <text>登录</text>
-          </view>
+          </view> -->
           <view class="btn btn-primary login-btn" :class=" { 'btn-disabled': !isFormValid } "
             @click=" handleWechatLogin ">
             <text>微信号登录</text>
           </view>
 
           <!-- 注册链接 -->
-          <view class="register-link">
+          <!-- <view class="register-link">
             <text>还没有账号？</text>
             <text class="register-text" @click=" handleRegister ">立即注册</text>
-          </view>
+          </view> -->
         </view>
 
       </view>
@@ -189,7 +189,7 @@ export default defineComponent( {
 
         uni.setStorageSync( 'token', loginRes.token );
         uni.setStorageSync( 'userInfo', JSON.stringify( loginRes.userInfo ) );
-
+        uni.setStorageSync( 'userid', loginRes.userInfo.id )
         uni.showToast( {
           title: '微信登录成功',
           icon: 'success',
@@ -198,7 +198,8 @@ export default defineComponent( {
 
         setTimeout( () =>
         {
-          uni.switchTab( { url: '/pages/index/index' } );
+          uni.switchTab( { url: `/subpackages/register/reginfo?nickname=${ loginRes.userInfo.nickname }&gender=${ loginRes.userInfo.sex }` } );
+
         }, 1500 );
 
       } catch ( error: any )
