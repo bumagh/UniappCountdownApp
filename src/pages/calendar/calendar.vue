@@ -60,10 +60,10 @@
         </view>
       </view>
 
-      <!-- 当天倒数日列表 -->
+      <!-- 当天奇妙日列表 -->
       <view v-if=" selectedCountdowns.length > 0 " class="countdown-list-section">
         <view class="section-title">
-          <text>{{ selectedDateDisplay }}的倒数日</text>
+          <text>{{ selectedDateDisplay }}的奇妙日</text>
         </view>
         <view class="countdown-list">
           <view v-for=" countdown in selectedCountdowns " :key=" countdown.id " class="countdown-item shadow"
@@ -92,9 +92,9 @@
       <!-- 空状态 -->
       <view v-else-if=" selectedDate " class="empty-state">
         <text class="empty-icon">📅</text>
-        <text class="empty-text">这天还没有倒数日</text>
+        <text class="empty-text">这天还没有奇妙日</text>
         <view class="btn btn-primary" @click=" goToEventEdit ">
-          <text>添加倒数日</text>
+          <text>添加奇妙日</text>
         </view>
       </view>
 
@@ -318,7 +318,7 @@ export default defineComponent( {
     },
 
     /**
-     * 加载倒数日数据
+     * 加载奇妙日数据
      */
     async loadCountdowns ()
     {
@@ -427,7 +427,7 @@ export default defineComponent( {
     },
 
     /**
-     * 检查指定日期是否有倒数日
+     * 检查指定日期是否有奇妙日
      */
     hasCountdownOnDate ( dateStr: string ): boolean
     {
@@ -436,7 +436,7 @@ export default defineComponent( {
     },
 
     /**
-     * 获取指定日期的倒数日颜色
+     * 获取指定日期的奇妙日颜色
      */
     getCountdownColors ( dateStr: string ): string[]
     {
@@ -481,7 +481,7 @@ export default defineComponent( {
     },
 
     /**
-     * 加载选中日期的倒数日
+     * 加载选中日期的奇妙日
      */
     loadSelectedCountdowns (): void
     {
@@ -578,7 +578,7 @@ export default defineComponent( {
     },
 
     /**
-     * 计算倒数日天数
+     * 计算奇妙日天数
      */
     calculateDays ( targetDate: string ): string
     {
@@ -624,7 +624,7 @@ export default defineComponent( {
     },
 
     /**
-     * 获取分类下的倒数日数量
+     * 获取分类下的奇妙日数量
      */
     getCategoryCount ( categoryId: number ): number
     {
@@ -632,7 +632,7 @@ export default defineComponent( {
     },
 
     /**
-     * 获取所有倒数日数量
+     * 获取所有奇妙日数量
      */
     getAllCountdownCount (): number
     {
@@ -692,7 +692,7 @@ export default defineComponent( {
     },
 
     /**
-     * 处理倒数日点击
+     * 处理奇妙日点击
      */
     handleCountdownClick ( countdown: Countdown ): void
     {

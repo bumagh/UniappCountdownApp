@@ -138,7 +138,7 @@ export default defineComponent( {
 
       uni.showModal( {
         title: '确认删除',
-        content: `确定要删除"${ this.formData.name }"倒数本吗？该分类下的倒数日也会被删除。`,
+        content: `确定要删除"${ this.formData.name }"倒数本吗？该分类下的奇妙日也会被删除。`,
         confirmColor: '#e54d42',
         success: async ( res ) =>
         {
