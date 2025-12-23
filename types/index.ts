@@ -1,19 +1,21 @@
 // 用户类型
-export interface User {
+export interface User
+{
   id: number;
   nickname: string;
   username: string;
   password: string;
   avatar: string;
-  gender?:string;
-  birth_date?:string;
-  name?:string;
+  gender?: string;
+  birth_date?: string;
+  name?: string;
   created_at: string;
   updated_at: string;
 }
 
 // 分类类型
-export interface Category {
+export interface Category
+{
   id: number;
   name: string;
   icon: string;
@@ -24,7 +26,8 @@ export interface Category {
 }
 
 // 倒数日类型
-export interface Countdown {
+export interface Countdown
+{
   id?: number;
   title: string;
   date: string;
@@ -33,7 +36,7 @@ export interface Countdown {
   is_pinned: boolean;
   repeat_cycle: number;
   repeat_frequency: '不重复' | '天重复' | '周重复' | '月重复' | '年重复';
-  is_archived: boolean;
+  is_archived?: boolean;
   created_at?: string;
   updated_at?: string;
   days_left?: number;
@@ -42,14 +45,16 @@ export interface Countdown {
 }
 
 // API 响应类型
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = any>
+{
   code: number;
   msg: string;
   data: T;
 }
 
 // 表单类型
-export interface CountdownForm {
+export interface CountdownForm
+{
   is_pinned: boolean;
   title: string;
   date: string;
@@ -59,24 +64,28 @@ export interface CountdownForm {
 }
 
 // 请求参数类型
-export interface CountdownQueryParams {
-  userid:string,
+export interface CountdownQueryParams
+{
+  userid: string,
   category_id?: number;
   include_archived?: number;
 }
 // 登录请求参数
-export interface LoginByPasswordParams {
+export interface LoginByPasswordParams
+{
   username: string;
   password: string;
 }
 
-export interface LoginByusernameParams {
+export interface LoginByusernameParams
+{
   username: string;
   code: string;
 }
 
 // 登录响应
-export interface LoginResponse {
+export interface LoginResponse
+{
   code: number;
   msg: string;
   data: {
@@ -84,7 +93,8 @@ export interface LoginResponse {
     user: User;
   };
 }
-export interface CommonResponse {
+export interface CommonResponse
+{
   code: number;
   msg: string;
   data: any;

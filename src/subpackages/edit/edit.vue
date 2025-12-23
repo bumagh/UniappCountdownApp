@@ -209,10 +209,9 @@ export default defineComponent( {
     {
       try
       {
-        const userid = uni.getStorageSync('userid');
-        const categories = await apiService.getCategories(userid);
+        const userid = uni.getStorageSync( 'userid' );
+        const categories = await apiService.getCategories( userid );
         this.categories = categories;
-        console.log(this.categories)
         if ( this.categories.length > 0 && !this.formData.category_id )
         {
           this.formData.category_id = this.categories[ 0 ].id;
@@ -464,7 +463,9 @@ export default defineComponent( {
         } else
         {
           await apiService.createCountdown( {
-            is_pinned: false,
+            user_id: uni.getStorageSync( 'userid' ),
+            is_archived: false,
+            is_pinned: this.formData.is_pinned,
             title: this.formData.title,
             date: this.formData.date,
             category_id: this.formData.category_id,
