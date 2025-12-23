@@ -131,7 +131,7 @@ export default defineComponent( {
   {
     // 1. 判断环境
     this.isWechat = wxauth.isInWechat();
-
+    wxauth.clearAuthParamsFromUrl();
     this.handleWechatCallback();
     // 2. 处理微信授权回调（如果是从微信跳转回来，URL会带code）
     this.loadSavedAccount();
@@ -200,7 +200,7 @@ export default defineComponent( {
       {
         // 3. 调用后端接口，用code换取用户信息
         const loginRes = await apiService.loginByWeixin( { code: code } );
-
+        console.log( loginRes )
         // 4. 登录成功处理
         uni.setStorageSync( 'token', loginRes.token );
         uni.setStorageSync( 'userInfo', JSON.stringify( loginRes.userInfo ) );
