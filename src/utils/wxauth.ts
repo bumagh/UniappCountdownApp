@@ -49,7 +49,17 @@ class WxAuth
         }
         return null;
     }
+    /**
+      * 清除URL中的授权参数
+      */
+    clearAuthParamsFromUrl (): void
+    {
+        // 获取当前URL（不包含参数和hash）
+        const urlWithoutParams = window.location.origin + window.location.pathname;
 
+        // 替换当前URL，移除参数
+        window.history.replaceState( {}, document.title, urlWithoutParams );
+    }
     /**
      * 清除URL中的code和state参数，避免刷新页面重复提交
      */
