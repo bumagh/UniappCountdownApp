@@ -131,7 +131,6 @@ export default defineComponent( {
   {
     // 1. 判断环境
     this.isWechat = wxauth.isInWechat();
-    wxauth.clearAuthParamsFromUrl();
     this.handleWechatCallback();
     // 2. 处理微信授权回调（如果是从微信跳转回来，URL会带code）
     this.loadSavedAccount();
@@ -143,6 +142,7 @@ export default defineComponent( {
     {
       // 检查URL中是否有微信回调的code
       const code = wxauth.handleAuthCallback();
+      wxauth.clearAuthParamsFromUrl();
 
       if ( code )
       {
@@ -370,13 +370,14 @@ export default defineComponent( {
         } );
         uni.setStorageSync( 'token', retLogin.data.token );
         uni.setStorageSync( 'userid', retLogin.data.userid );
+        console.log( retLogin )
         // 6. 延迟跳转，确保用户能看到成功提示
         setTimeout( () =>
         {
           // 使用重定向而非导航，避免用户能返回注册页
-          uni.switchTab( {
-            url: '/pages/index/index'
-          } );
+          // uni.switchTab( {
+          //   url: '/pages/index/index'
+          // } );
         }, 800 );
 
       } catch ( error: any )
