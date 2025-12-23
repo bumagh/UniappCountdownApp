@@ -153,6 +153,10 @@ export default defineComponent( {
 
   onLoad ( options: any ): void
   {
+    if ( options.date )
+    {
+      this.formData.date = options.date;
+    }
     if ( options.id )
     {
       this.countdownId = parseInt( options.id );

@@ -42,7 +42,7 @@
   "subPackages": [
     {
       "root": "subpackages/book-edit",
-      "pages":[
+      "pages": [
         {
           "path": "book-edit",
           "style": {
@@ -51,9 +51,7 @@
             "enablePullDownRefresh": false
           }
         }
-        
       ]
-     
     },
     {
       "root": "subpackages/detail",
@@ -99,6 +97,19 @@
       "pages": [
         {
           "path": "register",
+          "style": {
+            "navigationBarTitleText": "注册",
+            "navigationStyle": "custom",
+            "enablePullDownRefresh": false
+          }
+        }
+      ]
+    },
+    {
+      "root": "subpackages/event-edit",
+      "pages": [
+        {
+          "path": "event-edit",
           "style": {
             "navigationBarTitleText": "注册",
             "navigationStyle": "custom",

@@ -2,13 +2,13 @@
   <view class="page-container">
     <!-- 顶部导航栏 -->
     <view class="navbar">
-      <view class="navbar-icon" @click="toggleDrawer">
+      <view class="navbar-icon" @click=" toggleDrawer ">
         <text>☰</text>
       </view>
       <view class="navbar-title">
         <text>{{ user.nickname }}的日历</text>
       </view>
-      <view class="navbar-icon" @click="goToEventEdit">
+      <view class="navbar-icon" @click=" goToEventEdit ">
         <text>+</text>
       </view>
     </view>
@@ -18,90 +18,70 @@
       <!-- 年月选择器 -->
       <view class="calendar-header">
         <view class="month-selector">
-          <view class="month-btn" @click="prevMonth">
+          <view class="month-btn" @click=" prevMonth ">
             <text>‹</text>
           </view>
-          <view class="month-display" @click="showMonthPicker">
+          <view class="month-display" @click=" showMonthPicker ">
             <text class="month-text">{{ currentYear }}年{{ currentMonth }}月</text>
           </view>
-          <view class="month-btn" @click="nextMonth">
+          <view class="month-btn" @click=" nextMonth ">
             <text>›</text>
           </view>
         </view>
-        <view class="today-btn" @click="goToday">
+        <view class="today-btn" @click=" goToday ">
           <text>今天</text>
         </view>
       </view>
 
       <!-- 星期标题 -->
       <view class="calendar-weekdays">
-        <view 
-          v-for="(day, index) in weekDays" 
-          :key="index"
-          class="weekday-item"
-        >
+        <view v-for=" ( day, index ) in weekDays " :key=" index " class="weekday-item">
           <text>{{ day }}</text>
         </view>
       </view>
 
       <!-- 日历网格 -->
       <view class="calendar-grid">
-        <view 
-          v-for="(day, index) in calendarDays" 
-          :key="index"
-          class="calendar-day-wrapper"
-          @click="handleDayClick(day)"
-        >
-          <view 
-            class="calendar-day"
-            :class="{
-              'day-other-month': !day.isCurrentMonth,
-              'day-today': day.isToday,
-              'day-selected': day.isSelected,
-              'day-has-countdown': day.hasCountdown
-            }"
-          >
+        <view v-for=" ( day, index ) in calendarDays " :key=" index " class="calendar-day-wrapper"
+          @click="handleDayClick( day )">
+          <view class="calendar-day" :class=" {
+            'day-other-month': !day.isCurrentMonth,
+            'day-today': day.isToday,
+            'day-selected': day.isSelected,
+            'day-has-countdown': day.hasCountdown
+          } ">
             <text class="day-number">{{ day.day }}</text>
-            <view v-if="day.hasCountdown" class="day-dots">
-              <view 
-                v-for="(color, idx) in day.colors" 
-                :key="idx"
-                class="day-dot"
-                :style="{ backgroundColor: color }"
-              ></view>
+            <view v-if=" day.hasCountdown " class="day-dots">
+              <view v-for=" ( color, idx ) in day.colors " :key=" idx " class="day-dot"
+                :style=" { backgroundColor: color } ">
+              </view>
             </view>
           </view>
         </view>
       </view>
 
       <!-- 当天倒数日列表 -->
-      <view v-if="selectedCountdowns.length > 0" class="countdown-list-section">
+      <view v-if=" selectedCountdowns.length > 0 " class="countdown-list-section">
         <view class="section-title">
           <text>{{ selectedDateDisplay }}的倒数日</text>
         </view>
         <view class="countdown-list">
-          <view 
-            v-for="countdown in selectedCountdowns" 
-            :key="countdown.id"
-            class="countdown-item shadow"
-            @click="handleCountdownClick(countdown)"
-          >
-            <view 
-              class="countdown-color-bar"
-              :style="{ backgroundColor: getCategoryColor(countdown.categoryId) }"
-            ></view>
+          <view v-for=" countdown in selectedCountdowns " :key=" countdown.id " class="countdown-item shadow"
+            @click="handleCountdownClick( countdown )">
+            <view class="countdown-color-bar" :style=" { backgroundColor: getCategoryColor( countdown.category_id ) } ">
+            </view>
             <view class="countdown-content">
               <view class="countdown-left">
-                <view class="countdown-icon" :style="{ backgroundColor: getCategoryColor(countdown.categoryId) }">
-                  <text>{{ getCategoryIcon(countdown.categoryId) }}</text>
+                <view class="countdown-icon" :style=" { backgroundColor: getCategoryColor( countdown.category_id ) } ">
+                  <text>{{ getCategoryIcon( countdown.category_id ) }}</text>
                 </view>
                 <view class="countdown-info">
                   <text class="countdown-title">{{ countdown.title }}</text>
-                  <text class="countdown-category">{{ getCategoryName(countdown.categoryId) }}</text>
+                  <text class="countdown-category">{{ getCategoryName( countdown.category_id ) }}</text>
                 </view>
               </view>
               <view class="countdown-right">
-                <text class="countdown-days">{{ calculateDays(countdown.date) }}</text>
+                <text class="countdown-days">{{ calculateDays( countdown.date ) }}</text>
                 <text class="countdown-unit">天</text>
               </view>
             </view>
@@ -110,10 +90,10 @@
       </view>
 
       <!-- 空状态 -->
-      <view v-else-if="selectedDate" class="empty-state">
+      <view v-else-if=" selectedDate " class="empty-state">
         <text class="empty-icon">📅</text>
         <text class="empty-text">这天还没有倒数日</text>
-        <view class="btn btn-primary" @click="goToEventEdit">
+        <view class="btn btn-primary" @click=" goToEventEdit ">
           <text>添加倒数日</text>
         </view>
       </view>
@@ -123,44 +103,37 @@
     </scroll-view>
 
     <!-- 侧边抽屉 -->
-    <view v-if="drawerVisible" class="drawer-mask" @click="toggleDrawer"></view>
-    <view class="drawer" :class="{ 'drawer-open': drawerVisible }">
+    <view v-if=" drawerVisible " class="drawer-mask" @click=" toggleDrawer "></view>
+    <view class="drawer" :class=" { 'drawer-open': drawerVisible } ">
       <view class="drawer-header">
         <text class="drawer-title">倒数本</text>
-        <view class="drawer-close" @click="toggleDrawer">
+        <view class="drawer-close" @click=" toggleDrawer ">
           <text>✕</text>
         </view>
       </view>
       <scroll-view scroll-y class="drawer-content">
         <view class="category-list">
-          <view 
-            class="category-drawer-item"
-            @click="handleAllCategoryClick"
-          >
+          <view class="category-drawer-item" @click=" handleAllCategoryClick ">
             <view class="category-drawer-icon" style="background-color: #ff6b9d;">
               <text>📋</text>
             </view>
             <text class="category-drawer-name">全部</text>
             <text class="category-drawer-count">{{ getAllCountdownCount() }}</text>
           </view>
-          <view 
-            v-for="category in categories" 
-            :key="category.id"
-            class="category-drawer-item"
-            @click="handleCategoryClick(category)"
-          >
-            <view class="category-drawer-icon" :style="{ backgroundColor: category.color }">
+          <view v-for=" category in categories " :key=" category.id " class="category-drawer-item"
+            @click="handleCategoryClick( category )">
+            <view class="category-drawer-icon" :style=" { backgroundColor: category.color } ">
               <text>{{ category.icon }}</text>
             </view>
             <text class="category-drawer-name">{{ category.name }}</text>
-            <text class="category-drawer-count">{{ getCategoryCount(category.id) }}</text>
+            <text class="category-drawer-count">{{ getCategoryCount( category.id ) }}</text>
           </view>
         </view>
       </scroll-view>
     </view>
 
     <!-- 月份选择器 -->
-    <view v-if="monthPickerVisible" class="modal-mask" @click="monthPickerVisible = false">
+    <view v-if=" monthPickerVisible " class="modal-mask" @click="monthPickerVisible = false">
       <view class="picker-content" @click.stop>
         <view class="picker-header">
           <text class="picker-title">选择年月</text>
@@ -169,18 +142,14 @@
           </view>
         </view>
         <view class="picker-body">
-          <picker-view 
-            :value="pickerValue" 
-            @change="onPickerChange"
-            class="picker-view"
-          >
+          <picker-view :value=" pickerValue " @change=" onPickerChange " class="picker-view">
             <picker-view-column>
-              <view v-for="(year, index) in years" :key="index" class="picker-item">
+              <view v-for=" ( year, index ) in years " :key=" index " class="picker-item">
                 <text>{{ year }}年</text>
               </view>
             </picker-view-column>
             <picker-view-column>
-              <view v-for="(month, index) in months" :key="index" class="picker-item">
+              <view v-for=" ( month, index ) in months " :key=" index " class="picker-item">
                 <text>{{ month }}月</text>
               </view>
             </picker-view-column>
@@ -190,7 +159,7 @@
           <view class="btn btn-ghost" @click="monthPickerVisible = false">
             <text>取消</text>
           </view>
-          <view class="btn btn-primary" @click="confirmMonthPicker">
+          <view class="btn btn-primary" @click=" confirmMonthPicker ">
             <text>确定</text>
           </view>
         </view>
@@ -198,279 +167,573 @@
     </view>
   </view>
 </template>
-
-<script>
+<script lang="ts">
+export interface CalendarDay
+{
+  day: number;
+  dateStr: string;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+  isSelected: boolean;
+  hasCountdown: boolean;
+  colors: string[];
+}
+import { defineComponent } from 'vue';
 import db from '../../utils/db.js';
+import { Category, Countdown, User } from 'types';
+import apiService from '@/services/apiService';
 
-export default {
+export default defineComponent( {
   name: 'Calendar',
-  data() {
+  // Props 定义
+  props: {},
+
+  // Emits 定义
+  emits: {
+    dateSelect: ( date: string ) => true,
+    countdownSelect: ( countdown: Countdown ) => true
+  },
+
+  data ()
+  {
     return {
-      user: {
-        id: 1,
-        nickname: '张三'
-      },
+      // 用户信息
+      user: {} as User,
+
+      // 日历相关状态
       currentYear: 2025,
       currentMonth: 1,
-      selectedDate: null,
-      weekDays: ['日', '一', '二', '三', '四', '五', '六'],
-      calendarDays: [],
-      countdowns: [],
-      categories: [],
-      selectedCountdowns: [],
+      selectedDate: null as string | null,
+
+      // UI 状态
+      weekDays: [ '日', '一', '二', '三', '四', '五', '六' ] as string[],
+      calendarDays: [] as CalendarDay[],
       drawerVisible: false,
       monthPickerVisible: false,
-      pickerValue: [0, 0],
-      years: [],
-      months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      pickerValue: [ 0, 0 ] as number[],
+
+      // 数据
+      countdowns: [] as Countdown[],
+      categories: [] as Category[],
+      selectedCountdowns: [] as Countdown[],
+
+      // 选择器数据
+      years: [] as number[],
+      months: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ] as number[]
     };
   },
+
   computed: {
-    selectedDateDisplay() {
-      if (!this.selectedDate) return '';
-      const date = new Date(this.selectedDate);
+    // 当前选中的日期显示
+    selectedDateDisplay (): string
+    {
+      if ( !this.selectedDate ) return '';
+
+      const date = new Date( this.selectedDate );
       const year = date.getFullYear();
       const month = date.getMonth() + 1;
       const day = date.getDate();
-      const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
-      const weekDay = weekDays[date.getDay()];
-      return `${year}年${month}月${day}日 星期${weekDay}`;
+      const weekDay = this.weekDays[ date.getDay() ];
+
+      return `${ year }年${ month }月${ day }日 星期${ weekDay }`;
+    },
+
+    // 当前月份显示
+    currentMonthDisplay (): string
+    {
+      return `${ this.currentYear }年${ this.currentMonth }月`;
     }
   },
-  onShow() {
+
+  onShow ()
+  {
     this.initData();
   },
+
+  onLoad ()
+  {
+    // 页面加载时的初始化
+    this.initData();
+  },
+
   methods: {
-    initData() {
-      const currentUser = db.getCurrentUser();
-      if (currentUser) {
+    /**
+     * 初始化数据
+     */
+    async initData ()
+    {
+      // 获取当前用户
+      const userid = uni.getStorageSync( 'userid' );
+      const currentUser = await apiService.getCurrentUser( userid );
+      if ( currentUser != null )
+      {
         this.user = currentUser;
       }
-      
+
+      // 设置当前日期
       const today = new Date();
       this.currentYear = today.getFullYear();
       this.currentMonth = today.getMonth() + 1;
-      
+
+      // 初始化年份选择器
       this.initYears();
-      this.loadCategories();
-      this.loadCountdowns();
+
+      // 加载数据
+      await this.loadCategories();
+      await this.loadCountdowns();
+
+      // 生成日历
       this.generateCalendar();
     },
-    initYears() {
+
+    /**
+     * 初始化年份列表
+     */
+    initYears (): void
+    {
       const currentYear = new Date().getFullYear();
-      for (let i = currentYear - 10; i <= currentYear + 10; i++) {
-        this.years.push(i);
+      this.years = [];
+
+      // 生成最近20年的年份
+      for ( let i = currentYear - 10; i <= currentYear + 10; i++ )
+      {
+        this.years.push( i );
       }
-      this.pickerValue = [10, this.currentMonth - 1];
-    },
-    loadCategories() {
-      if (this.user.id) {
-        this.categories = db.getCategories(this.user.id);
+
+      // 设置选择器默认值
+      const yearIndex = this.years.indexOf( this.currentYear );
+      if ( yearIndex !== -1 )
+      {
+        this.pickerValue = [ yearIndex, this.currentMonth - 1 ];
       }
     },
-    loadCountdowns() {
-      if (this.user.id) {
-        this.countdowns = db.getCountdowns(this.user.id);
-      }
+
+    /**
+     * 加载分类数据
+     */
+    async loadCategories ()
+    {
+      const userid = uni.getStorageSync( 'userid' );
+      this.categories = await apiService.getCategories( userid );
     },
-    generateCalendar() {
+
+    /**
+     * 加载倒数日数据
+     */
+    async loadCountdowns ()
+    {
+      const userid = uni.getStorageSync( 'userid' );
+      this.countdowns = await apiService.getCountdowns( { userid } );
+    },
+
+    /**
+     * 生成日历
+     */
+    generateCalendar (): void
+    {
       const year = this.currentYear;
       const month = this.currentMonth;
-      const firstDay = new Date(year, month - 1, 1);
-      const lastDay = new Date(year, month, 0);
+
+      // 获取月份的第一天和最后一天
+      const firstDay = new Date( year, month - 1, 1 );
+      const lastDay = new Date( year, month, 0 );
       const daysInMonth = lastDay.getDate();
       const startWeekDay = firstDay.getDay();
-      
-      const prevMonthLastDay = new Date(year, month - 1, 0).getDate();
-      
-      const days = [];
-      
-      for (let i = startWeekDay - 1; i >= 0; i--) {
+
+      // 获取上个月的最后一天
+      const prevMonthLastDay = new Date( year, month - 1, 0 ).getDate();
+
+      const days: CalendarDay[] = [];
+
+      // 添加上个月的日期
+      for ( let i = startWeekDay - 1; i >= 0; i-- )
+      {
         const day = prevMonthLastDay - i;
-        const dateStr = this.formatDate(year, month - 1, day);
-        days.push({
-          day,
-          dateStr,
-          isCurrentMonth: false,
-          isToday: false,
-          isSelected: false,
-          hasCountdown: this.hasCountdownOnDate(dateStr),
-          colors: this.getCountdownColors(dateStr)
-        });
+        const dateStr = this.formatDate( year, month - 1, day );
+        days.push( this.createCalendarDay( day, dateStr, false ) );
       }
-      
+
+      // 添加本月日期
       const today = new Date();
-      const todayStr = this.formatDate(today.getFullYear(), today.getMonth() + 1, today.getDate());
-      
-      for (let i = 1; i <= daysInMonth; i++) {
-        const dateStr = this.formatDate(year, month, i);
-        days.push({
-          day: i,
-          dateStr,
-          isCurrentMonth: true,
-          isToday: dateStr === todayStr,
-          isSelected: dateStr === this.selectedDate,
-          hasCountdown: this.hasCountdownOnDate(dateStr),
-          colors: this.getCountdownColors(dateStr)
-        });
+      const todayStr = this.formatDate(
+        today.getFullYear(),
+        today.getMonth() + 1,
+        today.getDate()
+      );
+
+      for ( let i = 1; i <= daysInMonth; i++ )
+      {
+        const dateStr = this.formatDate( year, month, i );
+        const isToday = dateStr === todayStr;
+        const isSelected = dateStr === this.selectedDate;
+
+        days.push( this.createCalendarDay( i, dateStr, true, isToday, isSelected ) );
       }
-      
+
+      // 添加下个月的日期，补足42个格（6行×7列）
       const remainingDays = 42 - days.length;
-      for (let i = 1; i <= remainingDays; i++) {
-        const dateStr = this.formatDate(year, month + 1, i);
-        days.push({
-          day: i,
-          dateStr,
-          isCurrentMonth: false,
-          isToday: false,
-          isSelected: false,
-          hasCountdown: this.hasCountdownOnDate(dateStr),
-          colors: this.getCountdownColors(dateStr)
-        });
+      for ( let i = 1; i <= remainingDays; i++ )
+      {
+        const dateStr = this.formatDate( year, month + 1, i );
+        days.push( this.createCalendarDay( i, dateStr, false ) );
       }
-      
+
       this.calendarDays = days;
     },
-    formatDate(year, month, day) {
-      if (month === 0) {
-        year -= 1;
-        month = 12;
-      } else if (month === 13) {
-        year += 1;
-        month = 1;
+
+    /**
+     * 创建日历日期对象
+     */
+    createCalendarDay (
+      day: number,
+      dateStr: string,
+      isCurrentMonth: boolean,
+      isToday: boolean = false,
+      isSelected: boolean = false
+    ): CalendarDay
+    {
+      return {
+        day,
+        dateStr,
+        isCurrentMonth,
+        isToday,
+        isSelected,
+        hasCountdown: this.hasCountdownOnDate( dateStr ),
+        colors: this.getCountdownColors( dateStr )
+      };
+    },
+
+    /**
+     * 格式化日期字符串
+     */
+    formatDate ( year: number, month: number, day: number ): string
+    {
+      // 处理月份溢出
+      let actualYear = year;
+      let actualMonth = month;
+
+      if ( month === 0 )
+      {
+        actualYear -= 1;
+        actualMonth = 12;
+      } else if ( month === 13 )
+      {
+        actualYear += 1;
+        actualMonth = 1;
       }
-      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+      // 格式化为 YYYY-MM-DD
+      return `${ actualYear }-${ String( actualMonth ).padStart( 2, '0' ) }-${ String( day ).padStart( 2, '0' ) }`;
     },
-    hasCountdownOnDate(dateStr) {
-      return this.countdowns.some(cd => cd.date === dateStr);
+
+    /**
+     * 检查指定日期是否有倒数日
+     */
+    hasCountdownOnDate ( dateStr: string ): boolean
+    {
+      // return this.countdowns.some( ( cd: Countdown ) => cd.date === dateStr );
+      return true;
     },
-    getCountdownColors(dateStr) {
-      const countdownsOnDate = this.countdowns.filter(cd => cd.date === dateStr);
-      const colors = [];
-      countdownsOnDate.forEach(cd => {
-        const category = this.categories.find(c => c.id === cd.categoryId);
-        if (category && colors.length < 3) {
-          colors.push(category.color);
+
+    /**
+     * 获取指定日期的倒数日颜色
+     */
+    getCountdownColors ( dateStr: string ): string[]
+    {
+      const countdownsOnDate = this.countdowns.filter( ( cd: Countdown ) => cd.date === dateStr );
+      const colors: string[] = [];
+
+      countdownsOnDate.forEach( ( cd: Countdown ) =>
+      {
+        const category = this.categories.find( ( c: Category ) => c.id === cd.category_id );
+        if ( category && colors.length < 3 )
+        {
+          colors.push( category.color );
         }
-      });
+      } );
+
       return colors;
     },
-    handleDayClick(day) {
-      if (!day.isCurrentMonth) {
+
+    /**
+     * 处理日期点击
+     */
+    handleDayClick ( day: CalendarDay ): void
+    {
+      if ( !day.isCurrentMonth )
+      {
+        // 如果不是当前月份的日期，可以跳转到对应的月份
+        const date = new Date( day.dateStr );
+        this.currentYear = date.getFullYear();
+        this.currentMonth = date.getMonth() + 1;
+        this.selectedDate = day.dateStr;
+        this.generateCalendar();
+        this.loadSelectedCountdowns();
         return;
       }
+
       this.selectedDate = day.dateStr;
       this.generateCalendar();
       this.loadSelectedCountdowns();
+
+      // 触发事件
+      this.$emit( 'dateSelect', day.dateStr );
     },
-    loadSelectedCountdowns() {
-      if (!this.selectedDate) {
+
+    /**
+     * 加载选中日期的倒数日
+     */
+    loadSelectedCountdowns (): void
+    {
+      if ( !this.selectedDate )
+      {
         this.selectedCountdowns = [];
         return;
       }
-      this.selectedCountdowns = this.countdowns.filter(cd => cd.date === this.selectedDate);
+
+      this.selectedCountdowns = this.countdowns.filter(
+        ( cd: Countdown ) => cd.date === this.selectedDate
+      );
     },
-    prevMonth() {
-      if (this.currentMonth === 1) {
+
+    /**
+     * 上一个月
+     */
+    prevMonth (): void
+    {
+      if ( this.currentMonth === 1 )
+      {
         this.currentYear -= 1;
         this.currentMonth = 12;
-      } else {
+      } else
+      {
         this.currentMonth -= 1;
       }
       this.generateCalendar();
     },
-    nextMonth() {
-      if (this.currentMonth === 12) {
+
+    /**
+     * 下一个月
+     */
+    nextMonth (): void
+    {
+      if ( this.currentMonth === 12 )
+      {
         this.currentYear += 1;
         this.currentMonth = 1;
-      } else {
+      } else
+      {
         this.currentMonth += 1;
       }
       this.generateCalendar();
     },
-    goToday() {
+
+    /**
+     * 跳转到今天
+     */
+    goToday (): void
+    {
       const today = new Date();
       this.currentYear = today.getFullYear();
       this.currentMonth = today.getMonth() + 1;
-      this.selectedDate = this.formatDate(this.currentYear, this.currentMonth, today.getDate());
+      this.selectedDate = this.formatDate(
+        this.currentYear,
+        this.currentMonth,
+        today.getDate()
+      );
       this.generateCalendar();
       this.loadSelectedCountdowns();
     },
-    showMonthPicker() {
-      const yearIndex = this.years.indexOf(this.currentYear);
-      this.pickerValue = [yearIndex, this.currentMonth - 1];
+
+    /**
+     * 显示月份选择器
+     */
+    showMonthPicker (): void
+    {
+      const yearIndex = this.years.indexOf( this.currentYear );
+      if ( yearIndex !== -1 )
+      {
+        this.pickerValue = [ yearIndex, this.currentMonth - 1 ];
+      }
       this.monthPickerVisible = true;
     },
-    onPickerChange(e) {
+
+    /**
+     * 月份选择器变化
+     */
+    onPickerChange ( e: any ): void
+    {
       this.pickerValue = e.detail.value;
     },
-    confirmMonthPicker() {
-      this.currentYear = this.years[this.pickerValue[0]];
-      this.currentMonth = this.months[this.pickerValue[1]];
+
+    /**
+     * 确认月份选择
+     */
+    confirmMonthPicker (): void
+    {
+      this.currentYear = this.years[ this.pickerValue[ 0 ] ];
+      this.currentMonth = this.months[ this.pickerValue[ 1 ] ];
       this.monthPickerVisible = false;
       this.generateCalendar();
     },
-    calculateDays(targetDate) {
-      const days = db.calculateDays(targetDate);
-      if (days > 0) {
-        return `还有 ${days}`;
-      } else if (days < 0) {
-        return `已过 ${Math.abs(days)}`;
-      } else {
+
+    /**
+     * 计算倒数日天数
+     */
+    calculateDays ( targetDate: string ): string
+    {
+      const days = db.calculateDays( targetDate );
+
+      if ( days > 0 )
+      {
+        return `还有 ${ days } 天`;
+      } else if ( days < 0 )
+      {
+        return `已过 ${ Math.abs( days ) } 天`;
+      } else
+      {
         return '今天';
       }
     },
-    getCategoryColor(categoryId) {
-      const category = this.categories.find(c => c.id === categoryId);
+
+    /**
+     * 获取分类颜色
+     */
+    getCategoryColor ( categoryId: number ): string
+    {
+      const category = this.categories.find( ( c: Category ) => c.id === categoryId );
       return category ? category.color : '#ff6b9d';
     },
-    getCategoryIcon(categoryId) {
-      const category = this.categories.find(c => c.id === categoryId);
+
+    /**
+     * 获取分类图标
+     */
+    getCategoryIcon ( categoryId: number ): string
+    {
+      const category = this.categories.find( ( c: Category ) => c.id === categoryId );
       return category ? category.icon : '📋';
     },
-    getCategoryName(categoryId) {
-      const category = this.categories.find(c => c.id === categoryId);
+
+    /**
+     * 获取分类名称
+     */
+    getCategoryName ( categoryId: number ): string
+    {
+      const category = this.categories.find( ( c: Category ) => c.id === categoryId );
       return category ? category.name : '未分类';
     },
-    getCategoryCount(categoryId) {
-      return this.countdowns.filter(cd => cd.categoryId === categoryId).length;
+
+    /**
+     * 获取分类下的倒数日数量
+     */
+    getCategoryCount ( categoryId: number ): number
+    {
+      return this.countdowns.filter( ( cd: Countdown ) => cd.category_id === categoryId ).length;
     },
-    getAllCountdownCount() {
+
+    /**
+     * 获取所有倒数日数量
+     */
+    getAllCountdownCount (): number
+    {
       return this.countdowns.length;
     },
-    toggleDrawer() {
+
+    /**
+     * 切换侧边抽屉
+     */
+    toggleDrawer (): void
+    {
       this.drawerVisible = !this.drawerVisible;
     },
-    handleCategoryClick(category) {
+
+    /**
+     * 处理分类点击
+     */
+    handleCategoryClick ( category: Category ): void
+    {
       this.drawerVisible = false;
-      uni.switchTab({
+      uni.switchTab( {
         url: '/pages/categories/categories'
-      });
-      setTimeout(() => {
-        uni.$emit('selectCategory', { categoryId: category.id });
-      }, 100);
+      } );
+
+      setTimeout( () =>
+      {
+        uni.$emit( 'selectCategory', { categoryId: category.id } );
+      }, 100 );
     },
-    handleAllCategoryClick() {
+
+    /**
+     * 处理全部分类点击
+     */
+    handleAllCategoryClick (): void
+    {
       this.drawerVisible = false;
-      uni.switchTab({
+      uni.switchTab( {
         url: '/pages/index/index'
-      });
+      } );
     },
-    goToEventEdit() {
-      const selectedDate = this.selectedDate || this.formatDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
-      uni.navigateTo({
-        url: `/pages/event-edit/event-edit${this.selectedDate ? '?date=' + selectedDate : ''}`
-      });
+
+    /**
+     * 跳转到事件编辑页面
+     */
+    goToEventEdit (): void
+    {
+      const selectedDate = this.selectedDate ||
+        this.formatDate(
+          new Date().getFullYear(),
+          new Date().getMonth() + 1,
+          new Date().getDate()
+        );
+
+      uni.navigateTo( {
+        url: `/subpackages/edit/edit${ this.selectedDate ? '?date=' + selectedDate : '' }`
+      } );
     },
-    handleCountdownClick(countdown) {
-      uni.navigateTo({
-        url: `/pages/detail/detail?id=${countdown.id}`
-      });
+
+    /**
+     * 处理倒数日点击
+     */
+    handleCountdownClick ( countdown: Countdown ): void
+    {
+      uni.navigateTo( {
+        url: `/subpackages/detail/detail?id=${ countdown.id }`
+      } );
+
+      // 触发事件
+      this.$emit( 'countdownSelect', countdown );
+    },
+
+    /**
+     * 刷新数据
+     */
+    refreshData (): void
+    {
+      this.loadCategories();
+      this.loadCountdowns();
+      this.generateCalendar();
+
+      if ( this.selectedDate )
+      {
+        this.loadSelectedCountdowns();
+      }
+    },
+
+    /**
+     * 跳转到指定日期
+     */
+    goToDate ( dateStr: string ): void
+    {
+      const date = new Date( dateStr );
+      this.currentYear = date.getFullYear();
+      this.currentMonth = date.getMonth() + 1;
+      this.selectedDate = dateStr;
+      this.generateCalendar();
+      this.loadSelectedCountdowns();
     }
   }
-};
+} );
 </script>
-
 <style scoped>
 .page-container {
   min-height: 100vh;
