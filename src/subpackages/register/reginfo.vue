@@ -135,6 +135,7 @@ interface RegInfoPageData
   loading: boolean;
   showPassword: boolean;
   today: string;
+  userid: number;
 }
 
 export default defineComponent( {
@@ -159,7 +160,9 @@ export default defineComponent( {
       },
       showPassword: false,
       loading: false,
-      today: `${ year }-${ month }-${ day }`
+      today: `${ year }-${ month }-${ day }`,
+      userid: 1
+
     };
   },
 
@@ -185,6 +188,7 @@ export default defineComponent( {
       this.form.gender = options.gender == 0 ? 'male' : 'female';
       this.form.name = options.nickname;
       this.form.birthday = '1985-06-15';
+      this.userid = options.id;
     }
   },
 
@@ -278,6 +282,7 @@ export default defineComponent( {
       {
         // 3. 调用注册接口
         const retReg = await apiService.initInfo( {
+          id: this.userid,
           username: this.form.username,
           name: this.form.name,
           gender: this.form.gender,
