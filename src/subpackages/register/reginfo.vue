@@ -298,7 +298,7 @@ export default defineComponent( {
         // 5. 延迟跳转，确保用户能看到成功提示
         setTimeout( () =>
         {
-          uni.redirectTo( {
+          uni.switchTab( {
             url: '/pages/index/index'
           } );
         }, 1500 );
