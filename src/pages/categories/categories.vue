@@ -171,8 +171,8 @@
     </view>
 
     <!-- 添加倒数日弹窗 -->
-    <AddCountdown :visible=" addCountdownVisible " :countdownData!=" editingCountdown " @close=" closeAddCountdown "
-      @success=" handleCountdownSuccess " />
+    <AddCountdown :visible=" addCountdownVisible " :countdownData!=" editingCountdown "
+      :defaultCategoryId=" selectedCategory?.id " @close=" closeAddCountdown " @success=" handleCountdownSuccess " />
   </view>
 </template>
 
