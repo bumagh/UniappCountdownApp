@@ -2,7 +2,7 @@
   <view class="page-container">
     <!-- 顶部导航栏 -->
     <view class="navbar">
-      <view class="navbar-icon" @click="toggleDrawer">
+      <view class="navbar-icon" @click=" toggleDrawer ">
         <text>☰</text>
       </view>
       <view class="navbar-title">
@@ -16,7 +16,7 @@
       <!-- 用户信息卡片 -->
       <view class="user-card shadow-lg">
         <view class="user-avatar-wrapper">
-          <image class="user-avatar" :src="user.avatar" mode="aspectFill" @click="handleAvatarClick" />
+          <image class="user-avatar" :src=" user.avatar " mode="aspectFill" @click=" handleAvatarClick " />
           <view class="avatar-edit-btn">
             <text>✎</text>
           </view>
@@ -26,7 +26,7 @@
           <view class="user-stats">
             <view class="stat-item">
               <text class="stat-number">{{ countdownStats.total }}</text>
-              <text class="stat-label">倒数日</text>
+              <text class="stat-label">奇妙日</text>
             </view>
             <view class="stat-divider"></view>
             <view class="stat-item">
@@ -48,7 +48,7 @@
           <text>个人设置</text>
         </view>
         <view class="menu-list">
-          <view class="menu-item" @click="handleNicknameEdit">
+          <view class="menu-item" @click=" handleNicknameEdit ">
             <view class="menu-item-left">
               <view class="menu-icon" style="background-color: #1890ff;">
                 <text>👤</text>
@@ -61,7 +61,7 @@
             </view>
           </view>
 
-          <view class="menu-item" @click="handleEmailSetting">
+          <view class="menu-item" @click=" handleEmailSetting ">
             <view class="menu-item-left">
               <view class="menu-icon" style="background-color: #1cbbb4;">
                 <text>📧</text>
@@ -82,7 +82,7 @@
               <text class="menu-label">提醒功能</text>
             </view>
             <view class="menu-item-right">
-              <switch :checked="reminderEnabled" @change="handleReminderToggle" color="#1890ff" />
+              <switch :checked=" reminderEnabled " @change=" handleReminderToggle " color="#1890ff" />
             </view>
           </view>
         </view>
@@ -94,7 +94,7 @@
           <text>数据管理</text>
         </view>
         <view class="menu-list">
-          <view class="menu-item" @click="handleArchiveManagement">
+          <view class="menu-item" @click=" handleArchiveManagement ">
             <view class="menu-item-left">
               <view class="menu-icon" style="background-color: #a463f2;">
                 <text>📦</text>
@@ -106,7 +106,7 @@
               <text class="menu-arrow">›</text>
             </view>
           </view>
-          <view class="menu-item" @click="handleDataManagement">
+          <view class="menu-item" @click=" handleDataManagement ">
             <view class="menu-item-left">
               <view class="menu-icon" style="background-color: #39b54a;">
                 <text>💾</text>
@@ -126,7 +126,7 @@
           <text>应用设置</text>
         </view>
         <view class="menu-list">
-          <view class="menu-item" @click="handleThemeSetting">
+          <view class="menu-item" @click=" handleThemeSetting ">
             <view class="menu-item-left">
               <view class="menu-icon" style="background-color: #52c4ff;">
                 <text>🎨</text>
@@ -139,7 +139,7 @@
             </view>
           </view>
 
-          <view class="menu-item" @click="handleAbout">
+          <view class="menu-item" @click=" handleAbout ">
             <view class="menu-item-left">
               <view class="menu-icon" style="background-color: #8799a3;">
                 <text>ℹ️</text>
@@ -151,7 +151,7 @@
             </view>
           </view>
 
-          <view class="menu-item" @click="handleLogout">
+          <view class="menu-item" @click=" handleLogout ">
             <view class="menu-item-left">
               <view class="menu-icon" style="background-color: #8799a3;">
                 <svg t="1765798759622" class="icon" viewBox="0 0 1024 1024" version="1.1"
@@ -176,45 +176,45 @@
     </scroll-view>
 
     <!-- 侧边抽屉 -->
-    <view v-if="drawerVisible" class="drawer-mask" @click="toggleDrawer"></view>
-    <view class="drawer" :class="{ 'drawer-open': drawerVisible }">
+    <view v-if=" drawerVisible " class="drawer-mask" @click=" toggleDrawer "></view>
+    <view class="drawer" :class=" { 'drawer-open': drawerVisible } ">
       <view class="drawer-header">
         <text class="drawer-title">倒数本</text>
-        <view class="drawer-close" @click="toggleDrawer">
+        <view class="drawer-close" @click=" toggleDrawer ">
           <text>✕</text>
         </view>
       </view>
       <scroll-view scroll-y class="drawer-content">
         <view class="category-list">
-          <view v-for="category in categories" :key="category.id" class="category-drawer-item"
-            @click="handleCategoryClick(category)">
-            <view class="category-drawer-icon" :style="{ backgroundColor: category.color }">
+          <view v-for=" category in categories " :key=" category.id " class="category-drawer-item"
+            @click="handleCategoryClick( category )">
+            <view class="category-drawer-icon" :style=" { backgroundColor: category.color } ">
               <text>{{ category.icon }}</text>
             </view>
             <text class="category-drawer-name">{{ category.name }}</text>
-            <text class="category-drawer-count">{{ getCategoryCount(category.id) }}</text>
+            <text class="category-drawer-count">{{ getCategoryCount( category.id ) }}</text>
           </view>
         </view>
       </scroll-view>
     </view>
 
     <!-- 修改昵称弹窗 -->
-    <view v-if="nicknameModalVisible" class="modal-mask" @click="closeNicknameModal">
+    <view v-if=" nicknameModalVisible " class="modal-mask" @click=" closeNicknameModal ">
       <view class="modal-content" @click.stop>
         <view class="modal-header">
           <text class="modal-title">修改昵称</text>
-          <view class="modal-close" @click="closeNicknameModal">
+          <view class="modal-close" @click=" closeNicknameModal ">
             <text class="close-icon">✕</text>
           </view>
         </view>
         <view class="modal-body">
-          <input class="nickname-input" v-model="newNickname" placeholder="请输入新昵称" maxlength="10" />
+          <input class="nickname-input" v-model=" newNickname " placeholder="请输入新昵称" maxlength="10" />
         </view>
         <view class="modal-footer">
-          <view class="btn btn-ghost" @click="closeNicknameModal">
+          <view class="btn btn-ghost" @click=" closeNicknameModal ">
             <text>取消</text>
           </view>
-          <view class="btn btn-primary" @click="saveNickname">
+          <view class="btn btn-primary" @click=" saveNickname ">
             <text>确定</text>
           </view>
         </view>
@@ -222,33 +222,33 @@
     </view>
 
     <!-- 归档管理页面 -->
-    <view v-if="archiveVisible" class="archive-mask" @click="closeArchive">
+    <view v-if=" archiveVisible " class="archive-mask" @click=" closeArchive ">
       <view class="archive-content" @click.stop>
         <view class="archive-header">
           <text class="archive-title">归档管理</text>
-          <view class="archive-close" @click="closeArchive">
+          <view class="archive-close" @click=" closeArchive ">
             <text>✕</text>
           </view>
         </view>
         <scroll-view scroll-y class="archive-body">
-          <view v-if="archivedCountdowns.length > 0" class="archived-list">
-            <view v-for="countdown in archivedCountdowns" :key="countdown.id" class="archived-item shadow">
+          <view v-if=" archivedCountdowns.length > 0 " class="archived-list">
+            <view v-for=" countdown in archivedCountdowns " :key=" countdown.id " class="archived-item shadow">
               <view class="archived-item-content">
                 <view class="archived-item-left">
-                  <view class="archived-icon" :style="{ backgroundColor: getCategoryColor(countdown.categoryId) }">
-                    <text>{{ getCategoryIcon(countdown.categoryId) }}</text>
+                  <view class="archived-icon" :style=" { backgroundColor: getCategoryColor( countdown.categoryId ) } ">
+                    <text>{{ getCategoryIcon( countdown.categoryId ) }}</text>
                   </view>
                   <view class="archived-info">
                     <text class="archived-title">{{ countdown.title }}</text>
-                    <text class="archived-date">{{ formatDate(countdown.date) }}</text>
-                    <text class="archived-category">{{ getCategoryName(countdown.categoryId) }}</text>
+                    <text class="archived-date">{{ formatDate( countdown.date ) }}</text>
+                    <text class="archived-category">{{ getCategoryName( countdown.categoryId ) }}</text>
                   </view>
                 </view>
                 <view class="archived-item-right">
-                  <view class="archived-btn" @click.stop="handleUnarchive(countdown)">
+                  <view class="archived-btn" @click.stop="handleUnarchive( countdown )">
                     <text>恢复</text>
                   </view>
-                  <view class="archived-btn delete-btn" @click.stop="handleDeleteArchived(countdown)">
+                  <view class="archived-btn delete-btn" @click.stop="handleDeleteArchived( countdown )">
                     <text>删除</text>
                   </view>
                 </view>
@@ -271,7 +271,7 @@ import db from '../../utils/db.js';
 
 export default {
   name: 'Profile',
-  data() {
+  data () {
     return {
       user: {
         id: 1,
@@ -293,14 +293,14 @@ export default {
       archivedCount: 0
     };
   },
-  onShow() {
+  onShow () {
     this.loadUserData();
     this.loadCategories();
     this.calculateStats();
     this.loadArchivedCountdowns();
   },
   methods: {
-    async loadUserData() {
+    async loadUserData () {
       try {
         if (!uni.getStorageSync('userid')) {
           uni.navigateTo({
@@ -329,12 +329,12 @@ export default {
       }
 
     },
-    loadCategories() {
+    loadCategories () {
       if (this.user.id) {
         this.categories = db.getCategories(this.user.id);
       }
     },
-    calculateStats() {
+    calculateStats () {
       if (!this.user.id) return;
 
       const countdowns = db.getCountdowns(this.user.id);
@@ -355,40 +355,40 @@ export default {
       this.countdownStats.future = future;
       this.countdownStats.past = past;
     },
-    loadArchivedCountdowns() {
+    loadArchivedCountdowns () {
       if (!this.user.id) return;
       this.archivedCountdowns = db.getArchivedCountdowns(this.user.id);
       this.archivedCount = this.archivedCountdowns.length;
     },
-    getCategoryCount(categoryId) {
+    getCategoryCount (categoryId) {
       const countdowns = db.getCountdowns(this.user.id, categoryId);
       return countdowns.length;
     },
-    getCategoryColor(categoryId) {
+    getCategoryColor (categoryId) {
       const category = this.categories.find(c => c.id === categoryId);
       return category ? category.color : '#1890ff';
     },
-    getCategoryIcon(categoryId) {
+    getCategoryIcon (categoryId) {
       const category = this.categories.find(c => c.id === categoryId);
       return category ? category.icon : '📋';
     },
-    getCategoryName(categoryId) {
+    getCategoryName (categoryId) {
       const category = this.categories.find(c => c.id === categoryId);
       return category ? category.name : '未分类';
     },
-    formatDate(dateStr) {
+    formatDate (dateStr) {
       return db.formatDate(dateStr);
     },
-    toggleDrawer() {
+    toggleDrawer () {
       this.drawerVisible = !this.drawerVisible;
     },
-    handleCategoryClick(category) {
+    handleCategoryClick (category) {
       this.drawerVisible = false;
       uni.navigateTo({
         url: `/pages/categories/categories?categoryId=${category.id}`
       });
     },
-    handleAvatarClick() {
+    handleAvatarClick () {
       uni.showModal({
         title: '提示',
         content: '功能未开放',
@@ -412,7 +412,7 @@ export default {
         }
       });
     },
-    chooseFromAlbum() {
+    chooseFromAlbum () {
       uni.chooseImage({
         count: 1,
         sizeType: ['compressed'],
@@ -428,7 +428,7 @@ export default {
         }
       });
     },
-    takePhoto() {
+    takePhoto () {
       uni.chooseImage({
         count: 1,
         sizeType: ['compressed'],
@@ -444,7 +444,7 @@ export default {
         }
       });
     },
-    updateAvatar(tempPath) {
+    updateAvatar (tempPath) {
       // 保存到本地存储
       uni.saveFile({
         tempFilePath: tempPath,
@@ -473,7 +473,7 @@ export default {
         }
       });
     },
-    resetAvatar() {
+    resetAvatar () {
       const defaultAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop';
       // 清除本地存储的头像
       uni.removeStorageSync('user_avatar');
@@ -485,15 +485,15 @@ export default {
         icon: 'success'
       });
     },
-    handleNicknameEdit() {
+    handleNicknameEdit () {
       this.newNickname = this.user.nickname;
       this.nicknameModalVisible = true;
     },
-    closeNicknameModal() {
+    closeNicknameModal () {
       this.nicknameModalVisible = false;
       this.newNickname = '';
     },
-    async saveNickname() {
+    async saveNickname () {
       if (!this.newNickname.trim()) {
         uni.showToast({
           title: '昵称不能为空',
@@ -517,27 +517,27 @@ export default {
         });
       }
     },
-    handleEmailSetting() {
+    handleEmailSetting () {
       uni.showToast({
         title: '功能开发中',
         icon: 'none'
       });
     },
-    handleReminderToggle(e) {
+    handleReminderToggle (e) {
       this.reminderEnabled = e.detail.value;
       uni.showToast({
         title: this.reminderEnabled ? '已开启提醒' : '已关闭提醒',
         icon: 'none'
       });
     },
-    handleArchiveManagement() {
+    handleArchiveManagement () {
       this.archiveVisible = true;
       this.loadArchivedCountdowns();
     },
-    closeArchive() {
+    closeArchive () {
       this.archiveVisible = false;
     },
-    handleUnarchive(countdown) {
+    handleUnarchive (countdown) {
       uni.showModal({
         title: '确认恢复',
         content: `确定要恢复「${countdown.title}」吗？`,
@@ -556,7 +556,7 @@ export default {
         }
       });
     },
-    handleDeleteArchived(countdown) {
+    handleDeleteArchived (countdown) {
       uni.showModal({
         title: '确认删除',
         content: `确定要永久删除「${countdown.title}」吗？此操作不可恢复！`,
@@ -580,13 +580,13 @@ export default {
         }
       });
     },
-    handleThemeSetting() {
+    handleThemeSetting () {
       uni.showToast({
         title: '功能开发中',
         icon: 'none'
       });
     },
-    handleDataManagement() {
+    handleDataManagement () {
       uni.showActionSheet({
         itemList: ['导出数据', '导入数据', '清空数据'],
         success: (res) => {
@@ -619,15 +619,15 @@ export default {
         }
       });
     },
-    handleAbout() {
+    handleAbout () {
       uni.showModal({
         title: '关于时光倒数',
-        content: '时光倒数 v1.0.0\n一款简洁优雅的倒数日管理工具\n\nBy HAISNAP',
+        content: '时光倒数 v1.0.0\n一款简洁优雅的奇妙日管理工具\n\nBy HAISNAP',
         showCancel: false
       });
     }
     ,
-    handleLogout() {
+    handleLogout () {
       uni.showModal({
         title: '退出登录',
         content: '确定要退出登录吗？',

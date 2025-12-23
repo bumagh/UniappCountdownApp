@@ -153,6 +153,10 @@ export default defineComponent( {
 
   onLoad ( options: any ): void
   {
+    if ( options.date )
+    {
+      this.formData.date = options.date;
+    }
     if ( options.id )
     {
       this.countdownId = parseInt( options.id );
@@ -209,10 +213,9 @@ export default defineComponent( {
     {
       try
       {
-        const userid = uni.getStorageSync('userid');
-        const categories = await apiService.getCategories(userid);
+        const userid = uni.getStorageSync( 'userid' );
+        const categories = await apiService.getCategories( userid );
         this.categories = categories;
-
         if ( this.categories.length > 0 && !this.formData.category_id )
         {
           this.formData.category_id = this.categories[ 0 ].id;
@@ -341,10 +344,10 @@ export default defineComponent( {
       return formatDate( dateStr );
     },
 
-    goBack (): void
+    goBack ( deltas: number = 1 ): void
     {
       uni.navigateBack( {
-        delta: 1
+        delta: deltas
       } );
     },
 
@@ -402,7 +405,7 @@ export default defineComponent( {
                 title: '删除成功',
                 icon: 'success'
               } );
-              this.goBack();
+              this.goBack( 2 );
             } catch ( error )
             {
               console.error( '删除失败:', error );
@@ -464,7 +467,9 @@ export default defineComponent( {
         } else
         {
           await apiService.createCountdown( {
-            is_pinned: false,
+            user_id: uni.getStorageSync( 'userid' ),
+            is_archived: false,
+            is_pinned: this.formData.is_pinned,
             title: this.formData.title,
             date: this.formData.date,
             category_id: this.formData.category_id,

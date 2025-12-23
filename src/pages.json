@@ -9,7 +9,7 @@
     {
       "path": "pages/index/index",
       "style": {
-        "navigationBarTitleText": "倒数日",
+        "navigationBarTitleText": "",
         "navigationStyle": "custom",
         "enablePullDownRefresh": false
       }
@@ -42,7 +42,7 @@
   "subPackages": [
     {
       "root": "subpackages/book-edit",
-      "pages":[
+      "pages": [
         {
           "path": "book-edit",
           "style": {
@@ -51,9 +51,7 @@
             "enablePullDownRefresh": false
           }
         }
-        
       ]
-     
     },
     {
       "root": "subpackages/detail",
@@ -106,6 +104,19 @@
           }
         }
       ]
+    },
+    {
+      "root": "subpackages/event-edit",
+      "pages": [
+        {
+          "path": "event-edit",
+          "style": {
+            "navigationBarTitleText": "注册",
+            "navigationStyle": "custom",
+            "enablePullDownRefresh": false
+          }
+        }
+      ]
     }
   ],
   "globalStyle": {
@@ -122,7 +133,7 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "倒数日",
+        "text": "",
         "iconPath": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjYWFhYWFhIiBkPSJNMTEgNGMtMS4xIDAtMiAuOS0yIDJ2MzhjMCAxLjEuOSAyIDIgMmgyOGMxLjEgMCAyLS45IDItMlY2YzAtMS4xLS45LTItMi0ySDExek0xMSA2aDI4djM2SDExVjZ6bTQgNHYyaDE0VjEwSDE1em0wIDZ2MmgxNHYtMkgxNXptMCA2djJoMTR2LTJIMTV6bTAgNnYyaDE0di0ySDE1em0wIDZ2MmgxNHYtMkgxNXoiLz48L3N2Zz4=",
         "selectedIconPath": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjMTg5MGZmIiBkPSJNMTEgNGMtMS4xIDAtMiAuOS0yIDJ2MzhjMCAxLjEuOSAyIDIgMmgyOGMxLjEgMCAyLS45IDItMlY2YzAtMS4xLS45LTItMi0ySDExek0xNSAxMGgxNHYySDE1di0yem0wIDZoMTR2MkgxNXYtMnptMCA2aDE0djJIMTV2LTJ6bTAgNmgxNHYySDE1di0yeiIvPjwvc3ZnPg=="
       },
