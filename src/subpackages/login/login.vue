@@ -198,7 +198,7 @@ export default defineComponent( {
 
         setTimeout( () =>
         {
-          uni.switchTab( { url: `/subpackages/register/reginfo?nickname=${ loginRes.userInfo.nickname }&gender=${ loginRes.userInfo.sex }` } );
+          uni.navigateTo( { url: `/subpackages/register/reginfo?nickname=${ loginRes.userInfo.nickname }&gender=${ loginRes.userInfo.sex }` } );
 
         }, 1500 );
 
