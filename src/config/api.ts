@@ -7,7 +7,8 @@ export const API = {
         current: `${ API_BASE_URL }user/index`,
         login: `${ API_BASE_URL }user/login`,
         register: `${ API_BASE_URL }user/register`,
-        update: `${ API_BASE_URL }user/update`
+        update: `${ API_BASE_URL }user/update`,
+        initInfo: `${ API_BASE_URL }user/initInfo`
     },
     // 分类相关
     category: {

@@ -46,6 +46,11 @@ class ApiService
     const res = await request.post<User>( API.user.update, data );
     return res.data;
   }
+  async initInfo ( data: Partial<User> ): Promise<User>
+  {
+    const res = await request.post<User>( API.user.initInfo, data );
+    return res.data;
+  }
 
   // 分类相关
   async getCategories ( userid: string ): Promise<Category[]>

@@ -277,7 +277,7 @@ export default defineComponent( {
       try
       {
         // 3. 调用注册接口
-        const retReg = await apiService.updateUser( {
+        const retReg = await apiService.initInfo( {
           username: this.form.username,
           name: this.form.name,
           gender: this.form.gender,
