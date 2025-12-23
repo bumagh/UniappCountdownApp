@@ -2,13 +2,13 @@
   <view class="page-container">
     <!-- 顶部导航栏 -->
     <view class="navbar">
-      <view class="navbar-icon" @click="goBack">
+      <view class="navbar-icon" @click=" goBack ">
         <text>‹</text>
       </view>
       <view class="navbar-title">
         <text>{{ isEdit ? '编辑倒数本' : '添加倒数本' }}</text>
       </view>
-      <view class="navbar-icon" @click="handleSubmit">
+      <view class="navbar-icon" @click=" handleSubmit ">
         <text>✓</text>
       </view>
     </view>
@@ -18,24 +18,14 @@
       <view class="form-container">
         <view class="form-item">
           <text class="form-label">本子名称</text>
-          <input 
-            class="form-input" 
-            v-model="formData.name" 
-            placeholder="请输入本子名称"
-            maxlength="10"
-          />
+          <input class="form-input" v-model=" formData.name " placeholder="请输入本子名称" maxlength="10" />
         </view>
 
         <view class="form-item">
           <text class="form-label">选择图标</text>
           <view class="icon-grid">
-            <view 
-              v-for="(icon, index) in iconList" 
-              :key="index"
-              class="icon-item"
-              :class="{ 'icon-active': formData.icon === icon }"
-              @click="selectIcon(icon)"
-            >
+            <view v-for=" ( icon, index ) in iconList " :key=" index " class="icon-item"
+              :class=" { 'icon-active': formData.icon === icon } " @click="selectIcon( icon )">
               <text class="icon-text">{{ icon }}</text>
             </view>
           </view>
@@ -44,23 +34,18 @@
         <view class="form-item">
           <text class="form-label">选择颜色</text>
           <view class="color-grid">
-            <view 
-              v-for="(color, index) in colorList" 
-              :key="index"
-              class="color-item"
-              :class="{ 'color-active': formData.color === color }"
-              :style="{ backgroundColor: color }"
-              @click="selectColor(color)"
-            >
-              <text v-if="formData.color === color" class="color-check">✓</text>
+            <view v-for=" ( color, index ) in colorList " :key=" index " class="color-item"
+              :class=" { 'color-active': formData.color === color } " :style=" { backgroundColor: color } "
+              @click="selectColor( color )">
+              <text v-if=" formData.color === color " class="color-check">✓</text>
             </view>
           </view>
         </view>
       </view>
 
       <!-- 删除按钮（仅在编辑模式下显示） -->
-      <view v-if="isEdit" class="delete-section">
-        <view class="btn btn-danger" @click="handleDelete">
+      <view v-if=" isEdit " class="delete-section">
+        <view class="btn btn-danger" @click=" handleDelete ">
           <text>删除倒数本</text>
         </view>
       </view>
@@ -71,14 +56,30 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+interface BookEditPageData
+{
+  categoryId: string;
+  isEdit: boolean;
+  formData: {
+    name: string;
+    icon: string;
+    color: string;
+  };
+  iconList: string[];
+  colorList: string[];
+}
+import apiService from '@/services/apiService.js';
 import db from '../../utils/db.js';
+import { Category, Countdown, CountdownForm } from 'types';
+import { defineComponent } from 'vue';
 
-export default {
+export default defineComponent( {
   name: 'BookEdit',
-  data() {
+  data (): BookEditPageData
+  {
     return {
-      categoryId: null,
+      categoryId: '',
       isEdit: false,
       formData: {
         name: '',
@@ -86,7 +87,7 @@ export default {
         color: '#ff6b9d'
       },
       iconList: [
-        '🏠', '💼', '👨‍👩‍👧', '🎯', '❤️', '🎉', 
+        '🏠', '💼', '👨‍👩‍👧', '🎯', '❤️', '🎉',
         '📚', '✈️', '🎂', '💪', '🎨', '🎵',
         '⚽', '🍔', '🌟', '🔥', '💡', '🌈'
       ],
@@ -97,17 +98,21 @@ export default {
       ]
     };
   },
-  onLoad(options) {
-    if (options.id) {
-      this.categoryId = parseInt(options.id);
+  onLoad ( options: any )
+  {
+    if ( options.id )
+    {
+      this.categoryId = options.id;
       this.isEdit = true;
       this.loadCategoryData();
     }
   },
   methods: {
-    loadCategoryData() {
-      const category = db.getCategory(this.categoryId);
-      if (category) {
+    async loadCategoryData ()
+    {
+      const category = await apiService.getCategory( this.categoryId?.toString() );
+      if ( category != null )
+      {
         this.formData = {
           name: category.name,
           icon: category.icon,
@@ -115,98 +120,117 @@ export default {
         };
       }
     },
-    selectIcon(icon) {
+    selectIcon ( icon: string )
+    {
       this.formData.icon = icon;
     },
-    selectColor(color) {
+    selectColor ( color: string )
+    {
       this.formData.color = color;
     },
-    goBack() {
-      uni.navigateBack({
+    goBack ()
+    {
+      uni.navigateBack( {
         delta: 1
-      });
+      } );
     },
-    handleDelete() {
-      if (!this.isEdit) return;
-      
-      uni.showModal({
+    handleDelete ()
+    {
+      if ( !this.isEdit ) return;
+
+      uni.showModal( {
         title: '确认删除',
-        content: `确定要删除"${this.formData.name}"倒数本吗？该分类下的倒数日也会被删除。`,
+        content: `确定要删除"${ this.formData.name }"倒数本吗？该分类下的倒数日也会被删除。`,
         confirmColor: '#e54d42',
-        success: (res) => {
-          if (res.confirm) {
-            try {
-              db.deleteCategory(this.categoryId);
-              uni.showToast({
+        success: ( res ) =>
+        {
+          if ( res.confirm )
+          {
+            try
+            {
+              db.deleteCategory( this.categoryId );
+              uni.showToast( {
                 title: '删除成功',
                 icon: 'success'
-              });
-              setTimeout(() => {
+              } );
+              setTimeout( () =>
+              {
                 this.goBack();
-              }, 1000);
-            } catch (e) {
-              uni.showToast({
+              }, 1000 );
+            } catch ( e )
+            {
+              uni.showToast( {
                 title: '删除失败',
                 icon: 'none'
-              });
+              } );
             }
           }
         }
-      });
+      } );
     },
-    handleSubmit() {
-      if (!this.formData.name.trim()) {
-        uni.showToast({
+    async handleSubmit ()
+    {
+      if ( !this.formData.name.trim() )
+      {
+        uni.showToast( {
           title: '请输入本子名称',
           icon: 'none'
-        });
+        } );
         return;
       }
 
       const user = db.getCurrentUser();
-      if (!user) {
-        uni.showToast({
+      const userid = uni.getStorageSync( 'userid' );
+      const user = d
+      if ( !user )
+      {
+        uni.showToast( {
           title: '用户信息获取失败',
           icon: 'none'
-        });
+        } );
         return;
       }
 
-      try {
-        if (this.isEdit) {
-          db.updateCategory(this.categoryId, {
+      try
+      {
+        if ( this.isEdit )
+        {
+          db.updateCategory( this.categoryId, {
             name: this.formData.name,
             icon: this.formData.icon,
             color: this.formData.color
-          });
-          uni.showToast({
+          } );
+          uni.showToast( {
             title: '修改成功',
             icon: 'success'
-          });
-        } else {
-          db.addCategory({
+          } );
+        } else
+        {
+          db.addCategory( {
             name: this.formData.name,
             icon: this.formData.icon,
             color: this.formData.color,
             userId: user.id
-          });
-          uni.showToast({
+          } );
+          uni.showToast( {
             title: '添加成功',
             icon: 'success'
-          });
+          } );
         }
-        setTimeout(() => {
+        setTimeout( () =>
+        {
           this.goBack();
-        }, 1000);
-      } catch (e) {
-        uni.showToast({
+        }, 1000 );
+      } catch ( e )
+      {
+        uni.showToast( {
           title: '操作失败',
           icon: 'none'
-        });
+        } );
       }
     }
   }
-};
+} );
 </script>
 
 <style scoped>

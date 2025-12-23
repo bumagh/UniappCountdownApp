@@ -99,3 +99,85 @@ export interface CommonResponse
   msg: string;
   data: any;
 }
+
+
+// types/user.d.ts
+// 用户信息接口
+export interface UserInfo
+{
+  id: string | number;
+  name: string;
+  nickname?: string;
+  avatar?: string;
+  phone?: string;
+  email?: string;
+  token?: string;
+  roles?: string[];
+  permissions?: string[];
+  // 扩展字段
+  [ key: string ]: any;
+}
+
+// 系统信息接口
+export interface SystemInfo
+{
+  platform: 'ios' | 'android' | 'windows' | 'mac' | 'web';
+  system: string;
+  brand: string;
+  model: string;
+  version: string;
+  SDKVersion?: string;
+  language: string;
+  theme?: 'light' | 'dark';
+  safeArea?: UniApp.SafeArea;
+  windowWidth: number;
+  windowHeight: number;
+  // 扩展字段
+  [ key: string ]: any;
+}
+
+// 应用配置接口
+export interface AppConfig
+{
+  version: string;
+  buildNumber: number;
+  env: 'development' | 'test' | 'production';
+  apiBaseURL: string;
+  // 扩展字段
+  [ key: string ]: any;
+}
+
+// 用户管理器接口
+export interface IUserManager
+{
+  // 用户信息
+  userInfo: UserInfo | null;
+  isLoggedIn: boolean;
+
+  // 系统信息
+  systemInfo: SystemInfo | null;
+
+  // 应用配置
+  appConfig: AppConfig | null;
+
+  // 初始化方法
+  init (): Promise<void>;
+
+  // 用户相关方法
+  setUserInfo ( info: UserInfo ): Promise<void>;
+  getUserInfo ( forceRefresh?: boolean ): Promise<UserInfo | null>;
+  clearUserInfo (): void;
+  checkLogin (): boolean;
+
+  // 更新用户信息
+  updateUserInfo ( updates: Partial<UserInfo> ): Promise<void>;
+
+  // Token管理
+  getToken (): string | null;
+  setToken ( token: string ): void;
+  clearToken (): void;
+
+  // 权限检查
+  hasRole ( role: string ): boolean;
+  hasPermission ( permission: string ): boolean;
+}

@@ -12,6 +12,7 @@ export const API = {
     // 分类相关
     category: {
         list: `${ API_BASE_URL }category`,
+        read: `${ API_BASE_URL }category/read`,
         create: `${ API_BASE_URL }category`,
         update: `${ API_BASE_URL }category`,
         delete: `${ API_BASE_URL }category`
