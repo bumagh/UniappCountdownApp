@@ -59,7 +59,7 @@
 <script lang="ts">
 interface BookEditPageData
 {
-  categoryId: string;
+  categoryId: number;
   isEdit: boolean;
   formData: {
     name: string;
@@ -69,9 +69,7 @@ interface BookEditPageData
   iconList: string[];
   colorList: string[];
 }
-import apiService from '@/services/apiService.js';
-import db from '../../utils/db.js';
-import { Category, Countdown, CountdownForm } from 'types';
+import apiService from '@/services/apiService';
 import { defineComponent } from 'vue';
 
 export default defineComponent( {
@@ -79,7 +77,7 @@ export default defineComponent( {
   data (): BookEditPageData
   {
     return {
-      categoryId: '',
+      categoryId: 0,
       isEdit: false,
       formData: {
         name: '',
@@ -134,7 +132,7 @@ export default defineComponent( {
         delta: 1
       } );
     },
-    handleDelete ()
+    async handleDelete ()
     {
       if ( !this.isEdit ) return;
 
@@ -142,13 +140,13 @@ export default defineComponent( {
         title: '确认删除',
         content: `确定要删除"${ this.formData.name }"倒数本吗？该分类下的倒数日也会被删除。`,
         confirmColor: '#e54d42',
-        success: ( res ) =>
+        success: async ( res ) =>
         {
           if ( res.confirm )
           {
             try
             {
-              db.deleteCategory( this.categoryId );
+              await apiService.deleteCategory( this.categoryId );
               uni.showToast( {
                 title: '删除成功',
                 icon: 'success'
@@ -179,10 +177,9 @@ export default defineComponent( {
         return;
       }
 
-      const user = db.getCurrentUser();
       const userid = uni.getStorageSync( 'userid' );
-      const user = d
-      if ( !user )
+      const user = await apiService.getCurrentUser( userid );
+      if ( user == null )
       {
         uni.showToast( {
           title: '用户信息获取失败',
@@ -195,23 +192,25 @@ export default defineComponent( {
       {
         if ( this.isEdit )
         {
-          db.updateCategory( this.categoryId, {
+          await apiService.updateCategory( this.categoryId, {
             name: this.formData.name,
             icon: this.formData.icon,
             color: this.formData.color
           } );
+
           uni.showToast( {
             title: '修改成功',
             icon: 'success'
           } );
         } else
         {
-          db.addCategory( {
+          await apiService.createCategory( {
             name: this.formData.name,
             icon: this.formData.icon,
             color: this.formData.color,
-            userId: user.id
+            user_id: user.id
           } );
+
           uni.showToast( {
             title: '添加成功',
             icon: 'success'

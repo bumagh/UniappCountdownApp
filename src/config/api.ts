@@ -13,9 +13,9 @@ export const API = {
     category: {
         list: `${ API_BASE_URL }category`,
         read: `${ API_BASE_URL }category/read`,
-        create: `${ API_BASE_URL }category`,
-        update: `${ API_BASE_URL }category`,
-        delete: `${ API_BASE_URL }category`
+        create: `${ API_BASE_URL }category/save`,
+        update: `${ API_BASE_URL }category/update`,
+        delete: `${ API_BASE_URL }category/delete`
     },
     // 倒数日相关
     countdown: {
