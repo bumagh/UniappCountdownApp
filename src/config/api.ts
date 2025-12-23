@@ -24,7 +24,7 @@ export const API = {
         detail: `${ API_BASE_URL }countdown/read`,
         create: `${ API_BASE_URL }countdown/save`,
         update: `${ API_BASE_URL }countdown/update`,
-        delete: `${ API_BASE_URL }countdown`,
+        delete: `${ API_BASE_URL }countdown/delete`,
         archive: `${ API_BASE_URL }countdown`,
         unarchive: `${ API_BASE_URL }countdown`,
         togglePin: `${ API_BASE_URL }countdown`,

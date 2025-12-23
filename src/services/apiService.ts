@@ -96,7 +96,7 @@ class ApiService
 
   async deleteCountdown ( id: number ): Promise<void>
   {
-    await request.delete( `${ API.countdown.delete }/${ id }` );
+    await request.delete( `${ API.countdown.delete }`, { id } );
   }
 
   async archiveCountdown ( id: number ): Promise<Countdown>

@@ -340,10 +340,10 @@ export default defineComponent( {
       return formatDate( dateStr );
     },
 
-    goBack (): void
+    goBack ( deltas: number = 1 ): void
     {
       uni.navigateBack( {
-        delta: 1
+        delta: deltas
       } );
     },
 
@@ -401,7 +401,7 @@ export default defineComponent( {
                 title: '删除成功',
                 icon: 'success'
               } );
-              this.goBack();
+              this.goBack( 2 );
             } catch ( error )
             {
               console.error( '删除失败:', error );
