@@ -71,7 +71,6 @@ export default defineComponent( {
       try
       {
         const latest: Version = await apiService.getLatestVersion();
-        console.log( '最新版本信息：', latest );
         // 兼容 getLatestVersion 返回 string 或 { version: string }
         const latestVersion = latest.version;
 
@@ -104,12 +103,18 @@ export default defineComponent( {
 
           uni.setStorageSync( VERSION_KEY, latestVersion );
 
+          // 弹窗展示更新标题与描述（字段可能为空，做兜底）
+          const modalTitle = ( '版本更新' + ( latest?.title && String( latest.title ).trim() ) ) || '版本更新提示';
+          const modalContent = ( ( latest?.description && String( latest.description ).trim() ) + '\n检测到新版本，为保证数据一致性已清除本地数据，请重新登录。' )
+            || '检测到新版本，为保证数据一致性已清除本地数据，请重新登录。';
+
           await new Promise<void>( ( resolve ) =>
           {
             uni.showModal( {
-              title: '版本更新提示',
-              content: '检测到新版本，为保证数据一致性已清除本地数据，请重新登录。',
+              title: modalTitle,
+              content: modalContent,
               showCancel: false,
+              confirmText: '确定更新',
               success: () => resolve()
             } );
           } );
