@@ -165,264 +165,258 @@ interface IndexPageData
   drawerVisible: boolean;
 }
 
-export default defineComponent( 
+export default defineComponent(
   {
-  name: 'Index',
+    name: 'Index',
 
-  data (): IndexPageData
-  {
-    return {
-      user: {
-        id: 1,
-        nickname: '张三',
-        avatar: '',
-        created_at: '',
-        updated_at: ''
+    data (): IndexPageData
+    {
+      return {
+        user: {
+          id: 1,
+          nickname: '张三',
+          avatar: '',
+          created_at: '',
+          updated_at: ''
+        },
+        allCountdowns: [],
+        categories: [],
+        drawerVisible: false
+      };
+    },
+
+    computed: {
+      // 为每个倒数日计算显示日期（考虑重复日程的未来最近日期）
+      countdownsWithDisplayDate (): CountdownWithDisplayDate[]
+      {
+        return this.allCountdowns.map( countdown =>
+        {
+          let displayDate = countdown.date;
+
+          // 如果是重复日程，计算未来最近的日期
+          if ( countdown.repeat_cycle > 0 && countdown.repeat_frequency !== '不重复' )
+          {
+            displayDate = this.getNextRepeatDate( countdown.date, countdown.repeat_cycle, countdown.repeat_frequency );
+          }
+
+          return {
+            ...countdown,
+            displayDate
+          };
+        } );
       },
-      allCountdowns: [],
-      categories: [],
-      drawerVisible: false
-    };
-  },
 
-  computed: {
-    // 为每个倒数日计算显示日期（考虑重复日程的未来最近日期）
-    countdownsWithDisplayDate (): CountdownWithDisplayDate[]
-    {
-      return this.allCountdowns.map( countdown =>
+      // 置顶日程（独立的置顶容器）- 按编辑时间排序，最新编辑的在前
+      pinnedCountdowns (): CountdownWithDisplayDate[]
       {
-        let displayDate = countdown.date;
+        return this.countdownsWithDisplayDate
+          .filter( cd => cd.is_pinned )
+          .sort( ( a, b ) => new Date( b.updated_at ).getTime() - new Date( a.updated_at ).getTime() );
+      },
 
-        // 如果是重复日程，计算未来最近的日期
-        if ( countdown.repeat_cycle > 0 && countdown.repeat_frequency !== '不重复' )
-        {
-          displayDate = this.getNextRepeatDate( countdown.date, countdown.repeat_cycle, countdown.repeat_frequency );
-        }
-
-        return {
-          ...countdown,
-          displayDate
-        };
-      } );
-    },
-
-    // 置顶日程（独立的置顶容器）- 按编辑时间排序，最新编辑的在前
-    pinnedCountdowns (): CountdownWithDisplayDate[]
-    {
-      return this.countdownsWithDisplayDate
-        .filter( cd => cd.is_pinned )
-        .sort( ( a, b ) => new Date( b.updated_at ).getTime() - new Date( a.updated_at ).getTime() );
-    },
-
-    // 未来倒数日（不包含置顶的）- 按日期排序
-    futureCountdowns (): CountdownWithDisplayDate[]
-    {
-      const future = this.countdownsWithDisplayDate
-        .filter( cd => !cd.is_pinned && calculateDays( cd.displayDate ) >= 0 );
-      return future.sort( ( a, b ) => calculateDays( a.displayDate ) - calculateDays( b.displayDate ) );
-    },
-
-    // 已经倒数日（不包含置顶的）- 按日期排序
-    pastCountdowns (): CountdownWithDisplayDate[]
-    {
-      const past = this.countdownsWithDisplayDate
-        .filter( cd => !cd.is_pinned && calculateDays( cd.displayDate ) < 0 );
-      return past.sort( ( a, b ) => calculateDays( b.displayDate ) - calculateDays( a.displayDate ) );
-    }
-  },
-
-  onShow (): void
-  {
-    this.loadData();
-  },
-
-  methods: {
-    async loadData (): Promise<void>
-    {
-      try
+      // 未来倒数日（不包含置顶的）- 按日期排序
+      futureCountdowns (): CountdownWithDisplayDate[]
       {
-        if( !uni.getStorageSync('userid') )
+        const future = this.countdownsWithDisplayDate
+          .filter( cd => !cd.is_pinned && calculateDays( cd.displayDate ) >= 0 );
+        return future.sort( ( a, b ) => calculateDays( a.displayDate ) - calculateDays( b.displayDate ) );
+      },
+
+      // 已经倒数日（不包含置顶的）- 按日期排序
+      pastCountdowns (): CountdownWithDisplayDate[]
+      {
+        const past = this.countdownsWithDisplayDate
+          .filter( cd => !cd.is_pinned && calculateDays( cd.displayDate ) < 0 );
+        return past.sort( ( a, b ) => calculateDays( b.displayDate ) - calculateDays( a.displayDate ) );
+      }
+    },
+
+    onShow (): void
+    {
+      this.loadData();
+    },
+
+    methods: {
+      async loadData (): Promise<void>
+      {
+        try
         {
-          uni.navigateTo( {
-            url: '/subpackages/login/login'
+
+          // 获取当前用户信息
+          const userid = uni.getStorageSync( 'userid' );
+          const currentUser = await apiService.getCurrentUser( userid || '1' );
+
+          this.user = currentUser;
+
+          // 获取分类和倒数日数据
+          const [ countdownsRes, categoriesRes ] = await Promise.all( [
+            apiService.getCountdowns( { userid } ),
+            apiService.getCategories( userid || '1' )
+          ] );
+          this.allCountdowns = countdownsRes;
+          this.categories = categoriesRes;
+        } catch ( error )
+        {
+          console.error( '加载数据失败:', error );
+          uni.showToast( {
+            title: '加载失败',
+            icon: 'none'
           } );
-          return;
         }
-        // 获取当前用户信息
-        const userid = uni.getStorageSync('userid');
-        const currentUser = await apiService.getCurrentUser(userid || '1');
+      },
 
-        this.user = currentUser;
-
-        // 获取分类和倒数日数据
-        const [ countdownsRes, categoriesRes ] = await Promise.all( [
-          apiService.getCountdowns({userid}),
-          apiService.getCategories(userid||'1')
-        ] );
-        this.allCountdowns = countdownsRes;
-        this.categories = categoriesRes;
-      } catch ( error )
+      calculateDays ( targetDate: string ): number
       {
-        console.error( '加载数据失败:', error );
-        uni.showToast( {
-          title: '加载失败',
-          icon: 'none'
+        return calculateDays( targetDate );
+      },
+
+      getAbsoluteDays ( targetDate: string ): number
+      {
+        return getAbsoluteDays( targetDate );
+      },
+
+      formatDate ( dateStr: string ): string
+      {
+        return formatDate( dateStr );
+      },
+
+      getCategoryColor ( category_id: number ): string
+      {
+        const category = this.categories.find( c => c.id === category_id );
+        return category ? category.color : '#1890ff';
+      },
+
+      getCategoryName ( category_id: number ): string
+      {
+        const category = this.categories.find( c => c.id === category_id );
+        return category ? category.name : '未分类';
+      },
+
+      getCategoryCount ( category_id: number ): number
+      {
+        return this.allCountdowns.filter( cd => cd.category_id === category_id ).length;
+      },
+
+      toggleDrawer (): void
+      {
+        this.drawerVisible = !this.drawerVisible;
+      },
+
+      showAddCountdown (): void
+      {
+        uni.navigateTo( {
+          url: '/subpackages/edit/edit'
         } );
-      }
-    },
+      },
 
-    calculateDays ( targetDate: string ): number
-    {
-      return calculateDays( targetDate );
-    },
-
-    getAbsoluteDays ( targetDate: string ): number
-    {
-      return getAbsoluteDays( targetDate );
-    },
-
-    formatDate ( dateStr: string ): string
-    {
-      return formatDate( dateStr );
-    },
-
-    getCategoryColor ( category_id: number ): string
-    {
-      const category = this.categories.find( c => c.id === category_id );
-      return category ? category.color : '#1890ff';
-    },
-
-    getCategoryName ( category_id: number ): string
-    {
-      const category = this.categories.find( c => c.id === category_id );
-      return category ? category.name : '未分类';
-    },
-
-    getCategoryCount ( category_id: number ): number
-    {
-      return this.allCountdowns.filter( cd => cd.category_id === category_id ).length;
-    },
-
-    toggleDrawer (): void
-    {
-      this.drawerVisible = !this.drawerVisible;
-    },
-
-    showAddCountdown (): void
-    {
-      uni.navigateTo( {
-        url: '/subpackages/edit/edit'
-      } );
-    },
-
-    handleCountdownClick ( countdown: CountdownWithDisplayDate ): void
-    {
-      uni.navigateTo( {
-        url: `/subpackages/detail/detail?id=${ countdown.id }`
-      } );
-    },
-
-    handleAllCategory (): void
-    {
-      this.drawerVisible = false;
-    },
-
-    handleCategoryClick ( category: Category ): void
-    {
-      this.drawerVisible = false;
-      uni.navigateTo( {
-        url: `/subpackages/categories/categories?category_id=${ category.id }`
-      } );
-    },
-
-    // 获取重复日程的未来最近日期
-    getNextRepeatDate (
-      originalDate: string,
-      repeatCycle: number,
-      repeatFrequency: '不重复' | '天重复' | '周重复' | '月重复' | '年重复'
-    ): string
-    {
-      // 如果不是重复日程，返回原日期
-      if ( repeatCycle === 0 || repeatFrequency === '不重复' )
+      handleCountdownClick ( countdown: CountdownWithDisplayDate ): void
       {
-        return originalDate;
-      }
+        uni.navigateTo( {
+          url: `/subpackages/detail/detail?id=${ countdown.id }`
+        } );
+      },
 
-      const today = new Date();
-      today.setHours( 0, 0, 0, 0 );
-
-      let nextDate = new Date( originalDate );
-      nextDate.setHours( 0, 0, 0, 0 );
-
-      // 如果起始日期在未来，直接返回
-      if ( nextDate > today )
+      handleAllCategory (): void
       {
-        return originalDate;
-      }
+        this.drawerVisible = false;
+      },
 
-      // 循环计算下一个未来日期
-      while ( nextDate <= today )
+      handleCategoryClick ( category: Category ): void
       {
-        switch ( repeatFrequency )
+        this.drawerVisible = false;
+        uni.navigateTo( {
+          url: `/subpackages/categories/categories?category_id=${ category.id }`
+        } );
+      },
+
+      // 获取重复日程的未来最近日期
+      getNextRepeatDate (
+        originalDate: string,
+        repeatCycle: number,
+        repeatFrequency: '不重复' | '天重复' | '周重复' | '月重复' | '年重复'
+      ): string
+      {
+        // 如果不是重复日程，返回原日期
+        if ( repeatCycle === 0 || repeatFrequency === '不重复' )
         {
-          case '天重复':
-            nextDate.setDate( nextDate.getDate() + repeatCycle );
-            break;
-          case '周重复':
-            nextDate.setDate( nextDate.getDate() + repeatCycle * 7 );
-            break;
-          case '月重复':
-            nextDate.setMonth( nextDate.getMonth() + repeatCycle );
-            break;
-          case '年重复':
-            nextDate.setFullYear( nextDate.getFullYear() + repeatCycle );
-            break;
+          return originalDate;
         }
-      }
 
-      // 格式化为 YYYY-MM-DD
-      const year = nextDate.getFullYear();
-      const month = String( nextDate.getMonth() + 1 ).padStart( 2, '0' );
-      const day = String( nextDate.getDate() ).padStart( 2, '0' );
-      return `${ year }-${ month }-${ day }`;
-    },
+        const today = new Date();
+        today.setHours( 0, 0, 0, 0 );
 
-    // 获取重复文本
-    getRepeatText ( repeatCycle: number, repeatFrequency: string ): string
-    {
-      return getRepeatText( repeatCycle, repeatFrequency as any );
-    },
+        let nextDate = new Date( originalDate );
+        nextDate.setHours( 0, 0, 0, 0 );
 
-    // 切换置顶状态
-    async handleTogglePin ( countdown: CountdownWithDisplayDate ): Promise<void>
-    {
-      try
-      {
-        await apiService.togglePinCountdown( countdown.id );
-
-        // 更新本地数据
-        const index = this.allCountdowns.findIndex( cd => cd.id === countdown.id );
-        if ( index !== -1 )
+        // 如果起始日期在未来，直接返回
+        if ( nextDate > today )
         {
-          this.allCountdowns[ index ].is_pinned = !this.allCountdowns[ index ].is_pinned;
-          this.allCountdowns[ index ].updated_at = new Date().toISOString();
+          return originalDate;
         }
 
-        uni.showToast( {
-          title: countdown.is_pinned ? '已取消置顶' : '已置顶',
-          icon: 'success'
-        } );
-      } catch ( error )
+        // 循环计算下一个未来日期
+        while ( nextDate <= today )
+        {
+          switch ( repeatFrequency )
+          {
+            case '天重复':
+              nextDate.setDate( nextDate.getDate() + repeatCycle );
+              break;
+            case '周重复':
+              nextDate.setDate( nextDate.getDate() + repeatCycle * 7 );
+              break;
+            case '月重复':
+              nextDate.setMonth( nextDate.getMonth() + repeatCycle );
+              break;
+            case '年重复':
+              nextDate.setFullYear( nextDate.getFullYear() + repeatCycle );
+              break;
+          }
+        }
+
+        // 格式化为 YYYY-MM-DD
+        const year = nextDate.getFullYear();
+        const month = String( nextDate.getMonth() + 1 ).padStart( 2, '0' );
+        const day = String( nextDate.getDate() ).padStart( 2, '0' );
+        return `${ year }-${ month }-${ day }`;
+      },
+
+      // 获取重复文本
+      getRepeatText ( repeatCycle: number, repeatFrequency: string ): string
       {
-        console.error( '操作失败:', error );
-        uni.showToast( {
-          title: '操作失败',
-          icon: 'none'
-        } );
+        return getRepeatText( repeatCycle, repeatFrequency as any );
+      },
+
+      // 切换置顶状态
+      async handleTogglePin ( countdown: CountdownWithDisplayDate ): Promise<void>
+      {
+        try
+        {
+          await apiService.togglePinCountdown( countdown.id );
+
+          // 更新本地数据
+          const index = this.allCountdowns.findIndex( cd => cd.id === countdown.id );
+          if ( index !== -1 )
+          {
+            this.allCountdowns[ index ].is_pinned = !this.allCountdowns[ index ].is_pinned;
+            this.allCountdowns[ index ].updated_at = new Date().toISOString();
+          }
+
+          uni.showToast( {
+            title: countdown.is_pinned ? '已取消置顶' : '已置顶',
+            icon: 'success'
+          } );
+        } catch ( error )
+        {
+          console.error( '操作失败:', error );
+          uni.showToast( {
+            title: '操作失败',
+            icon: 'none'
+          } );
+        }
       }
     }
-  }
-} );
+  } );
 </script>
 
 <style scoped>

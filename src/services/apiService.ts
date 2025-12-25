@@ -8,6 +8,7 @@ import
   CountdownQueryParams,
   CommonResponse
 } from 'types';
+import { Version } from 'types';
 
 
 class ApiService
@@ -137,6 +138,11 @@ class ApiService
   async getCountdownsByDate ( date: string ): Promise<Countdown[]>
   {
     const res = await request.get<Countdown[]>( `${ API.countdown.byDate }/${ date }` );
+    return res.data;
+  }
+  async getLatestVersion (): Promise<Version>
+  {
+    const res = await request.get<Version>( API.version.getLatestVersion );
     return res.data;
   }
 }
