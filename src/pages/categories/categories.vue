@@ -50,7 +50,8 @@
 
         <!-- 分类卡片列表 -->
         <view v-for=" category in categories " :key=" category.id " class="category-card shadow"
-          @click="handleCategoryClick( category )" @longpress="handleCategoryLongPress( category )">
+          @click="handleCategoryClick( category )" @longpress="handleCategoryLongPress( category )"
+          @contextmenu.prevent="handleCategoryLongPress( category )">
           <view class="category-card-left">
             <view class="category-icon" :style=" { backgroundColor: category.color } ">
               <text>{{ category.icon }}</text>

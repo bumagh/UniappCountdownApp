@@ -192,7 +192,8 @@ export default defineComponent( {
       {
         if ( this.isEdit )
         {
-          await apiService.updateCategory( this.categoryId, {
+          await apiService.updateCategory( {
+            id: this.categoryId,
             name: this.formData.name,
             icon: this.formData.icon,
             color: this.formData.color
