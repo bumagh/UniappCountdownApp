@@ -6,7 +6,7 @@
         <text>☰</text>
       </view>
       <view class="navbar-title">
-        <text>{{ user.nickname }}的倒数日</text>
+        <text>{{ user.nickname }}的奇妙日</text>
       </view>
       <view class="navbar-icon" @click=" showAddCountdown ">
         <text>+</text>
@@ -43,7 +43,7 @@
         </view>
       </view>
 
-      <!-- 未来倒数日（包含置顶的） -->
+      <!-- 未来奇妙日（包含置顶的） -->
       <view v-if=" futureCountdowns.length > 0 " class="countdown-section">
         <view class="section-header">
           <text class="section-title">未来</text>
@@ -72,7 +72,7 @@
         </view>
       </view>
 
-      <!-- 已经倒数日（包含置顶的） -->
+      <!-- 已经奇妙日（包含置顶的） -->
       <view v-if=" pastCountdowns.length > 0 " class="countdown-section">
         <view class="section-header">
           <text class="section-title">已经</text>
@@ -102,9 +102,9 @@
       <!-- 空状态 -->
       <view v-if=" allCountdowns.length === 0 " class="empty-state">
         <text class="empty-icon">📅</text>
-        <text class="empty-text">还没有倒数日</text>
+        <text class="empty-text">还没有奇妙日</text>
         <view class="btn btn-primary" @click=" showAddCountdown ">
-          <text>添加第一个倒数日</text>
+          <text>添加第一个奇妙日</text>
         </view>
       </view>
 
@@ -116,7 +116,7 @@
     <view v-if=" drawerVisible " class="drawer-mask" @click=" toggleDrawer "></view>
     <view class="drawer" :class=" { 'drawer-open': drawerVisible } ">
       <view class="drawer-header">
-        <text class="drawer-title">倒数本</text>
+        <text class="drawer-title">奇妙本</text>
         <view class="drawer-close" @click=" toggleDrawer ">
           <text>✕</text>
         </view>
@@ -186,7 +186,7 @@ export default defineComponent(
     },
 
     computed: {
-      // 为每个倒数日计算显示日期（考虑重复日程的未来最近日期）
+      // 为每个奇妙日计算显示日期（考虑重复日程的未来最近日期）
       countdownsWithDisplayDate (): CountdownWithDisplayDate[]
       {
         return this.allCountdowns.map( countdown =>
@@ -214,7 +214,7 @@ export default defineComponent(
           .sort( ( a, b ) => new Date( b.updated_at ).getTime() - new Date( a.updated_at ).getTime() );
       },
 
-      // 未来倒数日（不包含置顶的）- 按日期排序
+      // 未来奇妙日（不包含置顶的）- 按日期排序
       futureCountdowns (): CountdownWithDisplayDate[]
       {
         const future = this.countdownsWithDisplayDate
@@ -222,7 +222,7 @@ export default defineComponent(
         return future.sort( ( a, b ) => calculateDays( a.displayDate ) - calculateDays( b.displayDate ) );
       },
 
-      // 已经倒数日（不包含置顶的）- 按日期排序
+      // 已经奇妙日（不包含置顶的）- 按日期排序
       pastCountdowns (): CountdownWithDisplayDate[]
       {
         const past = this.countdownsWithDisplayDate
@@ -248,7 +248,7 @@ export default defineComponent(
 
           this.user = currentUser;
 
-          // 获取分类和倒数日数据
+          // 获取分类和奇妙日数据
           const [ countdownsRes, categoriesRes ] = await Promise.all( [
             apiService.getCountdowns( { userid } ),
             apiService.getCategories( userid || '1' )

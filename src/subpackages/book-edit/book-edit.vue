@@ -6,7 +6,7 @@
         <text>‹</text>
       </view>
       <view class="navbar-title">
-        <text>{{ isEdit ? '编辑倒数本' : '添加倒数本' }}</text>
+        <text>{{ isEdit ? '编辑奇妙本' : '添加奇妙本' }}</text>
       </view>
       <view class="navbar-icon" @click=" handleSubmit ">
         <text>✓</text>
@@ -46,7 +46,7 @@
       <!-- 删除按钮（仅在编辑模式下显示） -->
       <view v-if=" isEdit " class="delete-section">
         <view class="btn btn-danger" @click=" handleDelete ">
-          <text>删除倒数本</text>
+          <text>删除奇妙本</text>
         </view>
       </view>
 
@@ -140,7 +140,7 @@ export default defineComponent( {
 
       uni.showModal( {
         title: '确认删除',
-        content: `确定要删除"${ this.formData.name }"倒数本吗？该分类下的奇妙日也会被删除。`,
+        content: `确定要删除"${ this.formData.name }"奇妙本吗？该分类下的奇妙日也会被删除。`,
         confirmColor: '#e54d42',
         success: async ( res ) =>
         {

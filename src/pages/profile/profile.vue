@@ -179,7 +179,7 @@
     <view v-if=" drawerVisible " class="drawer-mask" @click=" toggleDrawer "></view>
     <view class="drawer" :class=" { 'drawer-open': drawerVisible } ">
       <view class="drawer-header">
-        <text class="drawer-title">倒数本</text>
+        <text class="drawer-title">奇妙本</text>
         <view class="drawer-close" @click=" toggleDrawer ">
           <text>✕</text>
         </view>
@@ -621,8 +621,8 @@ export default {
     },
     handleAbout () {
       uni.showModal({
-        title: '关于时光倒数',
-        content: '时光倒数 v1.0.0\n一款简洁优雅的奇妙日管理工具\n\nBy HAISNAP',
+        title: '关于时光奇妙',
+        content: '时光奇妙 v1.0.0\n一款简洁优雅的奇妙日管理工具\n\nBy HAISNAP',
         showCancel: false
       });
     }
