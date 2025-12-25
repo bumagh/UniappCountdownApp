@@ -68,6 +68,7 @@ interface BookEditPageData
   };
   iconList: string[];
   colorList: string[];
+  isloading: boolean;
 }
 import apiService from '@/services/apiService';
 import { defineComponent } from 'vue';
@@ -93,7 +94,8 @@ export default defineComponent( {
         '#ff6b9d', '#1cbbb4', '#fbbd08', '#39b54a',
         '#e54d42', '#8799a3', '#a463f2', '#ff9500',
         '#0081ff', '#6739b6', '#1cbbb4', '#f37b1d'
-      ]
+      ],
+      isloading: false
     };
   },
   onLoad ( options: any )
@@ -149,7 +151,9 @@ export default defineComponent( {
               await apiService.deleteCategory( this.categoryId );
               uni.showToast( {
                 title: '删除成功',
-                icon: 'success'
+                icon: 'success',
+                mask: true
+
               } );
               setTimeout( () =>
               {
@@ -159,7 +163,9 @@ export default defineComponent( {
             {
               uni.showToast( {
                 title: '删除失败',
-                icon: 'none'
+                icon: 'none',
+                mask: true
+
               } );
             }
           }
@@ -168,6 +174,9 @@ export default defineComponent( {
     },
     async handleSubmit ()
     {
+      if ( this.isloading ) return;
+      this.isloading = true;
+
       if ( !this.formData.name.trim() )
       {
         uni.showToast( {
@@ -187,6 +196,7 @@ export default defineComponent( {
         } );
         return;
       }
+
 
       try
       {
@@ -214,12 +224,17 @@ export default defineComponent( {
 
           uni.showToast( {
             title: '添加成功',
-            icon: 'success'
+            icon: 'success',
+            mask: true
+
           } );
         }
+
         setTimeout( () =>
         {
           this.goBack();
+          this.isloading = false;
+
         }, 1000 );
       } catch ( e )
       {
@@ -227,6 +242,9 @@ export default defineComponent( {
           title: '操作失败',
           icon: 'none'
         } );
+      } finally
+      {
+        this.isloading = false;
       }
     }
   }
