@@ -2,7 +2,7 @@
   <view v-if=" visible " class="modal-mask" @click=" handleClose ">
     <view class="modal-content" @click.stop>
       <view class="modal-header">
-        <text class="modal-title">{{ countdownData ? '编辑倒数日' : '添加倒数日' }}</text>
+        <text class="modal-title">{{ countdownData ? '编辑奇妙日' : '添加奇妙日' }}</text>
         <view class="modal-close" @click=" handleClose ">
           <text class="close-icon">✕</text>
         </view>
@@ -135,7 +135,6 @@ interface AddCountdownPageData
 }
 import apiService from '@/services/apiService';
 import { defineComponent, PropType } from 'vue';
-import { formatDate } from '../utils/countdownUtils';
 
 export default defineComponent( {
   name: 'AddCountdown',
@@ -335,7 +334,7 @@ export default defineComponent( {
           {
             uni.showModal( {
               title: '确认删除',
-              content: '确定要删除这个倒数日吗？',
+              content: '确定要删除这个奇妙日吗？',
               success: async ( modalRes ) =>
               {
                 if ( modalRes.confirm )
@@ -363,7 +362,7 @@ export default defineComponent( {
           {
             uni.showModal( {
               title: '确认归档',
-              content: '确定要归档这个倒数日吗？归档后可在"我的"模块中查看。',
+              content: '确定要归档这个奇妙日吗？归档后可在"我的"模块中查看。',
               confirmText: '归档',
               success: async ( modalRes ) =>
               {

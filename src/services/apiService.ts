@@ -6,8 +6,10 @@ import
   Category,
   Countdown,
   CountdownQueryParams,
-  CommonResponse
+  CommonResponse,
+  ApiResponse
 } from 'types';
+import { Version } from 'types';
 
 
 class ApiService
@@ -60,7 +62,7 @@ class ApiService
   }
   async getCategory ( id: string ): Promise<Category>
   {
-    const res = await request.get<Category>( API.category.list, { id } );
+    const res = await request.get<Category>( API.category.read, { id } );
     return res.data;
   }
   async createCategory ( data: Omit<Category, 'id' | 'created_at' | 'updated_at'> ): Promise<Category>
@@ -69,15 +71,15 @@ class ApiService
     return res.data;
   }
 
-  async updateCategory ( id: number, data: Partial<Category> ): Promise<Category>
+  async updateCategory ( data: Partial<Category> ): Promise<Category>
   {
-    const res = await request.post<Category>( `${ API.category.update }/${ id }`, data );
+    const res = await request.post<Category>( `${ API.category.update }`, { ...data } );
     return res.data;
   }
 
   async deleteCategory ( id: number ): Promise<void>
   {
-    await request.delete( `${ API.category.delete }/${ id }` );
+    await request.delete( `${ API.category.delete }`, { id } );
   }
 
   // 倒数日相关
@@ -87,9 +89,9 @@ class ApiService
     return res.data;
   }
 
-  async getArchivedCountdowns (): Promise<Countdown[]>
+  async getArchivedCountdowns ( userid: string ): Promise<Countdown[]>
   {
-    const res = await request.get<Countdown[]>( API.countdown.archived );
+    const res = await request.get<Countdown[]>( API.countdown.archived, { userid } );
     return res.data;
   }
 
@@ -111,9 +113,9 @@ class ApiService
     return res.data;
   }
 
-  async deleteCountdown ( id: number ): Promise<void>
+  async deleteCountdown ( id: number ): Promise<ApiResponse<void>>
   {
-    await request.delete( `${ API.countdown.delete }`, { id } );
+    return await request.delete( `${ API.countdown.delete }`, { id } );
   }
 
   async archiveCountdown ( id: number ): Promise<Countdown>
@@ -124,7 +126,7 @@ class ApiService
 
   async unarchiveCountdown ( id: number ): Promise<Countdown>
   {
-    const res = await request.post<Countdown>( `${ API.countdown.unarchive }/${ id }/unarchive` );
+    const res = await request.post<Countdown>( `${ API.countdown.unarchive }/unarchive`, { id } );
     return res.data;
   }
 
@@ -137,6 +139,11 @@ class ApiService
   async getCountdownsByDate ( date: string ): Promise<Countdown[]>
   {
     const res = await request.get<Countdown[]>( `${ API.countdown.byDate }/${ date }` );
+    return res.data;
+  }
+  async getLatestVersion (): Promise<Version>
+  {
+    const res = await request.get<Version>( API.version.getLatestVersion );
     return res.data;
   }
 }

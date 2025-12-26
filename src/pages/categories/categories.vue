@@ -6,7 +6,7 @@
         <text>☰</text>
       </view>
       <view class="navbar-title">
-        <text>{{ user.nickname }}的倒数本</text>
+        <text>{{ user.nickname }}的奇妙本</text>
       </view>
       <view class="navbar-icon" @click=" goToBookEdit ">
         <text>+</text>
@@ -15,20 +15,20 @@
 
     <!-- 主体内容 -->
     <scroll-view scroll-y class="page-content">
-      <!-- 添加新倒数本按钮 -->
+      <!-- 添加新奇妙本按钮 -->
       <view class="add-category-section">
         <view class="add-category-btn shadow" @click=" goToBookEdit ">
           <view class="add-icon">
             <text>+</text>
           </view>
-          <text class="add-text">添加新倒数本</text>
+          <text class="add-text">添加新奇妙本</text>
         </view>
       </view>
 
       <!-- 分类列表 -->
       <view class="category-section">
         <view class="section-title">
-          <text>全部倒数本</text>
+          <text>全部奇妙本</text>
         </view>
 
         <!-- 全部分类卡片 -->
@@ -39,7 +39,7 @@
             </view>
             <view class="category-info">
               <text class="category-name">全部</text>
-              <text class="category-desc">查看所有倒数日</text>
+              <text class="category-desc">查看所有奇妙日</text>
             </view>
           </view>
           <view class="category-card-right">
@@ -50,7 +50,8 @@
 
         <!-- 分类卡片列表 -->
         <view v-for=" category in categories " :key=" category.id " class="category-card shadow"
-          @click="handleCategoryClick( category )" @longpress="handleCategoryLongPress( category )">
+          @click="handleCategoryClick( category )" @longpress="handleCategoryLongPress( category )"
+          @contextmenu.prevent="handleCategoryLongPress( category )">
           <view class="category-card-left">
             <view class="category-icon" :style=" { backgroundColor: category.color } ">
               <text>{{ category.icon }}</text>
@@ -75,7 +76,7 @@
     <view v-if=" drawerVisible " class="drawer-mask" @click=" toggleDrawer "></view>
     <view class="drawer" :class=" { 'drawer-open': drawerVisible } ">
       <view class="drawer-header">
-        <text class="drawer-title">倒数本</text>
+        <text class="drawer-title">奇妙本</text>
         <view class="drawer-close" @click=" toggleDrawer ">
           <text>✕</text>
         </view>
@@ -101,7 +102,7 @@
       </scroll-view>
     </view>
 
-    <!-- 分类详情页面（倒数日列表） -->
+    <!-- 分类详情页面（奇妙日列表） -->
     <view v-if=" detailVisible " class="detail-mask" @click=" closeDetail ">
       <view class="detail-content" @click.stop>
         <view class="detail-header">
@@ -112,7 +113,7 @@
             </view>
             <view class="detail-title-wrapper">
               <text class="detail-title">{{ selectedCategory ? selectedCategory.name : '全部' }}</text>
-              <text class="detail-subtitle">{{ detailCountdowns?.length }}个倒数日</text>
+              <text class="detail-subtitle">{{ detailCountdowns?.length }}个奇妙日</text>
             </view>
           </view>
           <view class="detail-close" @click=" closeDetail ">
@@ -121,7 +122,7 @@
         </view>
 
         <scroll-view scroll-y class="detail-body">
-          <!-- 未来倒数日 -->
+          <!-- 未来奇妙日 -->
           <view v-if=" ( futureCountdowns ?? [] ).length > 0 " class="countdown-group">
             <view class="group-title">
               <text>未来 ({{ ( futureCountdowns ?? [] ).length }})</text>
@@ -138,7 +139,7 @@
             </view>
           </view>
 
-          <!-- 已经倒数日 -->
+          <!-- 已经奇妙日 -->
           <view v-if=" pastCountdowns!.length > 0 " class="countdown-group">
             <view class="group-title">
               <text>已经 ({{ pastCountdowns!.length }})</text>
@@ -158,7 +159,7 @@
           <!-- 空状态 -->
           <view v-if=" detailCountdowns!.length === 0 " class="empty-state">
             <text class="empty-icon">📋</text>
-            <text class="empty-text">还没有倒数日</text>
+            <text class="empty-text">还没有奇妙日</text>
             <view class="btn btn-primary" @click=" showAddCountdown ">
               <text>添加第一个</text>
             </view>
@@ -170,7 +171,7 @@
       </view>
     </view>
 
-    <!-- 添加倒数日弹窗 -->
+    <!-- 添加奇妙日弹窗 -->
     <AddCountdown :visible=" addCountdownVisible " :countdownData!=" editingCountdown "
       :defaultCategoryId=" selectedCategory?.id " @close=" closeAddCountdown " @success=" handleCountdownSuccess " />
   </view>
@@ -291,7 +292,7 @@ export default defineComponent( {
     getCategoryCountText ( categoryId: number )
     {
       const count = this.getCategoryCount( categoryId );
-      return `${ count }个倒数日`;
+      return `${ count }个奇妙日`;
     },
     toggleDrawer ()
     {
@@ -355,7 +356,7 @@ export default defineComponent( {
           {
             uni.showModal( {
               title: '确认删除',
-              content: `确定要删除"${ category.name }"分类吗？该分类下的倒数日也会被删除。`,
+              content: `确定要删除"${ category.name }"分类吗？该分类下的奇妙日也会被删除。`,
               success: async ( modalRes ) =>
               {
                 if ( modalRes.confirm )

@@ -181,3 +181,17 @@ export interface IUserManager
   hasRole ( role: string ): boolean;
   hasPermission ( permission: string ): boolean;
 }
+
+
+export interface Version
+{
+  id?: number;
+  version?: string | null;
+  update_method?: string | null;
+  update_rule?: string | null;
+  notice_url?: string | null;
+  apkurl?: string | null;
+  title?: string | null;
+  description?: string | null;
+  create_time?: string | null;
+}

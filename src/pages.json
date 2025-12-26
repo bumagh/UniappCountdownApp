@@ -17,7 +17,7 @@
     {
       "path": "pages/categories/categories",
       "style": {
-        "navigationBarTitleText": "倒数本",
+        "navigationBarTitleText": "奇妙本",
         "navigationStyle": "custom",
         "enablePullDownRefresh": false
       }
@@ -46,7 +46,7 @@
         {
           "path": "book-edit",
           "style": {
-            "navigationBarTitleText": "编辑倒数本",
+            "navigationBarTitleText": "编辑奇妙本",
             "navigationStyle": "custom",
             "enablePullDownRefresh": false
           }
@@ -59,7 +59,7 @@
         {
           "path": "detail",
           "style": {
-            "navigationBarTitleText": "倒数日详情",
+            "navigationBarTitleText": "奇妙日详情",
             "navigationStyle": "custom",
             "enablePullDownRefresh": false
           }
@@ -72,7 +72,7 @@
         {
           "path": "edit",
           "style": {
-            "navigationBarTitleText": "编辑倒数日",
+            "navigationBarTitleText": "编辑奇妙日",
             "navigationStyle": "custom",
             "enablePullDownRefresh": false
           }
@@ -147,7 +147,7 @@
       },
       {
         "pagePath": "pages/categories/categories",
-        "text": "倒数本",
+        "text": "奇妙本",
         "iconPath": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjYWFhYWFhIiBkPSJNOSA0Yy0xLjEgMC0yIC45LTIgMnY0MGgydi0yaDMydjJoMlY2YzAtMS4xLS45LTItMi0ySDl6TTkgNmgzMnYzNkg5VjZ6bTQgNHYyaDE4di0ySDF6bTAgNnYyaDE4di0ySDF6bTAgNnYyaDE4di0ySDF6Ii8+PC9zdmc+",
         "selectedIconPath": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjMTg5MGZmIiBkPSJNOSA0Yy0xLjEgMC0yIC45LTIgMnY0MGgydi0yaDMydjJoMlY2YzAtMS4xLS45LTItMi0ySDl6bTQgNmgxOHYySDF6bTAgNmgxOHYySDF6bTggMGg2djJoNHYtNGgtNHoiLz48L3N2Zz4="
       },

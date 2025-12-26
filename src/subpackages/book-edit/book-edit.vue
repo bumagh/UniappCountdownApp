@@ -6,7 +6,7 @@
         <text>‹</text>
       </view>
       <view class="navbar-title">
-        <text>{{ isEdit ? '编辑倒数本' : '添加倒数本' }}</text>
+        <text>{{ isEdit ? '编辑奇妙本' : '添加奇妙本' }}</text>
       </view>
       <view class="navbar-icon" @click=" handleSubmit ">
         <text>✓</text>
@@ -46,7 +46,7 @@
       <!-- 删除按钮（仅在编辑模式下显示） -->
       <view v-if=" isEdit " class="delete-section">
         <view class="btn btn-danger" @click=" handleDelete ">
-          <text>删除倒数本</text>
+          <text>删除奇妙本</text>
         </view>
       </view>
 
@@ -68,6 +68,7 @@ interface BookEditPageData
   };
   iconList: string[];
   colorList: string[];
+  isloading: boolean;
 }
 import apiService from '@/services/apiService';
 import { defineComponent } from 'vue';
@@ -93,7 +94,8 @@ export default defineComponent( {
         '#ff6b9d', '#1cbbb4', '#fbbd08', '#39b54a',
         '#e54d42', '#8799a3', '#a463f2', '#ff9500',
         '#0081ff', '#6739b6', '#1cbbb4', '#f37b1d'
-      ]
+      ],
+      isloading: false
     };
   },
   onLoad ( options: any )
@@ -138,7 +140,7 @@ export default defineComponent( {
 
       uni.showModal( {
         title: '确认删除',
-        content: `确定要删除"${ this.formData.name }"倒数本吗？该分类下的奇妙日也会被删除。`,
+        content: `确定要删除"${ this.formData.name }"奇妙本吗？该分类下的奇妙日也会被删除。`,
         confirmColor: '#e54d42',
         success: async ( res ) =>
         {
@@ -149,7 +151,9 @@ export default defineComponent( {
               await apiService.deleteCategory( this.categoryId );
               uni.showToast( {
                 title: '删除成功',
-                icon: 'success'
+                icon: 'success',
+                mask: true
+
               } );
               setTimeout( () =>
               {
@@ -159,7 +163,9 @@ export default defineComponent( {
             {
               uni.showToast( {
                 title: '删除失败',
-                icon: 'none'
+                icon: 'none',
+                mask: true
+
               } );
             }
           }
@@ -168,6 +174,9 @@ export default defineComponent( {
     },
     async handleSubmit ()
     {
+      if ( this.isloading ) return;
+      this.isloading = true;
+
       if ( !this.formData.name.trim() )
       {
         uni.showToast( {
@@ -188,11 +197,13 @@ export default defineComponent( {
         return;
       }
 
+
       try
       {
         if ( this.isEdit )
         {
-          await apiService.updateCategory( this.categoryId, {
+          await apiService.updateCategory( {
+            id: this.categoryId,
             name: this.formData.name,
             icon: this.formData.icon,
             color: this.formData.color
@@ -213,12 +224,17 @@ export default defineComponent( {
 
           uni.showToast( {
             title: '添加成功',
-            icon: 'success'
+            icon: 'success',
+            mask: true
+
           } );
         }
+
         setTimeout( () =>
         {
           this.goBack();
+          this.isloading = false;
+
         }, 1000 );
       } catch ( e )
       {
@@ -226,6 +242,9 @@ export default defineComponent( {
           title: '操作失败',
           icon: 'none'
         } );
+      } finally
+      {
+        this.isloading = false;
       }
     }
   }

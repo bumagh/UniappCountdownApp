@@ -6,7 +6,7 @@
         <text>‹</text>
       </view>
       <view class="navbar-title">
-        <text>{{ isEdit ? '编辑倒数日' : '添加倒数日' }}</text>
+        <text>{{ isEdit ? '编辑奇妙日' : '添加奇妙日' }}</text>
       </view>
       <view class="navbar-icon" @click=" handleSubmit ">
         <text>✓</text>
@@ -139,14 +139,14 @@ export default defineComponent( {
     minDate (): string
     {
       const date = new Date();
-      date.setFullYear( date.getFullYear() - 10 );
+      date.setFullYear( date.getFullYear() - 100 );
       return date.toISOString().split( 'T' )[ 0 ];
     },
 
     maxDate (): string
     {
       const date = new Date();
-      date.setFullYear( date.getFullYear() + 10 );
+      date.setFullYear( date.getFullYear() + 1000 );
       return date.toISOString().split( 'T' )[ 0 ];
     }
   },
@@ -201,7 +201,7 @@ export default defineComponent( {
         this.loadCategories();
       } catch ( error )
       {
-        console.error( '加载倒数日数据失败:', error );
+        console.error( '加载奇妙日数据失败:', error );
         uni.showToast( {
           title: '加载数据失败',
           icon: 'none'
@@ -393,7 +393,7 @@ export default defineComponent( {
 
       uni.showModal( {
         title: '确认删除',
-        content: '确定要删除这个倒数日吗？',
+        content: '确定要删除这个奇妙日吗？',
         success: async ( res ) =>
         {
           if ( res.confirm )

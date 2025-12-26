@@ -31,6 +31,10 @@ export const API = {
         unarchive: `${ API_BASE_URL }countdown`,
         togglePin: `${ API_BASE_URL }countdown`,
         byDate: `${ API_BASE_URL }countdown/date`
+    },
+    version: {
+        check: `${ API_BASE_URL }version/check`,
+        getLatestVersion: `${ API_BASE_URL }version/getLatestVersion`,
     }
 } as const;
 

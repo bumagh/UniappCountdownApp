@@ -106,7 +106,7 @@
     <view v-if=" drawerVisible " class="drawer-mask" @click=" toggleDrawer "></view>
     <view class="drawer" :class=" { 'drawer-open': drawerVisible } ">
       <view class="drawer-header">
-        <text class="drawer-title">倒数本</text>
+        <text class="drawer-title">奇妙本</text>
         <view class="drawer-close" @click=" toggleDrawer ">
           <text>✕</text>
         </view>

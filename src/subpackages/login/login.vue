@@ -56,9 +56,9 @@
           </view>
 
           <!-- 登录按钮 -->
-          <!-- <view class="btn btn-primary login-btn" :class=" { 'btn-disabled': !isFormValid } " @click=" handleLogin ">
-            <text>登录</text>
-          </view> -->
+          <view class="btn btn-primary login-btn" :class=" { 'btn-disabled': !isFormValid } " @click=" handleLogin ">
+            <text>账号密码登录</text>
+          </view>
           <view class="btn btn-primary login-btn" :class=" { 'btn-disabled': !isFormValid } "
             @click=" handleWechatLogin ">
             <text>微信号登录</text>
@@ -145,6 +145,9 @@ export default defineComponent( {
       {
         await this.processWechatLogin( code );
         wxauth.clearAuthParamsFromUrl();
+      } else
+      {
+        wxauth.authorize();
       }
     },
 
@@ -166,7 +169,6 @@ export default defineComponent( {
       if ( code )
       {
         await this.processWechatLogin( code );
-        wxauth.clearAuthParamsFromUrl();
       } else
       {
         wxauth.authorize();
@@ -355,9 +357,9 @@ export default defineComponent( {
         setTimeout( () =>
         {
           // 使用重定向而非导航，避免用户能返回注册页
-          // uni.switchTab( {
-          //   url: '/pages/index/index'
-          // } );
+          uni.switchTab( {
+            url: '/pages/index/index'
+          } );
         }, 800 );
 
       } catch ( error: any )
