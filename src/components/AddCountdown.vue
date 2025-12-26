@@ -135,7 +135,6 @@ interface AddCountdownPageData
 }
 import apiService from '@/services/apiService';
 import { defineComponent, PropType } from 'vue';
-import { formatDate } from '../utils/countdownUtils';
 
 export default defineComponent( {
   name: 'AddCountdown',
