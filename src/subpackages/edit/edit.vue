@@ -139,14 +139,14 @@ export default defineComponent( {
     minDate (): string
     {
       const date = new Date();
-      date.setFullYear( date.getFullYear() - 10 );
+      date.setFullYear( date.getFullYear() - 100 );
       return date.toISOString().split( 'T' )[ 0 ];
     },
 
     maxDate (): string
     {
       const date = new Date();
-      date.setFullYear( date.getFullYear() + 10 );
+      date.setFullYear( date.getFullYear() + 1000 );
       return date.toISOString().split( 'T' )[ 0 ];
     }
   },
