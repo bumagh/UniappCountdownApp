@@ -6,7 +6,8 @@ import
   Category,
   Countdown,
   CountdownQueryParams,
-  CommonResponse
+  CommonResponse,
+  ApiResponse
 } from 'types';
 import { Version } from 'types';
 
@@ -88,9 +89,9 @@ class ApiService
     return res.data;
   }
 
-  async getArchivedCountdowns (): Promise<Countdown[]>
+  async getArchivedCountdowns ( userid: string ): Promise<Countdown[]>
   {
-    const res = await request.get<Countdown[]>( API.countdown.archived );
+    const res = await request.get<Countdown[]>( API.countdown.archived, { userid } );
     return res.data;
   }
 
@@ -112,9 +113,9 @@ class ApiService
     return res.data;
   }
 
-  async deleteCountdown ( id: number ): Promise<void>
+  async deleteCountdown ( id: number ): Promise<ApiResponse<void>>
   {
-    await request.delete( `${ API.countdown.delete }`, { id } );
+    return await request.delete( `${ API.countdown.delete }`, { id } );
   }
 
   async archiveCountdown ( id: number ): Promise<Countdown>
@@ -125,7 +126,7 @@ class ApiService
 
   async unarchiveCountdown ( id: number ): Promise<Countdown>
   {
-    const res = await request.post<Countdown>( `${ API.countdown.unarchive }/${ id }/unarchive` );
+    const res = await request.post<Countdown>( `${ API.countdown.unarchive }/unarchive`, { id } );
     return res.data;
   }
 

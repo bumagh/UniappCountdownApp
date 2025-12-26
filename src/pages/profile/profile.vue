@@ -192,7 +192,8 @@
               <text>{{ category.icon }}</text>
             </view>
             <text class="category-drawer-name">{{ category.name }}</text>
-            <text class="category-drawer-count">{{ getCategoryCount( category.id ) }}</text>
+            <!-- 模板中不要直接调用异步方法：读取已预取缓存 -->
+            <text class="category-drawer-count">{{ categoryCounts[ category.id ] ?? 0 }}</text>
           </view>
         </view>
       </scroll-view>
@@ -235,13 +236,14 @@
             <view v-for=" countdown in archivedCountdowns " :key=" countdown.id " class="archived-item shadow">
               <view class="archived-item-content">
                 <view class="archived-item-left">
-                  <view class="archived-icon" :style=" { backgroundColor: getCategoryColor( countdown.categoryId ) } ">
-                    <text>{{ getCategoryIcon( countdown.categoryId ) }}</text>
+                  <view class="archived-icon"
+                    :style=" { backgroundColor: getCategoryColor( countdown.category_id.toString() ) } ">
+                    <text>{{ getCategoryIcon( countdown.category_id.toString() ) }}</text>
                   </view>
                   <view class="archived-info">
                     <text class="archived-title">{{ countdown.title }}</text>
                     <text class="archived-date">{{ formatDate( countdown.date ) }}</text>
-                    <text class="archived-category">{{ getCategoryName( countdown.categoryId ) }}</text>
+                    <text class="archived-category">{{ getCategoryName( countdown.category_id.toString() ) }}</text>
                   </view>
                 </view>
                 <view class="archived-item-right">
@@ -265,13 +267,38 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
 import apiService from '@/services/apiService';
 import db from '../../utils/db.js';
-
-export default {
+import { defineComponent } from 'vue';
+import { Category, Countdown } from 'types';
+interface ProfilePageData
+{
+  user: {
+    id: number;
+    nickname: string;
+    avatar: string;
+  };
+  countdownStats: {
+    total: number;
+    future: number;
+    past: number;
+  };
+  reminderEnabled: boolean;
+  drawerVisible: boolean;
+  categories: Array<Category>;
+  nicknameModalVisible: boolean;
+  newNickname: string;
+  archiveVisible: boolean;
+  archivedCountdowns: Array<Countdown>;
+  archivedCount: number;
+  // 分类数量缓存（key=categoryId）
+  categoryCounts: Record<number, number>;
+}
+export default defineComponent( {
   name: 'Profile',
-  data () {
+  data (): ProfilePageData
+  {
     return {
       user: {
         id: 1,
@@ -290,349 +317,459 @@ export default {
       newNickname: '',
       archiveVisible: false,
       archivedCountdowns: [],
-      archivedCount: 0
+      archivedCount: 0,
+      categoryCounts: {}
     };
   },
-  onShow () {
-    this.loadUserData();
-    this.loadCategories();
-    this.calculateStats();
-    this.loadArchivedCountdowns();
+  async onShow ()
+  {
+    await this.loadUserData();
+    await this.loadCategories();
+    await this.calculateStats();
+    await this.loadArchivedCountdowns();
   },
   methods: {
-    async loadUserData () {
-      try {
-        if (!uni.getStorageSync('userid')) {
-          uni.navigateTo({
+    async loadUserData ()
+    {
+      try
+      {
+        if ( !uni.getStorageSync( 'userid' ) )
+        {
+          uni.navigateTo( {
             url: '/subpackages/login/login'
-          });
+          } );
           return;
         }
         // 获取当前用户信息
-        const userid = uni.getStorageSync('userid');
-        const currentUser = await apiService.getCurrentUser(userid || '1');
+        const userid = uni.getStorageSync( 'userid' );
+        const currentUser = await apiService.getCurrentUser( userid || '1' );
 
         this.user = currentUser;
-        if (currentUser) {
+        if ( currentUser != null )
+        {
           // 从本地存储加载头像
-          const savedAvatar = uni.getStorageSync('user_avatar');
-          if (savedAvatar) {
+          const savedAvatar = uni.getStorageSync( 'user_avatar' );
+          if ( savedAvatar )
+          {
             currentUser.avatar = savedAvatar;
           }
         }
-      } catch (error) {
-        console.error('操作失败:', error);
-        uni.showToast({
+      } catch ( error )
+      {
+        console.error( '操作失败:', error );
+        uni.showToast( {
           title: '操作失败',
           icon: 'none'
-        });
+        } );
       }
 
     },
-    loadCategories () {
-      if (this.user.id) {
-        this.categories = db.getCategories(this.user.id);
+    async loadCategories ()
+    {
+      if ( this.user.id )
+      {
+        this.categories = await apiService.getCategories( this.user.id.toString() );
+        // 加载分类后预取每个分类下的数量，避免模板里 await
+        await this.prefetchCategoryCounts();
       }
     },
-    calculateStats () {
-      if (!this.user.id) return;
 
-      const countdowns = db.getCountdowns(this.user.id);
+    async prefetchCategoryCounts ()
+    {
+      if ( !this.user.id || !this.categories?.length )
+      {
+        this.categoryCounts = {};
+        return;
+      }
+
+      const userid = this.user.id.toString();
+
+      const results = await Promise.all(
+        this.categories
+          .filter( c => c?.id != null )
+          .map( async ( c ) =>
+          {
+            try
+            {
+              const countdowns = await apiService.getCountdowns( {
+                userid,
+                category_id: Number( c.id )
+              } );
+              return [ Number( c.id ), countdowns.length ] as const;
+            } catch ( e )
+            {
+              console.error( '获取分类数量失败：', c, e );
+              return [ Number( c.id ), 0 ] as const;
+            }
+          } )
+      );
+
+      const map: Record<number, number> = {};
+      for ( const [ id, count ] of results )
+      {
+        map[ id ] = count;
+      }
+      this.categoryCounts = map;
+    },
+
+    async calculateStats ()
+    {
+      if ( !this.user.id ) return;
+
+      const countdowns = await apiService.getCountdowns( { userid: this.user.id.toString() } );
       this.countdownStats.total = countdowns.length;
 
       let future = 0;
       let past = 0;
 
-      countdowns.forEach(countdown => {
-        const days = db.calculateDays(countdown.date);
-        if (days >= 0) {
+      countdowns.forEach( countdown =>
+      {
+        const days = db.calculateDays( countdown.date );
+        if ( days >= 0 )
+        {
           future++;
-        } else {
+        } else
+        {
           past++;
         }
-      });
+      } );
 
       this.countdownStats.future = future;
       this.countdownStats.past = past;
     },
-    loadArchivedCountdowns () {
-      if (!this.user.id) return;
-      this.archivedCountdowns = db.getArchivedCountdowns(this.user.id);
+    async loadArchivedCountdowns ()
+    {
+      if ( !this.user.id ) return;
+      this.archivedCountdowns = await apiService.getArchivedCountdowns( this.user.id.toString() );
       this.archivedCount = this.archivedCountdowns.length;
     },
-    getCategoryCount (categoryId) {
-      const countdowns = db.getCountdowns(this.user.id, categoryId);
+    // 保留该方法给其它地方调用（模板不再直接用）
+    async getCategoryCount ( categoryId: string ): Promise<number>
+    {
+      const countdowns = await apiService.getCountdowns( { userid: this.user.id.toString(), category_id: parseInt( categoryId ) } );
       return countdowns.length;
     },
-    getCategoryColor (categoryId) {
-      const category = this.categories.find(c => c.id === categoryId);
+    getCategoryColor ( categoryId: string )
+    {
+      const category = this.categories.find( c => c.id === parseInt( categoryId ) );
       return category ? category.color : '#1890ff';
     },
-    getCategoryIcon (categoryId) {
-      const category = this.categories.find(c => c.id === categoryId);
+    getCategoryIcon ( categoryId: string )
+    {
+      const category = this.categories.find( c => c.id === parseInt( categoryId ) );
       return category ? category.icon : '📋';
     },
-    getCategoryName (categoryId) {
-      const category = this.categories.find(c => c.id === categoryId);
+    getCategoryName ( categoryId: string )
+    {
+      const category = this.categories.find( c => c.id === parseInt( categoryId ) );
       return category ? category.name : '未分类';
     },
-    formatDate (dateStr) {
-      return db.formatDate(dateStr);
+    formatDate ( dateStr: string )
+    {
+      return db.formatDate( dateStr );
     },
-    toggleDrawer () {
+    toggleDrawer ()
+    {
       this.drawerVisible = !this.drawerVisible;
     },
-    handleCategoryClick (category) {
+    handleCategoryClick ( category: Category )
+    {
       this.drawerVisible = false;
-      uni.navigateTo({
-        url: `/pages/categories/categories?categoryId=${category.id}`
-      });
+      uni.navigateTo( {
+        url: `/pages/categories/categories?categoryId=${ category.id }`
+      } );
     },
-    handleAvatarClick () {
-      uni.showModal({
+    handleAvatarClick ()
+    {
+      uni.showModal( {
         title: '提示',
         content: '功能未开放',
         showCancel: false,
         confirmText: '确定',
-        success: (res) => {
+        success: ( res ) =>
+        {
 
         }
-      });
+      } );
       return;
-      uni.showActionSheet({
-        itemList: ['从相册选择', '拍照', '恢复默认'],
-        success: (res) => {
-          if (res.tapIndex === 0) {
+      uni.showActionSheet( {
+        itemList: [ '从相册选择', '拍照', '恢复默认' ],
+        success: ( res ) =>
+        {
+          if ( res.tapIndex === 0 )
+          {
             this.chooseFromAlbum();
-          } else if (res.tapIndex === 1) {
+          } else if ( res.tapIndex === 1 )
+          {
             this.takePhoto();
-          } else if (res.tapIndex === 2) {
+          } else if ( res.tapIndex === 2 )
+          {
             this.resetAvatar();
           }
         }
-      });
+      } );
     },
-    chooseFromAlbum () {
-      uni.chooseImage({
+    chooseFromAlbum ()
+    {
+      uni.chooseImage( {
         count: 1,
-        sizeType: ['compressed'],
-        sourceType: ['album'],
-        success: (res) => {
-          this.updateAvatar(res.tempFilePaths[0]);
+        sizeType: [ 'compressed' ],
+        sourceType: [ 'album' ],
+        success: ( res ) =>
+        {
+          this.updateAvatar( res.tempFilePaths[ 0 ] );
         },
-        fail: (err) => {
-          uni.showToast({
+        fail: ( err ) =>
+        {
+          uni.showToast( {
             title: '选择失败',
             icon: 'none'
-          });
+          } );
         }
-      });
+      } );
     },
-    takePhoto () {
-      uni.chooseImage({
+    takePhoto ()
+    {
+      uni.chooseImage( {
         count: 1,
-        sizeType: ['compressed'],
-        sourceType: ['camera'],
-        success: (res) => {
-          this.updateAvatar(res.tempFilePaths[0]);
+        sizeType: [ 'compressed' ],
+        sourceType: [ 'camera' ],
+        success: ( res ) =>
+        {
+          this.updateAvatar( res.tempFilePaths[ 0 ] );
         },
-        fail: (err) => {
-          uni.showToast({
+        fail: ( err ) =>
+        {
+          uni.showToast( {
             title: '拍照失败',
             icon: 'none'
-          });
+          } );
         }
-      });
+      } );
     },
-    updateAvatar (tempPath) {
+    updateAvatar ( tempPath: string )
+    {
       // 保存到本地存储
-      uni.saveFile({
+      uni.saveFile( {
         tempFilePath: tempPath,
-        success: (res) => {
+        success: ( res ) =>
+        {
           const savedPath = res.savedFilePath;
           // 保存路径到本地存储
-          uni.setStorageSync('user_avatar', savedPath);
+          uni.setStorageSync( 'user_avatar', savedPath );
           // 更新显示
           this.user.avatar = savedPath;
           // 更新数据库中的用户信息
-          db.updateUser(this.user.id, { avatar: savedPath });
-          uni.showToast({
+          db.updateUser( this.user.id, { avatar: savedPath } );
+          uni.showToast( {
             title: '头像更新成功',
             icon: 'success'
-          });
+          } );
         },
-        fail: (err) => {
-          // 如果保存失败，直接使用临时路径
-          uni.setStorageSync('user_avatar', tempPath);
+        fail: ( err ) =>
+        {
+          // 如果保存失败直接使用临时路径
+          uni.setStorageSync( 'user_avatar', tempPath );
           this.user.avatar = tempPath;
-          db.updateUser(this.user.id, { avatar: tempPath });
-          uni.showToast({
+          db.updateUser( this.user.id, { avatar: tempPath } );
+          uni.showToast( {
             title: '头像更新成功',
             icon: 'success'
-          });
+          } );
         }
-      });
+      } );
     },
-    resetAvatar () {
+    resetAvatar ()
+    {
       const defaultAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop';
       // 清除本地存储的头像
-      uni.removeStorageSync('user_avatar');
+      uni.removeStorageSync( 'user_avatar' );
       // 恢复默认头像
       this.user.avatar = defaultAvatar;
-      db.updateUser(this.user.id, { avatar: defaultAvatar });
-      uni.showToast({
+      db.updateUser( this.user.id, { avatar: defaultAvatar } );
+      uni.showToast( {
         title: '已恢复默认头像',
         icon: 'success'
-      });
+      } );
     },
-    handleNicknameEdit () {
+    handleNicknameEdit ()
+    {
       this.newNickname = this.user.nickname;
       this.nicknameModalVisible = true;
     },
-    closeNicknameModal () {
+    closeNicknameModal ()
+    {
       this.nicknameModalVisible = false;
       this.newNickname = '';
     },
-    async saveNickname () {
-      if (!this.newNickname.trim()) {
-        uni.showToast({
+    async saveNickname ()
+    {
+      if ( !this.newNickname.trim() )
+      {
+        uni.showToast( {
           title: '昵称不能为空',
           icon: 'none'
-        });
+        } );
         return;
       }
-      const updated = await apiService.updateUser({ id: this.user.id, nickname: this.newNickname });
+      const updated = await apiService.updateUser( { id: this.user.id, nickname: this.newNickname } );
       // const updated = db.updateUser(this.user.id, { nickname: this.newNickname });
-      if (updated) {
+      if ( updated )
+      {
         this.user.nickname = this.newNickname;
-        uni.showToast({
+        uni.showToast( {
           title: '修改成功',
           icon: 'success'
-        });
+        } );
         this.closeNicknameModal();
-      } else {
-        uni.showToast({
+      } else
+      {
+        uni.showToast( {
           title: '修改失败',
           icon: 'none'
-        });
+        } );
       }
     },
-    handleEmailSetting () {
-      uni.showToast({
+    handleEmailSetting ()
+    {
+      uni.showToast( {
         title: '功能开发中',
         icon: 'none'
-      });
+      } );
     },
-    handleReminderToggle (e) {
+    handleReminderToggle ( e: any )
+    {
       this.reminderEnabled = e.detail.value;
-      uni.showToast({
+      uni.showToast( {
         title: this.reminderEnabled ? '已开启提醒' : '已关闭提醒',
         icon: 'none'
-      });
+      } );
     },
-    handleArchiveManagement () {
+    handleArchiveManagement ()
+    {
       this.archiveVisible = true;
       this.loadArchivedCountdowns();
     },
-    closeArchive () {
+    closeArchive ()
+    {
       this.archiveVisible = false;
     },
-    handleUnarchive (countdown) {
-      uni.showModal({
+    async handleUnarchive ( countdown: Countdown )
+    {
+      uni.showModal( {
         title: '确认恢复',
-        content: `确定要恢复「${countdown.title}」吗？`,
-        success: (res) => {
-          if (res.confirm) {
-            const updated = db.unarchiveCountdown(countdown.id);
-            if (updated) {
-              uni.showToast({
+        content: `确定要恢复「${ countdown.title }」吗？`,
+        success: async ( res ) =>
+        {
+          if ( res.confirm )
+          {
+            const updated = await apiService.unarchiveCountdown( countdown.id ?? 0 );
+            if ( updated )
+            {
+              uni.showToast( {
                 title: '恢复成功',
                 icon: 'success'
-              });
+              } );
               this.loadArchivedCountdowns();
               this.calculateStats();
             }
           }
         }
-      });
+      } );
     },
-    handleDeleteArchived (countdown) {
-      uni.showModal({
+    handleDeleteArchived ( countdown: Countdown )
+    {
+      uni.showModal( {
         title: '确认删除',
-        content: `确定要永久删除「${countdown.title}」吗？此操作不可恢复！`,
+        content: `确定要永久删除「${ countdown.title }」吗？此操作不可恢复！`,
         confirmColor: '#e54d42',
-        success: (res) => {
-          if (res.confirm) {
-            const success = db.deleteCountdown(countdown.id);
-            if (success) {
-              uni.showToast({
+        success: async ( res ) =>
+        {
+          if ( res.confirm )
+          {
+            const success = await apiService.deleteCountdown( countdown.id ?? 0 );
+            if ( success?.code === 200 )
+            {
+              uni.showToast( {
                 title: '删除成功',
                 icon: 'success'
-              });
+              } );
               this.loadArchivedCountdowns();
-            } else {
-              uni.showToast({
+            } else
+            {
+              uni.showToast( {
                 title: '删除失败',
                 icon: 'none'
-              });
+              } );
             }
           }
         }
-      });
+      } );
     },
-    handleThemeSetting () {
-      uni.showToast({
+    handleThemeSetting ()
+    {
+      uni.showToast( {
         title: '功能开发中',
         icon: 'none'
-      });
+      } );
     },
-    handleDataManagement () {
-      uni.showActionSheet({
-        itemList: ['导出数据', '导入数据', '清空数据'],
-        success: (res) => {
-          if (res.tapIndex === 2) {
-            uni.showModal({
+    handleDataManagement ()
+    {
+      uni.showActionSheet( {
+        itemList: [ '导出数据', '导入数据', '清空数据' ],
+        success: ( res ) =>
+        {
+          if ( res.tapIndex === 2 )
+          {
+            uni.showModal( {
               title: '警告',
               content: '确定要清空所有数据吗？此操作不可恢复！',
               confirmColor: '#e54d42',
-              success: (modalRes) => {
-                if (modalRes.confirm) {
+              success: ( modalRes ) =>
+              {
+                if ( modalRes.confirm )
+                {
                   db.clearAll();
                   db.initDefaultData();
                   this.loadUserData();
                   this.loadCategories();
                   this.calculateStats();
                   this.loadArchivedCountdowns();
-                  uni.showToast({
+                  uni.showToast( {
                     title: '数据已清空',
                     icon: 'success'
-                  });
+                  } );
                 }
               }
-            });
-          } else {
-            uni.showToast({
+            } );
+          } else
+          {
+            uni.showToast( {
               title: '功能开发中',
               icon: 'none'
-            });
+            } );
           }
         }
-      });
+      } );
     },
-    handleAbout () {
-      uni.showModal({
+    handleAbout ()
+    {
+      uni.showModal( {
         title: '关于时光奇妙',
-        content: '时光奇妙 v1.0.0\n一款简洁优雅的奇妙日管理工具\n\nBy HAISNAP',
+        content: '时光奇妙 v1.0.0\n一款简洁优雅的奇妙日管理工具\n\n© 2024 奇妙本团队',
         showCancel: false
-      });
+      } );
     }
     ,
-    handleLogout () {
-      uni.showModal({
+    handleLogout ()
+    {
+      uni.showModal( {
         title: '退出登录',
         content: '确定要退出登录吗？',
-        success: (res) => {
-          if (res.confirm) {
+        success: ( res ) =>
+        {
+          if ( res.confirm )
+          {
             // 1. 清除本地存储
             uni.clearStorageSync();
 
@@ -640,28 +777,30 @@ export default {
             // db.logout();
 
             // 3. 跳转到登录页
-            uni.reLaunch({
+            uni.reLaunch( {
               url: '/subpackages/login/login',
-              success: () => {
-                uni.showToast({
+              success: () =>
+              {
+                uni.showToast( {
                   title: '已退出登录',
                   icon: 'success'
-                });
+                } );
               },
-              fail: (err) => {
-                uni.showToast({
+              fail: ( err ) =>
+              {
+                uni.showToast( {
                   title: '跳转失败',
                   icon: 'none'
-                });
-                console.error('跳转到登录页失败:', err);
+                } );
+                console.error( '跳转到登录页失败:', err );
               }
-            });
+            } );
           }
         }
-      });
+      } );
     }
   }
-};
+} );
 </script>
 
 <style scoped>
@@ -921,7 +1060,7 @@ export default {
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 9999;
+  z-index: 999;
   display: flex;
   align-items: flex-end;
 }
