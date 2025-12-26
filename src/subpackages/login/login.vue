@@ -56,9 +56,9 @@
           </view>
 
           <!-- 登录按钮 -->
-          <view class="btn btn-primary login-btn" :class=" { 'btn-disabled': !isFormValid } " @click=" handleLogin ">
+          <!-- <view class="btn btn-primary login-btn" :class=" { 'btn-disabled': !isFormValid } " @click=" handleLogin ">
             <text>账号密码登录</text>
-          </view>
+          </view> -->
           <view class="btn btn-primary login-btn" :class=" { 'btn-disabled': !isFormValid } "
             @click=" handleWechatLogin ">
             <text>微信号登录</text>
