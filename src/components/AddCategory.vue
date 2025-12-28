@@ -1,9 +1,9 @@
 <template>
-  <view v-if="visible" class="modal-mask" @click="handleClose">
+  <view v-if=" visible " class="modal-mask" @click=" handleClose ">
     <view class="modal-content" @click.stop>
       <view class="modal-header">
-        <text class="modal-title">添加倒数本</text>
-        <view class="modal-close" @click="handleClose">
+        <text class="modal-title">添加奇妙本</text>
+        <view class="modal-close" @click=" handleClose ">
           <text class="close-icon">✕</text>
         </view>
       </view>
@@ -11,24 +11,14 @@
       <view class="modal-body">
         <view class="form-item">
           <view class="form-label">本子名称</view>
-          <input 
-            class="form-input" 
-            v-model="formData.name" 
-            placeholder="请输入本子名称"
-            maxlength="10"
-          />
+          <input class="form-input" v-model=" formData.name " placeholder="请输入本子名称" maxlength="10" />
         </view>
 
         <view class="form-item">
           <view class="form-label">选择图标</view>
           <view class="icon-grid">
-            <view 
-              v-for="(icon, index) in iconList" 
-              :key="index"
-              class="icon-item"
-              :class="{ 'icon-active': formData.icon === icon }"
-              @click="selectIcon(icon)"
-            >
+            <view v-for=" ( icon, index ) in iconList " :key=" index " class="icon-item"
+              :class=" { 'icon-active': formData.icon === icon } " @click="selectIcon( icon )">
               <text class="icon-text">{{ icon }}</text>
             </view>
           </view>
@@ -37,25 +27,20 @@
         <view class="form-item">
           <view class="form-label">选择颜色</view>
           <view class="color-grid">
-            <view 
-              v-for="(color, index) in colorList" 
-              :key="index"
-              class="color-item"
-              :class="{ 'color-active': formData.color === color }"
-              :style="{ backgroundColor: color }"
-              @click="selectColor(color)"
-            >
-              <text v-if="formData.color === color" class="color-check">✓</text>
+            <view v-for=" ( color, index ) in colorList " :key=" index " class="color-item"
+              :class=" { 'color-active': formData.color === color } " :style=" { backgroundColor: color } "
+              @click="selectColor( color )">
+              <text v-if=" formData.color === color " class="color-check">✓</text>
             </view>
           </view>
         </view>
       </view>
 
       <view class="modal-footer">
-        <view class="btn btn-ghost" @click="handleClose">
+        <view class="btn btn-ghost" @click=" handleClose ">
           <text>取消</text>
         </view>
-        <view class="btn btn-primary" @click="handleSubmit">
+        <view class="btn btn-primary" @click=" handleSubmit ">
           <text>确定</text>
         </view>
       </view>
@@ -78,7 +63,7 @@ export default {
       default: null
     }
   },
-  data() {
+  data () {
     return {
       formData: {
         name: '',
@@ -86,7 +71,7 @@ export default {
         color: '#ff6b9d'
       },
       iconList: [
-        '🏠', '💼', '👨‍👩‍👧', '🎯', '❤️', '🎉', 
+        '🏠', '💼', '👨‍👩‍👧', '🎯', '❤️', '🎉',
         '📚', '✈️', '🎂', '💪', '🎨', '🎵',
         '⚽', '🍔', '🌟', '🔥', '💡', '🌈'
       ],
@@ -98,7 +83,7 @@ export default {
     };
   },
   watch: {
-    visible(val) {
+    visible (val) {
       if (val) {
         if (this.categoryData) {
           this.formData = {
@@ -113,17 +98,17 @@ export default {
     }
   },
   methods: {
-    selectIcon(icon) {
+    selectIcon (icon) {
       this.formData.icon = icon;
     },
-    selectColor(color) {
+    selectColor (color) {
       this.formData.color = color;
     },
-    handleClose() {
+    handleClose () {
       this.$emit('close');
       this.resetForm();
     },
-    handleSubmit() {
+    handleSubmit () {
       if (!this.formData.name.trim()) {
         uni.showToast({
           title: '请输入本子名称',
@@ -173,7 +158,7 @@ export default {
         });
       }
     },
-    resetForm() {
+    resetForm () {
       this.formData = {
         name: '',
         icon: '🏠',

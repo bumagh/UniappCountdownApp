@@ -2,13 +2,13 @@
   <view class="page-container">
     <!-- 顶部导航栏 -->
     <view class="navbar">
-      <view class="navbar-icon" @click="goBack">
+      <view class="navbar-icon" @click=" goBack ">
         <text>‹</text>
       </view>
       <view class="navbar-title">
-        <text>{{ isEdit ? '编辑倒数日' : '添加倒数日' }}</text>
+        <text>{{ isEdit ? '编辑奇妙日' : '添加奇妙日' }}</text>
       </view>
-      <view class="navbar-icon" @click="handleSubmit">
+      <view class="navbar-icon" @click=" handleSubmit ">
         <text>✓</text>
       </view>
     </view>
@@ -18,27 +18,16 @@
       <view class="form-container">
         <view class="form-item">
           <text class="form-label">日程名称</text>
-          <input 
-            class="form-input" 
-            v-model="formData.title" 
-            placeholder="请输入日程名称"
-            maxlength="20"
-          />
+          <input class="form-input" v-model=" formData.title " placeholder="请输入日程名称" maxlength="20" />
         </view>
 
         <view class="form-item">
           <text class="form-label">选择日期</text>
           <view class="date-picker-container">
-            <picker 
-              mode="date" 
-              :value="formData.date" 
-              @change="onDateChange" 
-              :start="minDate" 
-              :end="maxDate"
-              class="date-picker"
-            >
+            <picker mode="date" :value=" formData.date " @change=" onDateChange " :start=" minDate " :end=" maxDate "
+              class="date-picker">
               <view class="date-input">
-                <text v-if="formData.date" class="date-text">{{ formatDateDisplay(formData.date) }}</text>
+                <text v-if=" formData.date " class="date-text">{{ formatDateDisplay( formData.date ) }}</text>
                 <text v-else class="date-placeholder">请选择日期</text>
                 <text class="date-icon">📅</text>
               </view>
@@ -49,14 +38,9 @@
         <view class="form-item">
           <text class="form-label">选择分类</text>
           <view class="category-list">
-            <view 
-              v-for="category in categories" 
-              :key="category.id"
-              class="category-item"
-              :class="{ 'category-active': formData.categoryId === category.id }"
-              @click="selectCategory(category.id)"
-            >
-              <view class="category-icon" :style="{ backgroundColor: category.color }">
+            <view v-for=" category in categories " :key=" category.id " class="category-item"
+              :class=" { 'category-active': formData.categoryId === category.id } " @click="selectCategory( category.id )">
+              <view class="category-icon" :style=" { backgroundColor: category.color } ">
                 <text class="icon-text">{{ category.icon }}</text>
               </view>
               <text class="category-name">{{ category.name }}</text>
@@ -67,29 +51,21 @@
         <view class="form-item">
           <view class="form-label-row">
             <text class="form-label">置顶显示</text>
-            <switch 
-              :checked="formData.isPinned" 
-              @change="onPinnedChange"
-              color="#1890ff"
-            />
+            <switch :checked=" formData.isPinned " @change=" onPinnedChange " color="#1890ff" />
           </view>
         </view>
 
         <view class="form-item">
           <view class="form-label-row">
             <text class="form-label">重复设置</text>
-            <switch 
-              :checked="isRepeatEnabled" 
-              @change="toggleRepeat"
-              color="#1890ff"
-            />
+            <switch :checked=" isRepeatEnabled " @change=" toggleRepeat " color="#1890ff" />
           </view>
         </view>
 
         <!-- 重复设置选择器（弹出选项框版本） -->
-        <view v-if="isRepeatEnabled" class="repeat-selector-section">
+        <view v-if=" isRepeatEnabled " class="repeat-selector-section">
           <view class="repeat-button-wrapper">
-            <button class="repeat-button" @click="showRepeatOptions">
+            <button class="repeat-button" @click=" showRepeatOptions ">
               {{ repeatOption || '请选择重复频率' }}
             </button>
           </view>
@@ -104,8 +80,8 @@
     </scroll-view>
 
     <!-- 删除/归档按钮（仅在编辑模式下显示） -->
-    <view v-if="isEdit" class="danger-section">
-      <view class="btn btn-danger" @click="handleDelete">
+    <view v-if=" isEdit " class="danger-section">
+      <view class="btn btn-danger" @click=" handleDelete ">
         <text>删除/归档</text>
       </view>
     </view>
@@ -117,7 +93,7 @@ import db from '../../utils/db.js';
 
 export default {
   name: 'EventEdit',
-  data() {
+  data () {
     return {
       countdownId: null,
       isEdit: false,
@@ -136,18 +112,18 @@ export default {
     };
   },
   computed: {
-    minDate() {
+    minDate () {
       const date = new Date();
       date.setFullYear(date.getFullYear() - 10);
       return date.toISOString().split('T')[0];
     },
-    maxDate() {
+    maxDate () {
       const date = new Date();
       date.setFullYear(date.getFullYear() + 10);
       return date.toISOString().split('T')[0];
     }
   },
-  onLoad(options) {
+  onLoad (options) {
     if (options.id) {
       this.countdownId = parseInt(options.id);
       this.isEdit = true;
@@ -157,14 +133,14 @@ export default {
     }
   },
   methods: {
-    getCurrentDate() {
+    getCurrentDate () {
       const date = new Date();
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
     },
-    loadCountdownData() {
+    loadCountdownData () {
       const countdown = db.getCountdown(this.countdownId);
       if (countdown) {
         this.formData = {
@@ -180,7 +156,7 @@ export default {
       }
       this.loadCategories();
     },
-    loadCategories() {
+    loadCategories () {
       const user = db.getCurrentUser();
       if (user) {
         this.categories = db.getCategories(user.id);
@@ -189,26 +165,26 @@ export default {
         }
       }
     },
-    checkRepeatEnabled() {
+    checkRepeatEnabled () {
       this.isRepeatEnabled = this.formData.repeatCycle > 0 && this.formData.repeatFrequency !== '不重复';
     },
-    setRepeatOption() {
+    setRepeatOption () {
       if (this.formData.repeatCycle === 0 || this.formData.repeatFrequency === '不重复') {
         this.repeatOption = '不重复';
       } else {
         this.repeatOption = db.getRepeatText(this.formData.repeatCycle, this.formData.repeatFrequency);
       }
     },
-    onDateChange(e) {
+    onDateChange (e) {
       this.formData.date = e.detail.value;
     },
-    selectCategory(categoryId) {
+    selectCategory (categoryId) {
       this.formData.categoryId = categoryId;
     },
-    onPinnedChange(e) {
+    onPinnedChange (e) {
       this.formData.isPinned = e.detail.value;
     },
-    toggleRepeat(e) {
+    toggleRepeat (e) {
       this.isRepeatEnabled = e.detail.value;
       if (this.isRepeatEnabled) {
         // 开启重复，设置默认值
@@ -222,7 +198,7 @@ export default {
         this.formData.repeatFrequency = '不重复';
       }
     },
-    showRepeatOptions() {
+    showRepeatOptions () {
       uni.showActionSheet({
         itemList: this.repeatOptions,
         success: (res) => {
@@ -231,7 +207,7 @@ export default {
         }
       });
     },
-    parseRepeatOption(option) {
+    parseRepeatOption (option) {
       if (option === '不重复') {
         this.formData.repeatCycle = 0;
         this.formData.repeatFrequency = '不重复';
@@ -255,13 +231,13 @@ export default {
         }
       }
     },
-    getRepeatText() {
+    getRepeatText () {
       if (this.repeatOption === '不重复') {
         return '不重复';
       }
       return this.repeatOption;
     },
-    formatDateDisplay(dateStr) {
+    formatDateDisplay (dateStr) {
       if (!dateStr) return '';
       const date = new Date(dateStr);
       const year = date.getFullYear();
@@ -271,19 +247,19 @@ export default {
       const weekDay = weekDays[date.getDay()];
       return `${year}年${month}月${day}日 星期${weekDay}`;
     },
-    goBack() {
+    goBack () {
       uni.navigateBack({
         delta: 1
       });
     },
-    handleDelete() {
+    handleDelete () {
       uni.showActionSheet({
         itemList: ['删除', '归档'],
         success: (res) => {
           if (res.tapIndex === 0) {
             uni.showModal({
               title: '确认删除',
-              content: '确定要删除这个倒数日吗？',
+              content: '确定要删除这个奇妙日吗？',
               success: (modalRes) => {
                 if (modalRes.confirm) {
                   try {
@@ -305,7 +281,7 @@ export default {
           } else if (res.tapIndex === 1) {
             uni.showModal({
               title: '确认归档',
-              content: '确定要归档这个倒数日吗？归档后可在\"我的\"模块中查看。',
+              content: '确定要归档这个奇妙日吗？归档后可在\"我的\"模块中查看。',
               confirmText: '归档',
               success: (modalRes) => {
                 if (modalRes.confirm) {
@@ -329,7 +305,7 @@ export default {
         }
       });
     },
-    handleSubmit() {
+    handleSubmit () {
       if (!this.formData.title.trim()) {
         uni.showToast({
           title: '请输入日程名称',

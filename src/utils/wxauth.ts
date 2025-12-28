@@ -49,7 +49,17 @@ class WxAuth
         }
         return null;
     }
+    /**
+      * 清除URL中的授权参数
+      */
+    clearAuthParamsFromUrl (): void
+    {
+        // 获取当前URL（不包含参数和hash）
+        const urlWithoutParams = window.location.origin + window.location.pathname;
 
+        // 替换当前URL，移除参数
+        window.history.replaceState( {}, document.title, urlWithoutParams );
+    }
     /**
      * 清除URL中的code和state参数，避免刷新页面重复提交
      */
@@ -84,4 +94,4 @@ class WxAuth
 }
 
 // 导出单例，请替换为您的真实公众号AppID
-export default new WxAuth( 'wx01e898364923998d' );
+export default new WxAuth( 'wxc164b903f978d83d' );

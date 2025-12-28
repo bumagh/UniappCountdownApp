@@ -2,28 +2,28 @@
   <view class="page-container">
     <!-- 顶部导航栏 -->
     <view class="navbar">
-      <view class="navbar-icon" @click="goBack">
+      <view class="navbar-icon" @click=" goBack ">
         <text>‹</text>
       </view>
       <view class="navbar-title">
-        <text>倒数日详情</text>
+        <text>奇妙日详情</text>
       </view>
-      <view class="navbar-icon" @click="handleEdit">
+      <view class="navbar-icon" @click=" handleEdit ">
         <text>✎</text>
       </view>
     </view>
 
     <!-- 主体内容 -->
     <scroll-view scroll-y class="page-content">
-      <view v-if="countdown" class="detail-container">
-        <!-- 倒数日主体信息 -->
+      <view v-if=" countdown " class="detail-container">
+        <!-- 奇妙日主体信息 -->
         <view class="countdown-main-card shadow-lg">
           <view class="countdown-header">
-            <view class="category-badge" :style="{ backgroundColor: categoryColor }">
+            <view class="category-badge" :style=" { backgroundColor: categoryColor } ">
               <text class="category-icon">{{ categoryIcon }}</text>
               <text class="category-name">{{ categoryName }}</text>
             </view>
-            <view v-if="countdown.is_pinned" class="pin-badge">
+            <view v-if=" countdown.is_pinned " class="pin-badge">
               <text>📌 已置顶</text>
             </view>
           </view>
@@ -35,13 +35,13 @@
           <view class="countdown-days-section">
             <view class="days-wrapper">
               <text class="days-label">{{ daysLabel }}</text>
-              <text class="days-number">{{ Math.abs(daysCount) }}</text>
+              <text class="days-number">{{ Math.abs( daysCount ) }}</text>
               <text class="days-unit">天</text>
             </view>
           </view>
 
           <view class="countdown-date-section">
-            <text class="date-text">{{ formatFullDate(countdown.date) }}</text>
+            <text class="date-text">{{ formatFullDate( countdown.date ) }}</text>
           </view>
         </view>
 
@@ -97,7 +97,7 @@
                 <text class="info-icon">⏰</text>
                 <text>创建时间</text>
               </view>
-              <text class="info-item-value">{{ formatCreateTime(countdown.created_at) }}</text>
+              <text class="info-item-value">{{ formatCreateTime( countdown.created_at ) }}</text>
             </view>
           </view>
         </view>
@@ -106,8 +106,8 @@
       <!-- 空状态 -->
       <view v-else class="empty-state">
         <text class="empty-icon">📭</text>
-        <text class="empty-text">倒数日不存在</text>
-        <view class="btn btn-primary" @click="goBack">
+        <text class="empty-text">奇妙日不存在</text>
+        <view class="btn btn-primary" @click=" goBack ">
           <text>返回</text>
         </view>
       </view>
@@ -125,105 +125,128 @@ import apiService from '@/services/apiService';
 import { defineComponent } from 'vue';
 import db from '../../utils/db.js';
 import { Category, Countdown } from '../../../types/index';
-interface DetailPageData {
+interface DetailPageData
+{
   countdownId: number,
-  countdown: Countdown |null,
+  countdown: Countdown | null,
   categories: Category[]
 }
 export default defineComponent( {
   name: 'Detail',
-  data() :DetailPageData{
+  data (): DetailPageData
+  {
     return {
       countdownId: 1,
-      countdown:  null,
+      countdown: null,
       categories: []
     };
   },
   computed: {
-    daysCount() {
-      if (!this.countdown) return 0;
-      return db.calculateDays(this.countdown.date);
+    daysCount ()
+    {
+      if ( !this.countdown ) return 0;
+      return db.calculateDays( this.countdown.date );
     },
-    daysLabel() {
-      if (this.daysCount > 0) {
+    daysLabel ()
+    {
+      if ( this.daysCount > 0 )
+      {
         return '距离目标还有';
-      } else if (this.daysCount < 0) {
+      } else if ( this.daysCount < 0 )
+      {
         return '距离目标已经';
-      } else {
+      } else
+      {
         return '就是今天';
       }
     },
-    categoryColor() {
-      if (!this.countdown) return '#1890ff';
-      const category = this.categories.find(c => c.id === this.countdown?.category_id);
+    categoryColor ()
+    {
+      if ( !this.countdown ) return '#1890ff';
+      const category = this.categories.find( c => c.id === this.countdown?.category_id );
       return category ? category.color : '#1890ff';
     },
-    categoryIcon() {
-      if (!this.countdown) return '📋';
-      const category = this.categories.find(c => c.id === this.countdown?.category_id);
+    categoryIcon ()
+    {
+      if ( !this.countdown ) return '📋';
+      const category = this.categories.find( c => c.id === this.countdown?.category_id );
       return category ? category.icon : '📋';
     },
-    categoryName() {
-      if (!this.countdown) return '未分类';
-      const category = this.categories.find(c => c.id === this.countdown?.category_id);
+    categoryName ()
+    {
+      if ( !this.countdown ) return '未分类';
+      const category = this.categories.find( c => c.id === this.countdown?.category_id );
       return category ? category.name : '未分类';
     },
-    repeatText() {
-      if (!this.countdown) return '不重复';
-      return db.getRepeatText(this.countdown.repeat_cycle, this.countdown.repeat_frequency);
+    repeatText ()
+    {
+      if ( !this.countdown ) return '不重复';
+      return db.getRepeatText( this.countdown.repeat_cycle, this.countdown.repeat_frequency );
     }
   },
-  onLoad(options:any) {
-    if (options.id) {
+  onLoad ( options: any )
+  {
+    if ( options.id )
+    {
       this.countdownId = options.id;
       this.loadData();
     }
   },
-  onShow() {
-    if (this.countdownId) {
+  onShow ()
+  {
+    if ( this.countdownId )
+    {
       this.loadData();
     }
   },
   methods: {
-    async loadData() {
-      try {
-        const userid = uni.getStorageSync('userid');
-        this.countdown = await apiService.getCountdown(this.countdownId);
-        if (this.countdown) {
-          this.categories = await apiService.getCategories(userid);
+    async loadData ()
+    {
+      try
+      {
+        const userid = uni.getStorageSync( 'userid' );
+        this.countdown = await apiService.getCountdown( this.countdownId );
+        if ( this.countdown )
+        {
+          this.categories = await apiService.getCategories( userid );
         }
-      } catch (error) {
-        console.error('数据库初始化失败:', error);
+      } catch ( error )
+      {
+        console.error( '数据库初始化失败:', error );
       }
 
     },
-    formatFullDate(dateStr:any) {
-      return db.formatDate(dateStr);
+    formatFullDate ( dateStr: any )
+    {
+      return db.formatDate( dateStr );
     },
-    formatCreateTime(isoString:any) {
-      if (!isoString) return '未知';
-      const date = new Date(isoString);
+    formatCreateTime ( isoString: any )
+    {
+      if ( !isoString ) return '未知';
+      const date = new Date( isoString );
       const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return `${year}-${month}-${day} ${hours}:${minutes}`;
+      const month = String( date.getMonth() + 1 ).padStart( 2, '0' );
+      const day = String( date.getDate() ).padStart( 2, '0' );
+      const hours = String( date.getHours() ).padStart( 2, '0' );
+      const minutes = String( date.getMinutes() ).padStart( 2, '0' );
+      return `${ year }-${ month }-${ day } ${ hours }:${ minutes }`;
     },
-    goBack() {
-      uni.navigateBack({
+    goBack ()
+    {
+      uni.navigateBack( {
         delta: 1
-      });
+      } );
     },
-    handleEdit() {
-      uni.navigateTo({
-        url: `/subpackages/edit/edit?id=${this.countdownId}`
-      });
+    handleEdit ()
+    {
+      uni.navigateTo( {
+        url: `/subpackages/edit/edit?id=${ this.countdownId }`
+      } );
     },
 
 
   }
-});
+} );
 </script>
 
 <style scoped>

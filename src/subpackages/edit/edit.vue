@@ -6,7 +6,7 @@
         <text>‹</text>
       </view>
       <view class="navbar-title">
-        <text>{{ isEdit ? '编辑倒数日' : '添加倒数日' }}</text>
+        <text>{{ isEdit ? '编辑奇妙日' : '添加奇妙日' }}</text>
       </view>
       <view class="navbar-icon" @click=" handleSubmit ">
         <text>✓</text>
@@ -139,20 +139,24 @@ export default defineComponent( {
     minDate (): string
     {
       const date = new Date();
-      date.setFullYear( date.getFullYear() - 10 );
+      date.setFullYear( date.getFullYear() - 100 );
       return date.toISOString().split( 'T' )[ 0 ];
     },
 
     maxDate (): string
     {
       const date = new Date();
-      date.setFullYear( date.getFullYear() + 10 );
+      date.setFullYear( date.getFullYear() + 1000 );
       return date.toISOString().split( 'T' )[ 0 ];
     }
   },
 
   onLoad ( options: any ): void
   {
+    if ( options.date )
+    {
+      this.formData.date = options.date;
+    }
     if ( options.id )
     {
       this.countdownId = parseInt( options.id );
@@ -197,7 +201,7 @@ export default defineComponent( {
         this.loadCategories();
       } catch ( error )
       {
-        console.error( '加载倒数日数据失败:', error );
+        console.error( '加载奇妙日数据失败:', error );
         uni.showToast( {
           title: '加载数据失败',
           icon: 'none'
@@ -209,10 +213,9 @@ export default defineComponent( {
     {
       try
       {
-        const userid = uni.getStorageSync('userid');
-        const categories = await apiService.getCategories(userid);
+        const userid = uni.getStorageSync( 'userid' );
+        const categories = await apiService.getCategories( userid );
         this.categories = categories;
-        console.log(this.categories)
         if ( this.categories.length > 0 && !this.formData.category_id )
         {
           this.formData.category_id = this.categories[ 0 ].id;
@@ -341,10 +344,10 @@ export default defineComponent( {
       return formatDate( dateStr );
     },
 
-    goBack (): void
+    goBack ( deltas: number = 1 ): void
     {
       uni.navigateBack( {
-        delta: 1
+        delta: deltas
       } );
     },
 
@@ -390,7 +393,7 @@ export default defineComponent( {
 
       uni.showModal( {
         title: '确认删除',
-        content: '确定要删除这个倒数日吗？',
+        content: '确定要删除这个奇妙日吗？',
         success: async ( res ) =>
         {
           if ( res.confirm )
@@ -402,7 +405,7 @@ export default defineComponent( {
                 title: '删除成功',
                 icon: 'success'
               } );
-              this.goBack();
+              this.goBack( 2 );
             } catch ( error )
             {
               console.error( '删除失败:', error );
@@ -464,7 +467,9 @@ export default defineComponent( {
         } else
         {
           await apiService.createCountdown( {
-            is_pinned: false,
+            user_id: uni.getStorageSync( 'userid' ),
+            is_archived: false,
+            is_pinned: this.formData.is_pinned,
             title: this.formData.title,
             date: this.formData.date,
             category_id: this.formData.category_id,

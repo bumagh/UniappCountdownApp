@@ -20,9 +20,9 @@
               <text>用户名</text>
             </view>
             <view class="input-wrapper">
-              <input v-model="form.username" type="text" placeholder="请输入用户名" placeholder-class="input-placeholder"
+              <input v-model=" form.username " type="text" placeholder="请输入用户名" placeholder-class="input-placeholder"
                 class="input-field" maxlength="11" />
-              <view v-if="form.username" class="input-clear" @click="clearusername">
+              <view v-if=" form.username " class="input-clear" @click=" clearusername ">
                 <text>✕</text>
               </view>
             </view>
@@ -34,9 +34,9 @@
               <text>密码</text>
             </view>
             <view class="input-wrapper">
-              <input v-model="form.password" :type="showPassword ? 'text' : 'password'" placeholder="请输入密码"
+              <input v-model=" form.password " :type=" showPassword ? 'text' : 'password' " placeholder="请输入密码"
                 placeholder-class="input-placeholder" class="input-field" maxlength="20" />
-              <view class="input-action" @click="togglePassword">
+              <view class="input-action" @click=" togglePassword ">
                 <text>{{ showPassword ? '👁️‍🗨️' : '👁️' }}</text>
               </view>
             </view>
@@ -44,9 +44,9 @@
 
           <!-- 记住密码和忘记密码 -->
           <view class="form-options">
-            <view class="remember-me" @click="toggleRemember">
-              <view class="checkbox" :class="{ 'checkbox-checked': form.remember }">
-                <text v-if="form.remember" class="checkbox-icon">✓</text>
+            <view class="remember-me" @click=" toggleRemember ">
+              <view class="checkbox" :class=" { 'checkbox-checked': form.remember } ">
+                <text v-if=" form.remember " class="checkbox-icon">✓</text>
               </view>
               <text class="checkbox-label">记住密码</text>
             </view>
@@ -56,19 +56,19 @@
           </view>
 
           <!-- 登录按钮 -->
-          <view class="btn btn-primary login-btn" :class="{ 'btn-disabled': !isFormValid }" @click="handleLogin">
-            <text>登录</text>
-          </view>
-          <view class="btn btn-primary login-btn" :class="{ 'btn-disabled': !isFormValid }"
-            @click="handleWechatLogin">
+          <!-- <view class="btn btn-primary login-btn" :class=" { 'btn-disabled': !isFormValid } " @click=" handleLogin ">
+            <text>账号密码登录</text>
+          </view> -->
+          <view class="btn btn-primary login-btn" :class=" { 'btn-disabled': !isFormValid } "
+            @click=" handleWechatLogin ">
             <text>微信号登录</text>
           </view>
 
           <!-- 注册链接 -->
-          <view class="register-link">
+          <!-- <view class="register-link">
             <text>还没有账号？</text>
-            <text class="register-text" @click="handleRegister">立即注册</text>
-          </view>
+            <text class="register-text" @click=" handleRegister ">立即注册</text>
+          </view> -->
         </view>
 
       </view>
@@ -86,23 +86,26 @@ import { validateUsername, validatePassword } from '@/utils/validate';
 import { showToast, } from '@/utils/uniUtils';
 import wxauth from '@/utils/wxauth';
 
-interface LoginForm {
+interface LoginForm
+{
   username: string;
   password: string;
   remember: boolean;
 }
 
-interface LoginPageData {
+interface LoginPageData
+{
   form: LoginForm;
   showPassword: boolean;
   loading: boolean;
   isWechat: boolean;
 }
 
-export default defineComponent({
+export default defineComponent( {
   name: 'Login',
 
-  data(): LoginPageData {
+  data (): LoginPageData
+  {
     return {
       form: {
         username: '',
@@ -111,187 +114,270 @@ export default defineComponent({
       },
       showPassword: false,
       loading: false,
-      isWechat:false,
+      isWechat: false,
     };
   },
 
   computed: {
     // 表单验证
-    isFormValid(): boolean {
+    isFormValid (): boolean
+    {
       // return validateusername(this.form.username) && validatePassword(this.form.password);
       return true;
     }
   },
 
-  onLoad() {
+  onLoad ()
+  {
     // 1. 判断环境
     this.isWechat = wxauth.isInWechat();
-
+    if ( this.isWechat )
+      this.handleWechatCallback();
     // 2. 处理微信授权回调（如果是从微信跳转回来，URL会带code）
-    this.handleWxCallback(); // Ensure this method is defined below
     this.loadSavedAccount();
   },
 
   methods: {
-     // 处理微信授权回调
-     async handleWxCallback() {
+    async handleWechatCallback ()
+    {
       const code = wxauth.handleAuthCallback();
-      if (code) {
-        // 如果URL中有code，表示是从微信授权后跳转回来的
-        uni.showLoading({ title: '登录中...', mask: true });
-        try {
-          // 调用后端接口，用code换取用户信息
-          // const loginRes = await apiService.loginByWeixin({ code: code });
-          const loginRes = {
-            data: {
-              token: 'mocked_token_from_wechat_login',
-              userInfo: {
-                userid: 'mocked_userid',
-                username: 'WeChatUser'
-              }
-            }
-          };
-          
-          // 登录成功处理
-          uni.setStorageSync('token', loginRes.data.token);
-          uni.setStorageSync('userInfo', JSON.stringify(loginRes.data.userInfo));
-          
-          showToast('微信登录成功', 'success');
-          setTimeout(() => {
-            uni.switchTab({ url: '/pages/index/index' });
-          }, 800);
-        } catch (error: any) {
-          console.error('微信登录失败:', error);
-          showToast(error.message || '微信登录失败，请重试', 'none');
-        } finally {
-          uni.hideLoading();
-        }
+      if ( code )
+      {
+        await this.processWechatLogin( code );
+        wxauth.clearAuthParamsFromUrl();
+      } else
+      {
+        wxauth.authorize();
       }
     },
 
-    // 处理微信登录按钮点击（重写此方法）
-    handleWechatLogin() {
-      if (!this.isWechat) {
-        uni.showModal({
+    async handleWechatLogin ()
+    {
+      if ( this.loading ) return;
+
+      if ( !this.isWechat )
+      {
+        uni.showModal( {
           title: '提示',
-          content: '请在微信内打开此页面使用一键登录',
+          content: '请在微信客户端中打开此页面使用微信登录',
           showCancel: false
-        });
+        } );
         return;
       }
-      // 跳转到微信授权页面
-      wxauth.authorize('snsapi_userinfo'); // 需要用户信息，如需静默则用 'snsapi_base'
+
+      const code = wxauth.handleAuthCallback();
+      if ( code )
+      {
+        await this.processWechatLogin( code );
+      } else
+      {
+        wxauth.authorize();
+      }
     },
 
+    async processWechatLogin ( code: string )
+    {
+      if ( this.loading ) return;
+
+      this.loading = true;
+      uni.showLoading( {
+        title: '微信登录中...',
+        mask: true
+      } );
+
+      try
+      {
+        const loginRes = await apiService.loginByWeixin( { code: code } );
+
+        uni.setStorageSync( 'token', loginRes.token );
+        uni.setStorageSync( 'userInfo', JSON.stringify( loginRes.userInfo ) );
+        uni.setStorageSync( 'userid', loginRes.userInfo.id )
+        uni.showToast( {
+          title: '微信登录成功',
+          icon: 'success',
+          duration: 1500
+        } );
+        if ( loginRes.userInfo.isfirst == 'yes' )
+          setTimeout( () =>
+          {
+            uni.navigateTo( { url: `/subpackages/register/reginfo?id=${ loginRes.userInfo.id }&nickname=${ loginRes.userInfo.nickname }&gender=${ loginRes.userInfo.sex }` } );
+          }, 1500 );
+        else
+          setTimeout( () =>
+          {
+            uni.switchTab( { url: '/pages/index/index' } )
+          }, 1500 );
+      } catch ( error: any )
+      {
+        console.error( '微信登录失败:', error );
+
+        let errorMessage = '微信登录失败，请重试';
+        if ( error.code )
+        {
+          switch ( error.code )
+          {
+            case 40029:
+              errorMessage = '授权码无效或已过期';
+              break;
+            case 40163:
+              errorMessage = '授权码已被使用，请重新授权';
+              break;
+            case 41008:
+              errorMessage = '缺少授权码';
+              break;
+          }
+        } else if ( error.response?.status === 401 )
+        {
+          errorMessage = '登录验证失败';
+        }
+
+        uni.showToast( {
+          title: errorMessage,
+          icon: 'none',
+          duration: 3000
+        } );
+
+        uni.removeStorageSync( 'token' );
+        uni.removeStorageSync( 'userInfo' );
+
+      } finally
+      {
+        uni.hideLoading();
+        this.loading = false;
+      }
+    }
+    ,
+
+
     // 加载保存的账号信息
-    loadSavedAccount() {
-      try {
-        const savedAccount = uni.getStorageSync('saved_account');
-        if (savedAccount) {
+    loadSavedAccount ()
+    {
+      try
+      {
+        const savedAccount = uni.getStorageSync( 'saved_account' );
+        if ( savedAccount )
+        {
           this.form.username = savedAccount.username || '';
           this.form.password = savedAccount.password || '';
           this.form.remember = savedAccount.remember || false;
         }
-      } catch (error) {
-        console.error('加载保存的账号失败:', error);
+      } catch ( error )
+      {
+        console.error( '加载保存的账号失败:', error );
       }
     },
 
     // 保存账号信息
-    saveAccount() {
-      if (this.form.remember) {
-        uni.setStorageSync('saved_account', {
+    saveAccount ()
+    {
+      if ( this.form.remember )
+      {
+        uni.setStorageSync( 'saved_account', {
           username: this.form.username,
           password: this.form.password,
           remember: this.form.remember,
-        });
-      } else {
-        uni.removeStorageSync('saved_account');
+        } );
+      } else
+      {
+        uni.removeStorageSync( 'saved_account' );
       }
     },
 
     // 清除用户名
-    clearusername() {
+    clearusername ()
+    {
       this.form.username = '';
     },
 
     // 切换密码显示
-    togglePassword() {
+    togglePassword ()
+    {
       this.showPassword = !this.showPassword;
     },
 
     // 切换记住密码
-    toggleRemember() {
+    toggleRemember ()
+    {
       this.form.remember = !this.form.remember;
     },
 
     // 验证表单
-    validateForm(): boolean {
-      if (!validateUsername(this.form.username)) {
-        showToast('请输入正确的用户名', 'none');
+    validateForm (): boolean
+    {
+      if ( !validateUsername( this.form.username ) )
+      {
+        showToast( '请输入正确的用户名', 'none' );
         return false;
       }
 
-      if (!validatePassword(this.form.password)) {
-        showToast('密码长度为6-20位', 'none');
+      if ( !validatePassword( this.form.password ) )
+      {
+        showToast( '密码长度为6-20位', 'none' );
         return false;
       }
 
       return true;
     },
 
-    async handleLogin() {
+    async handleLogin ()
+    {
       // 1. 表单验证（可选的）
       // if (!this.validateForm()) {
       //   return;
       // }
       // 2. 防止重复提交
-      if (this.loading) return;
+      if ( this.loading ) return;
       this.loading = true;
 
       // 3. 显示加载状态
-      uni.showLoading({
+      uni.showLoading( {
         title: '登录中...',
         mask: true
-      });
+      } );
 
-      try {
+      try
+      {
         // 4. 调用注册接口
-        const retLogin = await apiService.loginUser({
+        const retLogin = await apiService.loginUser( {
           username: this.form.username,
           password: this.form.password
-        });
+        } );
 
         // 5. 注册成功处理
         uni.hideLoading();
-        showToast('登录成功', 'success');
-        uni.setStorageSync('saved_account', {
+        showToast( '登录成功', 'success' );
+        uni.setStorageSync( 'saved_account', {
           username: this.form.username,
           password: this.form.password,
-        });
-        uni.setStorageSync('token', retLogin.data.token);
-        uni.setStorageSync('userid', retLogin.data.userid);
+        } );
+        uni.setStorageSync( 'token', retLogin.data.token );
+        uni.setStorageSync( 'userid', retLogin.data.userid );
+        console.log( retLogin )
         // 6. 延迟跳转，确保用户能看到成功提示
-        setTimeout(() => {
+        setTimeout( () =>
+        {
           // 使用重定向而非导航，避免用户能返回注册页
-          uni.switchTab({
+          uni.switchTab( {
             url: '/pages/index/index'
-          });
-        }, 800);
+          } );
+        }, 800 );
 
-      } catch (error: any) {
+      } catch ( error: any )
+      {
         // 7. 隐藏加载状态
         uni.hideLoading();
         // 8. 错误处理逻辑
         let errorMessage = '登录失败，请稍后重试';
 
         // 根据错误类型显示不同的提示
-        if (error.response) {
+        if ( error.response )
+        {
           // 服务器返回了错误状态码
           const status = error.response.status;
           const data = error.response.data;
 
-          switch (status) {
+          switch ( status )
+          {
             case 400:
               errorMessage = data?.message || '请求参数错误';
               break;
@@ -302,78 +388,87 @@ export default defineComponent({
               errorMessage = '服务器内部错误，请稍后重试';
               break;
             default:
-              errorMessage = data?.message || `请求失败(${status})`;
+              errorMessage = data?.message || `请求失败(${ status })`;
           }
-        } else if (error.request) {
+        } else if ( error.request )
+        {
           // 请求已发送但没有收到响应
           errorMessage = '网络连接失败，请检查网络';
-        } else {
+        } else
+        {
           // 请求配置出错
           errorMessage = error.message || '请求发送失败';
         }
 
         // 9. 显示错误提示
-        showToast(errorMessage, 'none');
-      } finally {
+        showToast( errorMessage, 'none' );
+      } finally
+      {
         this.loading = false;
 
       }
     },
     // 处理注册
-    handleRegister() {
-      uni.navigateTo({
+    handleRegister ()
+    {
+      uni.navigateTo( {
         url: '/subpackages/register/register'
-      });
+      } );
     },
 
     // 处理忘记密码
-    handleForgotPassword() {
-      uni.navigateTo({
+    handleForgotPassword ()
+    {
+      uni.navigateTo( {
         url: '/pages/forgot/forgot'
-      });
+      } );
     },
 
     // 处理微信登录
-    handleWechatLogin() {
-      uni.showModal({
-        title: '提示',
-        content: '微信登录功能暂未开放',
-        showCancel: false
-      });
-    },
+    // handleWechatLogin() {
+    //   uni.showModal({
+    //     title: '提示',
+    //     content: '微信登录功能暂未开放',
+    //     showCancel: false
+    //   });
+    // },
 
     // 处理QQ登录
-    handleQQLogin() {
-      uni.showModal({
+    handleQQLogin ()
+    {
+      uni.showModal( {
         title: '提示',
         content: 'QQ登录功能暂未开放',
         showCancel: false
-      });
+      } );
     },
 
     // 处理手机验证码登录
-    handleusernameLogin() {
-      uni.navigateTo({
+    handleusernameLogin ()
+    {
+      uni.navigateTo( {
         url: '/pages/login-username/login-username'
-      });
+      } );
     },
 
     // 处理用户协议
-    handleUserAgreement() {
-      uni.navigateTo({
+    handleUserAgreement ()
+    {
+      uni.navigateTo( {
         url: '/pages/agreement/user-agreement'
-      });
+      } );
     },
 
     // 处理隐私政策
-    handlePrivacyPolicy() {
-      uni.navigateTo({
+    handlePrivacyPolicy ()
+    {
+      uni.navigateTo( {
         url: '/pages/agreement/privacy-policy'
-      });
+      } );
     }
   },
 
-});
+} );
 </script>
 
 <style scoped>
