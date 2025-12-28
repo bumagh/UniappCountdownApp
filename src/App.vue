@@ -21,9 +21,9 @@ export default defineComponent( {
     this.initApp();
     if ( !uni.getStorageSync( 'userid' ) )
     {
-      uni.navigateTo( {
-        url: '/subpackages/login/login'
-      } );
+      // uni.navigateTo( {
+      //   url: '/subpackages/login/login'
+      // } );
       return;
     }
   },
