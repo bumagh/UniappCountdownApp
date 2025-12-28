@@ -362,6 +362,13 @@ export default defineComponent(
 
       showAddCountdown (): void
       {
+           if ( !uni.getStorageSync( 'userid' ) )
+        {
+          uni.navigateTo( {
+            url: '/subpackages/login/login'
+          } );
+          return;
+        }
         uni.navigateTo( {
           url: '/subpackages/edit/edit'
         } );

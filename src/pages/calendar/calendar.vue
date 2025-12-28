@@ -247,11 +247,13 @@ export default defineComponent( {
 
   onShow ()
   {
+    
     this.initData();
   },
 
   onLoad ()
   {
+      
     // 页面加载时的初始化
     this.initData();
   },
@@ -262,6 +264,13 @@ export default defineComponent( {
      */
     async initData ()
     {
+       if ( !uni.getStorageSync( 'userid' ) )
+        {
+          uni.navigateTo( {
+            url: '/subpackages/login/login'
+          } );
+          return;
+        }
       // 获取当前用户
       const userid = uni.getStorageSync( 'userid' );
       const currentUser = await apiService.getCurrentUser( userid );

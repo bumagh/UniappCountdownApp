@@ -246,9 +246,17 @@ export default defineComponent( {
     {
       this.categoryIdFromQuery = parseInt( options.categoryId );
     }
+ 
   },
   onShow ()
   {
+     if ( !uni.getStorageSync( 'userid' ) )
+        {
+          uni.navigateTo( {
+            url: '/subpackages/login/login'
+          } );
+          return;
+        }
     this.loadUserData();
     this.loadCategories();
     this.loadCountdowns();
