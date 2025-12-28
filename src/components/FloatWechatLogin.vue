@@ -34,7 +34,7 @@ export default defineComponent( {
     // 默认文案
     text: {
       type: String,
-      default: '一键授权登录'
+      default: '微信授权登录'
     },
     // 登录中文案
     loadingText: {
@@ -75,12 +75,28 @@ export default defineComponent( {
     firstLoginUrlBuilder: {
       type: Function as PropType<( userInfo: any ) => string>,
       default: null
+    },
+    // 组件挂载/显示时是否自动检测code并登录（仅在URL带code时执行，不会主动跳转授权）
+    autoCheckOnMount: {
+      type: Boolean,
+      default: true
     }
   },
   data () {
     return {
       loading: false as boolean
     };
+  },
+  watch: {
+    // show 从 false -> true 时也检查一次（适配条件渲染）
+    show: {
+      immediate: true,
+      handler () {
+        if ( !this.autoCheckOnMount ) return;
+        if ( !this.show ) return;
+        this.autoCheckCodeAndLogin();
+      }
+    }
   },
   computed: {
     fabStyle (): Record<string, string | number> {
@@ -91,6 +107,19 @@ export default defineComponent( {
     }
   },
   methods: {
+    async autoCheckCodeAndLogin (): Promise<void> {
+      if ( this.loading ) return;
+
+      // 仅在微信环境下尝试自动处理回调
+      if ( !wxauth.isInWechat() ) return;
+
+      const code = wxauth.handleAuthCallback();
+      if ( !code ) return;
+
+      await this.processWechatLogin( code );
+      wxauth.clearAuthParamsFromUrl();
+    },
+
     async onClick (): Promise<void> {
       if ( this.disabled || this.loading ) return;
       await this.startWechatLogin();
@@ -150,6 +179,7 @@ export default defineComponent( {
 
         // 首次登录处理（沿用 login.vue 逻辑：isfirst == 'yes'）
         const isFirst = loginRes.userInfo?.isfirst === 'yes';
+
         if ( isFirst && this.firstLoginUrlBuilder ) {
           const url = this.firstLoginUrlBuilder( loginRes.userInfo );
           setTimeout( () => {

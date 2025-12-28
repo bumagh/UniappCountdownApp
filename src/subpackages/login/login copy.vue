@@ -15,7 +15,7 @@
         <!-- 登录表单 -->
         <view class="form-section">
           <!-- 用户名输入 -->
-          <!-- <view class="input-group">
+          <view class="input-group">
             <view class="input-label">
               <text>用户名</text>
             </view>
@@ -26,10 +26,10 @@
                 <text>✕</text>
               </view>
             </view>
-          </view> -->
+          </view>
 
           <!-- 密码输入 -->
-          <!-- <view class="input-group">
+          <view class="input-group">
             <view class="input-label">
               <text>密码</text>
             </view>
@@ -40,10 +40,10 @@
                 <text>{{ showPassword ? '👁️‍🗨️' : '👁️' }}</text>
               </view>
             </view>
-          </view> -->
+          </view>
 
           <!-- 记住密码和忘记密码 -->
-          <!-- <view class="form-options">
+          <view class="form-options">
             <view class="remember-me" @click=" toggleRemember ">
               <view class="checkbox" :class=" { 'checkbox-checked': form.remember } ">
                 <text v-if=" form.remember " class="checkbox-icon">✓</text>
@@ -53,16 +53,15 @@
             <view class="forgot-password" @click="">
               <text>忘记密码？</text>
             </view>
-          </view> -->
-      <view style="height: 300rpx;"></view>
+          </view>
 
           <!-- 登录按钮 -->
-          <view class="btn btn-default login-btn" :class=" { 'btn-disabled': !isFormValid } " @click=" handleIndex ">
-            <text>先看看暂不登录</text>
-          </view>
+          <!-- <view class="btn btn-primary login-btn" :class=" { 'btn-disabled': !isFormValid } " @click=" handleLogin ">
+            <text>账号密码登录</text>
+          </view> -->
           <view class="btn btn-primary login-btn" :class=" { 'btn-disabled': !isFormValid } "
             @click=" handleWechatLogin ">
-            <text>微信一键授权登录</text>
+            <text>微信号登录</text>
           </view>
 
           <!-- 注册链接 -->
@@ -268,13 +267,6 @@ export default defineComponent( {
       }
     },
 
-    // 处理先看看暂不登录
-    handleIndex ()
-    {
-      uni.switchTab( {
-        url: '/pages/index/index'
-      } );
-    },
     // 保存账号信息
     saveAccount ()
     {
@@ -648,10 +640,6 @@ export default defineComponent( {
   color: #ffffff;
 }
 
-.btn-default {
-  color: #ffffff;
-  background-color: #999999;
-}
 .btn-disabled {
   background-color: #cccccc;
   color: #ffffff;

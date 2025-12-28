@@ -75,7 +75,7 @@
           </view>
 
           <!-- 密码输入 -->
-          <view class="input-group">
+          <!-- <view class="input-group">
             <view class="input-label">
               <text>密码</text>
             </view>
@@ -86,10 +86,10 @@
                 <text>{{ showPassword ? '👁️‍🗨️' : '👁️' }}</text>
               </view>
             </view>
-          </view>
+          </view> -->
 
           <!-- 确认密码 -->
-          <view class="input-group">
+          <!-- <view class="input-group">
             <view class="input-label">
               <text>确认密码</text>
             </view>
@@ -100,10 +100,10 @@
                 <text>{{ showPassword ? '👁️‍🗨️' : '👁️' }}</text>
               </view>
             </view>
-          </view>
+          </view> -->
 
           <!-- 注册按钮 -->
-          <view class="btn btn-primary register-btn" :class=" { 'btn-disabled': !isFormValid } "
+          <view class="btn btn-primary register-btn" :class=" { 'btn-disabled': false } "
             @click=" handleRegister ">
             <text>立即开启奇妙日</text>
           </view>
@@ -173,9 +173,10 @@ export default defineComponent( {
       return this.form.username.length >= 3 &&
         this.form.name.length > 0 &&
         this.form.gender !== '' &&
-        this.form.birthday !== '' &&
-        this.form.password.length >= 6 &&
-        this.form.passwordCheck.length >= 6;
+        this.form.birthday !== '' 
+        // &&
+        // this.form.password.length >= 6 &&
+        // this.form.passwordCheck.length >= 6;
     }
   },
 
@@ -190,6 +191,28 @@ export default defineComponent( {
       this.form.birthday = '1985-06-15';
       this.userid = options.id;
     }
+  },
+
+  onBackPress (): boolean | void
+  {
+    // 拦截系统返回（安卓物理返回、导航返回等），避免误退出
+    uni.showModal( {
+      title: '提示',
+      content: '信息还未保存，确定要返回吗？',
+      confirmText: '返回并使用默认信息',
+      cancelText: '继续填写',
+      success: async ( res ) =>
+      {
+        if ( res.confirm )
+        {
+          await this.handleRegister()
+          uni.navigateBack();
+        }
+      }
+    } );
+
+    // 返回 true 表示已处理，阻止默认返回
+    return true;
   },
 
   methods: {
@@ -220,11 +243,11 @@ export default defineComponent( {
     // 验证表单
     validateForm (): boolean
     {
-      // if ( !validateUsername( this.form.username ) )
-      // {
-      //   showToast( '用户名长度需在3-20位之间,英文开头', 'none' );
-      //   return false;
-      // }
+      if ( !validateUsername( this.form.username ) )
+      {
+        showToast( '用户名长度需在3-20位之间', 'none' );
+        return false;
+      }
 
       if ( !this.form.name.trim() )
       {
@@ -244,17 +267,17 @@ export default defineComponent( {
         return false;
       }
 
-      if ( !validatePassword( this.form.password ) )
-      {
-        showToast( '密码长度为6-20位', 'none' );
-        return false;
-      }
+      // if ( !validatePassword( this.form.password ) )
+      // {
+      //   showToast( '密码长度为6-20位', 'none' );
+      //   return false;
+      // }
 
-      if ( this.form.password !== this.form.passwordCheck )
-      {
-        showToast( '两次输入的密码不一致', 'none' );
-        return false;
-      }
+      // if ( this.form.password !== this.form.passwordCheck )
+      // {
+      //   showToast( '两次输入的密码不一致', 'none' );
+      //   return false;
+      // }
 
       return true;
     },
