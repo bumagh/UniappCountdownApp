@@ -9,7 +9,7 @@
         <text>奇妙日详情</text>
       </view>
       <view class="navbar-icon" @click=" handleEdit ">
-        <text>✎</text>
+        <text style="white-space: nowrap;">✎编辑</text>
       </view>
     </view>
 
@@ -276,13 +276,13 @@ export default defineComponent( {
   color: #ffffff;
 }
 
-.navbar-icon {
-  width: 44rpx;
+.navbar-icon{
+  width: 80rpx;
   height: 44rpx;
-  display: flex;
+  display: inline;
   align-items: center;
   justify-content: center;
-  font-size: 40rpx;
+  font-size: 32rpx;
   color: #ffffff;
 }
 

@@ -111,7 +111,12 @@
       <!-- 底部空白 -->
       <view style="height: 40rpx;"></view>
     </scroll-view>
-
+    <!-- 未登录浮动按钮 -->
+    <FloatWechatLogin
+  :show="!isLoggedIn"
+  :firstLoginUrlBuilder="buildFirstLoginUrl"
+  @success="onWechatLoginSuccess"
+/>
     <!-- 侧边抽屉 -->
     <view v-if=" drawerVisible " class="drawer-mask" @click=" toggleDrawer "></view>
     <view class="drawer" :class=" { 'drawer-open': drawerVisible } ">
@@ -149,8 +154,8 @@
 import { defineComponent } from 'vue';
 import apiService from '@/services/apiService';
 import { calculateDays, getAbsoluteDays, formatDate, getRepeatText } from '@/utils/countdownUtils';
-import { User, Category, Countdown } from 'types';
-
+import { Category, Countdown } from 'types';
+import FloatWechatLogin from '@/components/FloatWechatLogin.vue';
 // 扩展 Countdown 接口，添加 displayDate 字段
 interface CountdownWithDisplayDate extends Countdown
 {
@@ -160,6 +165,7 @@ interface CountdownWithDisplayDate extends Countdown
 interface IndexPageData
 {
   user: any;
+  isLoggedIn: boolean;
   allCountdowns: Countdown[];
   categories: Category[];
   drawerVisible: boolean;
@@ -168,6 +174,10 @@ interface IndexPageData
 export default defineComponent(
   {
     name: 'Index',
+
+    components: {
+      FloatWechatLogin
+    },
 
     data (): IndexPageData
     {
@@ -179,7 +189,33 @@ export default defineComponent(
           created_at: '',
           updated_at: ''
         },
-        allCountdowns: [],
+        isLoggedIn: false,
+        allCountdowns: [
+          {
+            id: 1,
+            title: 'Countdown 1',
+            date: '2023-10-01',
+            is_pinned: false,
+            repeat_cycle: 1,
+            repeat_frequency: '不重复',
+            created_at: '',
+            updated_at: '',
+            category_id: 0,
+            user_id: 0
+          },
+          {
+            id: 2,
+            title: 'Countdown 2',
+            date: '2023-10-02',
+            is_pinned: true,
+            repeat_cycle: 1,
+            repeat_frequency: '不重复',
+            created_at: '',
+            updated_at: '',
+            category_id: 0,
+            user_id: 0
+          }
+        ],
         categories: [],
         drawerVisible: false
       };
@@ -211,7 +247,7 @@ export default defineComponent(
       {
         return this.countdownsWithDisplayDate
           .filter( cd => cd.is_pinned )
-          .sort( ( a, b ) => new Date( b.updated_at ).getTime() - new Date( a.updated_at ).getTime() );
+          .sort( ( a, b ) => new Date( b.updated_at as string).getTime() - new Date( a.updated_at as string ).getTime() );
       },
 
       // 未来奇妙日（不包含置顶的）- 按日期排序
@@ -233,14 +269,30 @@ export default defineComponent(
 
     onShow (): void
     {
+      // 简单以token判断登录态
+      const token = uni.getStorageSync( 'token' );
+      this.isLoggedIn = !!token;
+
       this.loadData();
     },
 
     methods: {
+      buildFirstLoginUrl ( u: { id: any; nickname: any; sex: any } ): string
+      {
+        return `/subpackages/register/reginfo?id=${ u.id }&nickname=${ u.nickname }&gender=${ u.sex }`;
+      },
+
       async loadData (): Promise<void>
       {
         try
         {
+          // 未登录时不拉取远端数据（避免接口报错）
+          if ( !this.isLoggedIn )
+          {
+            this.allCountdowns = [];
+            this.categories = [];
+            return;
+          }
 
           // 获取当前用户信息
           const userid = uni.getStorageSync( 'userid' );
@@ -263,6 +315,12 @@ export default defineComponent(
             icon: 'none'
           } );
         }
+      },
+
+      onWechatLoginSuccess (): void
+      {
+        this.isLoggedIn = true;
+        this.loadData();
       },
 
       calculateDays ( targetDate: string ): number
@@ -392,7 +450,7 @@ export default defineComponent(
       {
         try
         {
-          await apiService.togglePinCountdown( countdown.id );
+          await apiService.togglePinCountdown( countdown.id as number );
 
           // 更新本地数据
           const index = this.allCountdowns.findIndex( cd => cd.id === countdown.id );
