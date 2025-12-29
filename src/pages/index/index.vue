@@ -112,11 +112,8 @@
       <view style="height: 40rpx;"></view>
     </scroll-view>
     <!-- 未登录浮动按钮 -->
-    <FloatWechatLogin
-  :show="!isLoggedIn"
-  :firstLoginUrlBuilder="buildFirstLoginUrl"
-  @success="onWechatLoginSuccess"
-/>
+    <FloatWechatLogin :show=" !isLoggedIn " :firstLoginUrlBuilder=" buildFirstLoginUrl "
+      @success=" onWechatLoginSuccess " />
     <!-- 侧边抽屉 -->
     <view v-if=" drawerVisible " class="drawer-mask" @click=" toggleDrawer "></view>
     <view class="drawer" :class=" { 'drawer-open': drawerVisible } ">
@@ -247,7 +244,7 @@ export default defineComponent(
       {
         return this.countdownsWithDisplayDate
           .filter( cd => cd.is_pinned )
-          .sort( ( a, b ) => new Date( b.updated_at as string).getTime() - new Date( a.updated_at as string ).getTime() );
+          .sort( ( a, b ) => new Date( b.updated_at as string ).getTime() - new Date( a.updated_at as string ).getTime() );
       },
 
       // 未来奇妙日（不包含置顶的）- 按日期排序
@@ -297,8 +294,29 @@ export default defineComponent(
           // 获取当前用户信息
           const userid = uni.getStorageSync( 'userid' );
           const currentUser = await apiService.getCurrentUser( userid || '1' );
-
-          this.user = currentUser;
+          if ( currentUser != null )
+          {
+            this.user = currentUser;
+            if ( currentUser.birth_date == "" || currentUser.birth_date == null || currentUser.birth_date == undefined )
+            {
+              //先弹窗询问是否要补全信息
+              uni.showModal( {
+                title: '提示',
+                content: '您的注册信息还不完整，是否现在去补全？',
+                confirmText: '去补全',
+                cancelText: '稍后再说',
+                success: ( res ) =>
+                {
+                  if ( res.confirm )
+                  {
+                    uni.navigateTo( {
+                      url: `/subpackages/register/reginfo?id=${ currentUser.id }&nickname=${ currentUser.nickname }&gender=${ currentUser.gender }`
+                    } );
+                  }
+                }
+              } );
+            }
+          }
 
           // 获取分类和奇妙日数据
           const [ countdownsRes, categoriesRes ] = await Promise.all( [
@@ -362,7 +380,7 @@ export default defineComponent(
 
       showAddCountdown (): void
       {
-           if ( !uni.getStorageSync( 'userid' ) )
+        if ( !uni.getStorageSync( 'userid' ) )
         {
           uni.navigateTo( {
             url: '/subpackages/login/login'

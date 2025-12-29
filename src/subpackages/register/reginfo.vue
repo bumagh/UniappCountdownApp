@@ -103,8 +103,7 @@
           </view> -->
 
           <!-- 注册按钮 -->
-          <view class="btn btn-primary register-btn" :class=" { 'btn-disabled': false } "
-            @click=" handleRegister ">
+          <view class="btn btn-primary register-btn" :class=" { 'btn-disabled': false } " @click=" handleRegister ">
             <text>立即开启奇妙日</text>
           </view>
         </view>
@@ -173,10 +172,10 @@ export default defineComponent( {
       return this.form.username.length >= 3 &&
         this.form.name.length > 0 &&
         this.form.gender !== '' &&
-        this.form.birthday !== '' 
-        // &&
-        // this.form.password.length >= 6 &&
-        // this.form.passwordCheck.length >= 6;
+        this.form.birthday !== ''
+      // &&
+      // this.form.password.length >= 6 &&
+      // this.form.passwordCheck.length >= 6;
     }
   },
 
@@ -199,14 +198,15 @@ export default defineComponent( {
     uni.showModal( {
       title: '提示',
       content: '信息还未保存，确定要返回吗？',
-      confirmText: '返回并使用默认信息',
+      confirmText: '返回',
       cancelText: '继续填写',
-      success: async ( res ) =>
+      success: ( res ) =>
       {
         if ( res.confirm )
         {
-          await this.handleRegister()
-          uni.navigateBack();
+          uni.switchTab( {
+            url: '/pages/index/index'
+          } );
         }
       }
     } );

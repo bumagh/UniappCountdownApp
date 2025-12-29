@@ -54,7 +54,7 @@
               <text>忘记密码？</text>
             </view>
           </view> -->
-      <view style="height: 300rpx;"></view>
+          <view style="height: 300rpx;"></view>
 
           <!-- 登录按钮 -->
           <view class="btn btn-default login-btn" :class=" { 'btn-disabled': !isFormValid } " @click=" handleIndex ">
@@ -146,9 +146,6 @@ export default defineComponent( {
       {
         await this.processWechatLogin( code );
         wxauth.clearAuthParamsFromUrl();
-      } else
-      {
-        wxauth.authorize();
       }
     },
 
@@ -652,6 +649,7 @@ export default defineComponent( {
   color: #ffffff;
   background-color: #999999;
 }
+
 .btn-disabled {
   background-color: #cccccc;
   color: #ffffff;
