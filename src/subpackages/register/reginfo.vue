@@ -245,7 +245,7 @@ export default defineComponent( {
     {
       if ( !validateUsername( this.form.username ) )
       {
-        showToast( '用户名长度需在3-20位之间', 'none' );
+        showToast( '用户名长度需在1-20位之间', 'none' );
         return false;
       }
 
