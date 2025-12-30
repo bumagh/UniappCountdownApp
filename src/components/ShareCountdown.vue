@@ -142,6 +142,12 @@ export default defineComponent( {
             if ( w )
             {
                 w.document.write( `<img src="${ this.posterDataUrl }" style="width:100%;height:auto;"/>` );
+                //需要增加返回按钮
+                const backBtn = document.createElement( 'button' );
+                backBtn.innerText = '返回';
+                backBtn.onclick = () => { w.close(); };
+                w.document.body.appendChild( backBtn );
+
             }
             // #endif
         },
@@ -382,10 +388,10 @@ export default defineComponent( {
                 return;
             }
 
-            // 海报像素尺寸：用于弹窗预览的图片不需要很大，否则体积大/加载慢
-            // 这里改成中等清晰度（600x900）。如果需要“高清保存”，可后续再加一个 highQuality 开关。
-            const W = 600;
-            const H = 900;
+            // 海报像素尺寸：进一步缩小到“半屏预览”级别（2:3）
+            // 320x480 足够预览与分享（文件更小，渲染更快）
+            const W = 380;
+            const H = 420;
 
             if ( ctxUni )
             {
@@ -453,8 +459,8 @@ export default defineComponent( {
                 }
 
                 // 通过最小验证后，再绘制正式海报（使用设计稿坐标缩放）
-                const designW = 1080;
-                const designH = 1920;
+                const designW = 1280;
+                const designH = 1720;
                 const scale = Math.min( W / designW, H / designH );
 
                 // 重新开始一帧，避免 test draw 的内容叠加
@@ -473,11 +479,11 @@ export default defineComponent( {
                 grad.addColorStop( 0, this.categoryColor || '#1890ff' );
                 grad.addColorStop( 1, '#52c4ff' );
                 ctx.setFillStyle( grad );
-                roundRectUni( ctx, 60, 120, CW - 120, 820, 48 );
+                roundRectUni( ctx, 60, 120, CW - 120, 520, 48 );
                 ctx.fill();
-
+                const leftMargin = 150;
                 // 分类徽章
-                const badgeX = 100;
+                const badgeX = leftMargin;
                 const badgeY = 170;
                 const badgeW = 520;
                 const badgeH = 84;
@@ -500,35 +506,36 @@ export default defineComponent( {
                 ctx.setFontSize( 72 );
                 const titleY = 300;
                 // 注意：wrapText 的 maxWidth 仍按设计稿坐标（CW），不要用 W
-                const afterTitleY = this.wrapTextUni( ctx, this.title || '分享一个奇妙日', 100, titleY, designW - 200, 88, 2 );
+                const afterTitleY = this.wrapTextUni( ctx, this.title || '分享一个奇妙日', leftMargin, titleY, designW - 200, 88, 2 );
 
                 // 天数
                 const days = this.daysText || '';
                 if ( days )
                 {
-                    ctx.setFontSize( 44 );
+                    ctx.setFontSize( 48 );
                     ctx.setFillStyle( 'rgba(255,255,255,0.92)' );
-                    ctx.fillText( days, 100, afterTitleY + 20 );
+                    ctx.fillText( days, leftMargin, afterTitleY + 20 );
                 }
 
                 // 日期
                 const dateText = this.dateText || '';
                 if ( dateText )
                 {
-                    ctx.setFontSize( 34 );
+                    ctx.setFontSize( 44 );
                     ctx.setFillStyle( 'rgba(255,255,255,0.9)' );
-                    ctx.fillText( dateText, 100, afterTitleY + 92 );
+                    ctx.fillText( dateText, leftMargin, afterTitleY + 122 );
                 }
 
+                const bottomBaseY = 660;
                 // 中下部白色信息卡
                 ctx.setFillStyle( '#ffffff' );
-                roundRectUni( ctx, 60, 1020, designW - 120, 620, 40 );
+                roundRectUni( ctx, 60, bottomBaseY, designW - 120, bottomBaseY + 300, 40 );
                 ctx.fill();
 
                 // 左侧说明
                 ctx.setFillStyle( '#1890ff' );
                 ctx.setFontSize( 42 );
-                ctx.fillText( '扫码打开详情', 100, 1080 );
+                ctx.fillText( '扫码打开详情', leftMargin, bottomBaseY + 60 );
 
                 // 二维码
                 const qrValue = ( this.qrText || this.shareUrl || '' ).trim();
@@ -536,21 +543,24 @@ export default defineComponent( {
                 {
                     try
                     {
-                        const qrPngUrl = await this.getQrDataUrl( qrValue, this.qrSize );
-                        const qrBoxSize = Math.max( 240, Math.min( 420, Number( this.qrSize ) || 360 ) );
-                        const qrX = W - 100 - qrBoxSize;
-                        const qrY = 1080;
+                        // 固定二维码尺寸：256px（无需太大）
+                        const qrBoxSize = 256;
+                        const qrPngUrl = await this.getQrDataUrl( qrValue, qrBoxSize );
+
+                        // 注意：当前 ctx 已按 scale 缩放，坐标应使用设计稿坐标系（designW/designH）
+                        const qrX = designW - 100 - qrBoxSize;
+                        const qrY = bottomBaseY + 40;
 
                         ctx.setFillStyle( '#ffffff' );
                         roundRectUni( ctx, qrX - 20, qrY - 20, qrBoxSize + 40, qrBoxSize + 40, 28 );
                         ctx.fill();
 
-                        // uni canvas 使用 drawImage 直接传 URL
+                        // uni canvas：drawImage 直接传 URL（前提是图片可跨域访问）
                         ctx.drawImage( qrPngUrl, qrX, qrY, qrBoxSize, qrBoxSize );
 
                         ctx.setFillStyle( '#666' );
                         ctx.setFontSize( 28 );
-                        ctx.fillText( '长按/截图识别二维码', 100, 1140 );
+                        ctx.fillText( '长按/截图识别二维码', leftMargin, bottomBaseY + 220 );
                     } catch ( e )
                     {
                         console.error( '二维码生成失败', e );
@@ -564,16 +574,17 @@ export default defineComponent( {
                 ctx.setFontSize( 30 );
                 if ( url )
                 {
-                    this.wrapTextUni( ctx, url, 100, 1240, W - 200, 44, 3 );
+                    // 同样使用设计稿坐标宽度
+                    this.wrapTextUni( ctx, url, leftMargin, bottomBaseY + 280, designW - 200, 44, 3 );
                 } else
                 {
-                    ctx.fillText( '（未提供分享链接）', 100, 1240 );
+                    ctx.fillText( '（未提供分享链接）', leftMargin, bottomBaseY + 240 );
                 }
 
                 // 底部品牌
                 ctx.setFillStyle( '#999' );
                 ctx.setFontSize( 28 );
-                ctx.fillText( '奇妙本 · Countdown', 100, 1600 );
+                ctx.fillText( '由长寿奇妙日生成', leftMargin, bottomBaseY + 360 );
 
                 // 关键：draw 触发真正绘制
                 await new Promise<void>( resolve =>
@@ -648,11 +659,11 @@ export default defineComponent( {
             ctx2d.fillRect( 0, 0, W, H );
 
             // 顶部渐变卡片
-            const grad = ctx2d.createLinearGradient( 0, 0, W, 720 );
+            const grad = ctx2d.createLinearGradient( 0, 0, W, 520 );
             grad.addColorStop( 0, this.categoryColor || '#1890ff' );
             grad.addColorStop( 1, '#52c4ff' );
             ctx2d.fillStyle = grad;
-            roundRect2d( ctx2d, 60, 120, W - 120, 820, 48 );
+            roundRect2d( ctx2d, 60, 120, W - 120, 520, 48 );
             ctx2d.fill();
 
             // 分类徽章
@@ -935,7 +946,7 @@ export default defineComponent( {
 
 .share-image-placeholder {
     width: 100%;
-    height: 360rpx;
+    height: 200rpx;
     border-radius: 16rpx;
     background-color: #f5f9ff;
     display: flex;

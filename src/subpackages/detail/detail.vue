@@ -123,7 +123,7 @@
 
     <!-- 分享弹窗组件 -->
     <ShareCountdown v-model=" shareVisible " :shareUrl=" shareUrl "
-      :title=" countdown?.title ? `分享：${ countdown.title }` : '分享一个奇妙日' "
+      :title=" countdown?.title ? `奇妙日：${ countdown.title }` : '分享一个奇妙日' "
       :description=" countdown?.title ? `我分享了一个奇妙日：${ countdown.title }` : '我分享了一个奇妙日' "
       :dateText=" countdown ? formatFullDate( countdown.date ) : '' "
       :daysText=" countdown ? `${ daysLabel } ${ Math.abs( daysCount ) } 天` : '' " :categoryName=" categoryName "
@@ -262,6 +262,7 @@ export default defineComponent( {
     // 生成可分享链接（H5可用；小程序也可复制给他人打开）
     buildShareUrl ()
     {
+      return 'https://app.tutlab.tech/countdown';
       // H5: 使用当前站点；非H5给一个可读的路径
       // #ifdef H5
       const base = window.location.origin;
