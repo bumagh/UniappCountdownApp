@@ -286,12 +286,20 @@ export default defineComponent( {
         // H5: 二维码图片地址（改为本地静态图）
         async getQrDataUrl ( text: string, size: number ): Promise<string>
         {
-            // 改为使用本地静态图片：/static/qr.png
-            // uni-app H5 下 static 目录默认映射为站点根路径 /static
-            // 说明：此二维码为固定入口图片，若需要携带参数请改回动态二维码方案
+            // 说明：uni-app H5 打包后，/static 资源路径在不同部署目录下可能变化
+            // 优先使用 Vite 的 import.meta.url 解析到正确的构建产物 URL；失败则回退到 /static/qr.png
             void text;
             void size;
-            return '/static/qr.png';
+
+            try
+            {
+                // @ts-ignore
+                const u = new URL( '../../static/qr.png', import.meta.url );
+                return u.toString();
+            } catch ( e )
+            {
+                return '/static/qr.png';
+            }
         },
         async getQrDataUrlNet ( text: string, size: number )
         {
@@ -501,7 +509,15 @@ export default defineComponent( {
                     const qrValue = ( this.qrText || this.shareUrl || '' ).trim();
                     if ( qrValue )
                     {
-                        const qrPngUrl = await this.getQrDataUrl( qrValue, 0 );
+                        let qrPngUrl = await this.getQrDataUrl( qrValue, 0 );
+                        // 兜底：如果构建后的 url 不可用，再尝试根路径 /static
+                        try
+                        {
+                            await this.getImageInfo( qrPngUrl );
+                        } catch ( e )
+                        {
+                            qrPngUrl = '/static/qr.png';
+                        }
 
                         // 容器大小（保持原有外框），图片按容器宽度等比缩放
                         const boxW = designW;
@@ -625,7 +641,16 @@ export default defineComponent( {
                 ctx2d.fillStyle = '#fff';
                 ctx2d.fillRect( qrX - 10, qrY - 10, boxW + 20, boxH + 20 );
 
-                const qrPngUrl = await this.getQrDataUrl( ( this.qrText || this.shareUrl || '' ).trim(), 0 );
+                let qrPngUrl = await this.getQrDataUrl( ( this.qrText || this.shareUrl || '' ).trim(), 0 );
+                // 原生兜底同样做一次可用性回退
+                try
+                {
+                    await this.loadImage( qrPngUrl );
+                } catch ( e )
+                {
+                    qrPngUrl = '/static/qr.png';
+                }
+
                 const img = await this.loadImage( qrPngUrl );
 
                 const iw = 1710;

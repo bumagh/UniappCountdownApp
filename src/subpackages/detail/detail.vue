@@ -276,7 +276,6 @@ export default defineComponent( {
 
     async handleShare ()
     {
-      this.countdown = db.getCountdown( 1 ) ?? null;
       if ( !this.countdown )
       {
         uni.showToast( { title: '暂无可分享内容', icon: 'none' } );
