@@ -780,7 +780,7 @@ export default defineComponent( {
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.55);
-    z-index: 9999;
+    z-index: 999;
     display: flex;
     align-items: flex-end;
 }
