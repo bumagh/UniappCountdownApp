@@ -8,8 +8,13 @@
       <view class="navbar-title">
         <text>奇妙日详情</text>
       </view>
-      <view class="navbar-icon" @click=" handleEdit ">
-        <text style="white-space: nowrap;">✎编辑</text>
+      <view class="navbar-actions">
+        <view class="navbar-action" @click=" handleShare ">
+          <text style="white-space: nowrap;">⤴ 分享</text>
+        </view>
+        <view class="navbar-action" @click=" handleEdit ">
+          <text style="white-space: nowrap;">✎ 编辑</text>
+        </view>
       </view>
     </view>
 
@@ -116,7 +121,13 @@
       <view style="height: 40rpx;"></view>
     </scroll-view>
 
-
+    <!-- 分享弹窗组件 -->
+    <ShareCountdown v-model=" shareVisible " :shareUrl=" shareUrl "
+      :title=" countdown?.title ? `分享：${ countdown.title }` : '分享一个奇妙日' "
+      :description=" countdown?.title ? `我分享了一个奇妙日：${ countdown.title }` : '我分享了一个奇妙日' "
+      :dateText=" countdown ? formatFullDate( countdown.date ) : '' "
+      :daysText=" countdown ? `${ daysLabel } ${ Math.abs( daysCount ) } 天` : '' " :categoryName=" categoryName "
+      :categoryColor=" categoryColor " :categoryIcon=" categoryIcon " :qrText=" shareUrl " :qrSize=" 360 " />
   </view>
 </template>
 
@@ -124,21 +135,30 @@
 import apiService from '@/services/apiService';
 import { defineComponent } from 'vue';
 import db from '../../utils/db.js';
-import { Category, Countdown } from '../../../types/index';
+import { Category, Countdown } from 'types';
+import ShareCountdown from '@/components/ShareCountdown.vue';
+
 interface DetailPageData
 {
   countdownId: number,
   countdown: Countdown | null,
-  categories: Category[]
+  categories: Category[],
+  shareVisible: boolean,
+  shareUrl: string,
+  shareImageUrl: string | null
 }
 export default defineComponent( {
   name: 'Detail',
+  components: { ShareCountdown },
   data (): DetailPageData
   {
     return {
       countdownId: 1,
       countdown: null,
-      categories: []
+      categories: [],
+      shareVisible: false,
+      shareUrl: '',
+      shareImageUrl: null
     };
   },
   computed: {
@@ -192,6 +212,28 @@ export default defineComponent( {
       this.loadData();
     }
   },
+
+  // 小程序分享（右上角转发）
+  onShareAppMessage ()
+  {
+    const title = this.countdown?.title ? `分享：${ this.countdown.title }` : '分享一个奇妙日';
+    // 让对方通过链接进入：携带 countdownId（如需做权限/可见性控制，请在服务端校验 shareToken）
+    const path = `/subpackages/detail/detail?id=${ this.countdownId }`;
+    return {
+      title,
+      path
+    } as any;
+  },
+  onShareTimeline ()
+  {
+    const title = this.countdown?.title ? `分享：${ this.countdown.title }` : '分享一个奇妙日';
+    const query = `id=${ this.countdownId }`;
+    return {
+      title,
+      query
+    } as any;
+  },
+
   onShow ()
   {
     if ( this.countdownId )
@@ -216,6 +258,37 @@ export default defineComponent( {
       }
 
     },
+
+    // 生成可分享链接（H5可用；小程序也可复制给他人打开）
+    buildShareUrl ()
+    {
+      // H5: 使用当前站点；非H5给一个可读的路径
+      // #ifdef H5
+      const base = window.location.origin;
+      // 这里根据你的路由形态可能需要调整（如 hash 模式）
+      return `${ base }/subpackages/detail/detail?id=${ this.countdownId }`;
+      // #endif
+
+      // #ifndef H5
+      return `/subpackages/detail/detail?id=${ this.countdownId }`;
+      // #endif
+    },
+
+    async handleShare ()
+    {
+      this.countdown = db.getCountdown( 1 ) ?? null;
+      if ( !this.countdown )
+      {
+        uni.showToast( { title: '暂无可分享内容', icon: 'none' } );
+        return;
+      }
+
+      // 暂时先提供链接；后续接入“生成海报图”后再给 shareImageUrl 赋值
+      this.shareUrl = this.buildShareUrl();
+      this.shareImageUrl = null;
+      this.shareVisible = true;
+    },
+
     formatFullDate ( dateStr: any )
     {
       return db.formatDate( dateStr );
@@ -276,7 +349,23 @@ export default defineComponent( {
   color: #ffffff;
 }
 
-.navbar-icon{
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.navbar-action {
+  width: auto;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #ffffff;
+}
+
+.navbar-icon {
   width: 80rpx;
   height: 44rpx;
   display: inline;
