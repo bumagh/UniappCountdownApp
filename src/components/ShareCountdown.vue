@@ -44,7 +44,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, nextTick } from 'vue';
+import { defineComponent, PropType } from 'vue';
 
 export default defineComponent( {
     name: 'ShareCountdown',
@@ -196,7 +196,7 @@ export default defineComponent( {
         },
 
         // 新增：uni canvas 版自动换行（使用 measureText）
-        wrapTextUni ( ctx: any, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxLines = 2 )
+        wrapTextUni ( ctx: any, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxLines: number = 2 )
         {
             const s = ( text || '' );
             const chars = s.split( '' );
@@ -283,8 +283,17 @@ export default defineComponent( {
             // #endif
         },
 
-        // H5: 生成二维码 dataURL（使用 https://api.qrserver.com 的 SVG，再本地绘制到 canvas，避免引入依赖）
-        async getQrDataUrl ( text: string, size: number )
+        // H5: 二维码图片地址（改为本地静态图）
+        async getQrDataUrl ( text: string, size: number ): Promise<string>
+        {
+            // 改为使用本地静态图片：/static/qr.png
+            // uni-app H5 下 static 目录默认映射为站点根路径 /static
+            // 说明：此二维码为固定入口图片，若需要携带参数请改回动态二维码方案
+            void text;
+            void size;
+            return '/static/qr.png';
+        },
+        async getQrDataUrlNet ( text: string, size: number )
         {
             // #ifndef H5
             return '';
@@ -297,64 +306,76 @@ export default defineComponent( {
             // 注意：依赖第三方二维码服务；如需完全离线，可再换成本地 QR 算法实现
             return url;
         },
+        // 获取图片信息（用于等比缩放绘制）
+        async getImageInfo ( src: string ): Promise<{ width: number; height: number }>
+        {
+            return await new Promise<{ width: number; height: number }>( ( resolve, reject ) =>
+            {
+                uni.getImageInfo( {
+                    src,
+                    success: ( res: any ) => resolve( { width: Number( res.width ) || 0, height: Number( res.height ) || 0 } ),
+                    fail: reject
+                } as any );
+            } );
+        },
+
+        // 关闭
+        // （此处为重复定义，已删除；保留上方 methods 起始处的 close/handleClose）
+
+        // 预览图片
+        // （此处为重复定义，已删除；保留上方 methods 起始处的 previewImage）
+
+        // 2D canvas 版自动换行
+        // （此处为重复定义，已删除；保留上方的 wrapText）
+
+        // uni canvas 版自动换行
+        // （此处为重复定义，已删除；保留上方的 wrapTextUni）
 
         async loadImage ( src: string )
         {
-            // #ifndef H5
-            return null as any;
-            // #endif
-
             return await new Promise<HTMLImageElement>( ( resolve, reject ) =>
             {
                 const img = new Image();
                 img.crossOrigin = 'anonymous';
                 img.onload = () => resolve( img );
-                img.onerror = ( e ) => reject( e );
+                img.onerror = ( e ) =>
+                {
+                    console.error( '图片加载失败', e );
+                    reject( e );
+                };
                 img.src = src;
             } );
         },
 
         // H5: 尝试获取原生 canvas（带重试）
-        async getNativeCanvasWithRetry ( retries = 10, intervalMs = 16 )
+        async getNativeCanvasWithRetry ( retries = 10, intervalMs = 16 ): Promise<HTMLCanvasElement | null>
         {
             // #ifndef H5
             return null as any;
             // #endif
 
-            for ( let i = 0; i < retries; i++ )
+            return new Promise<HTMLCanvasElement | null>( ( resolve, reject ) =>
             {
-                await nextTick();
-
-                // 部分 WebView 对 requestAnimationFrame 支持不稳定，改为 setTimeout 轮询
-                if ( intervalMs > 0 )
+                const tryGetCanvas = ( remainingRetries: number ) =>
                 {
-                    await new Promise( r => setTimeout( r, intervalMs ) );
-                }
+                    const c = document.querySelector( 'canvas' );
+                    if ( c )
+                    {
+                        resolve( c as HTMLCanvasElement );
+                    } else if ( remainingRetries > 0 )
+                    {
+                        setTimeout( () => tryGetCanvas( remainingRetries - 1 ), intervalMs );
+                    } else
+                    {
+                        resolve( null );
+                    }
+                };
 
-                const el = document.getElementById( this.canvasId ) as any;
-                if ( el && typeof el.getContext === 'function' )
-                {
-                    return el as HTMLCanvasElement;
-                }
-
-                // fallback：从整个 document 再查一次
-                const qsGlobal = document.querySelector( `#${ this.canvasId }` ) as any;
-                if ( qsGlobal && typeof qsGlobal.getContext === 'function' )
-                {
-                    return qsGlobal as HTMLCanvasElement;
-                }
-
-                // fallback：从组件根节点里找
-                const root = ( this.$el as any ) as HTMLElement | undefined;
-                const qs = root?.querySelector?.( `#${ this.canvasId }` ) as any;
-                if ( qs && typeof qs.getContext === 'function' )
-                {
-                    return qs as HTMLCanvasElement;
-                }
-            }
-            return null;
+                tryGetCanvas( retries );
+            } );
         },
 
+        // 导出海报
         async generatePoster ()
         {
             // 仅实现 H5
@@ -380,244 +401,147 @@ export default defineComponent( {
             }
 
             // 如果拿不到（极少数 H5 WebView），再尝试原生 canvas 兜底
-            const c = ctxUni ? null : await this.getNativeCanvasWithRetry( 60, 25 );
-            if ( !ctxUni && !c )
+            const nativeCanvas = ctxUni ? null : await this.getNativeCanvasWithRetry( 60, 25 );
+            if ( !ctxUni && !nativeCanvas )
             {
                 this.generating = false;
                 this.hintText = '海报生成失败：未获取到canvas（请稍后重试）';
                 return;
             }
 
-            // 海报像素尺寸：进一步缩小到“半屏预览”级别（2:3）
-            // 320x480 足够预览与分享（文件更小，渲染更快）
+            // 海报像素尺寸（半屏级别）
             const W = 380;
             const H = 420;
 
+            // ====== uni canvas 分支（推荐）======
             if ( ctxUni )
             {
                 const ctx: any = ctxUni;
 
-                // 关键：先做一个“官方示例级别”的最小绘制验证，避免直接画复杂海报导致难以定位
                 try
                 {
-                    // 清空/重置
                     if ( ctx.setTransform ) ctx.setTransform( 1, 0, 0, 1, 0, 0 );
 
-                    // 画一个圆+十字+文字（参考你给的示例）
-                    ctx.beginPath();
-                    ctx.arc( 100, 75, 50, 0, 2 * Math.PI );
-                    ctx.setFillStyle( '#EEEEEE' );
+                    // 通过最小验证后，再绘制正式海报（使用设计稿坐标缩放）
+                    const designW = 1280;
+                    const designH = 1720;
+                    const compactScaleBoost = 1.08;
+                    const scale = Math.min( W / designW, H / designH ) * compactScaleBoost;
+
+                    if ( ctx.setTransform ) ctx.setTransform( 1, 0, 0, 1, 0, 0 );
+                    if ( ctx.scale ) ctx.scale( scale, scale );
+
+                    const CW = designW;
+                    const FONT_PLUS = 10;
+                    const yShift = -30;
+
+                    // 背景
+                    ctx.setFillStyle( '#f5f9ff' );
+                    ctx.fillRect( 0, 0, CW, designH );
+
+                    // 顶部渐变卡片
+                    const grad = ctx.createLinearGradient( 0, 0, CW, 720 );
+                    grad.addColorStop( 0, this.categoryColor || '#1890ff' );
+                    grad.addColorStop( 1, '#52c4ff' );
+                    ctx.setFillStyle( grad );
+                    roundRectUni( ctx, 60, 120 + yShift, CW - 120, 520, 48 );
                     ctx.fill();
 
-                    ctx.beginPath();
-                    ctx.moveTo( 40, 75 );
-                    ctx.lineTo( 160, 75 );
-                    ctx.moveTo( 100, 15 );
-                    ctx.lineTo( 100, 135 );
-                    ctx.setStrokeStyle( '#AAAAAA' );
-                    ctx.stroke();
+                    const leftMargin = 150;
 
-                    ctx.setFontSize( 14 );
-                    ctx.setFillStyle( '#000000' );
-                    ctx.fillText( 'canvas ok', 40, 170 );
+                    // 分类徽章
+                    const badgeX = leftMargin;
+                    const badgeY = 170 + yShift;
+                    const badgeW = 520;
+                    const badgeH = 84;
+                    ctx.setFillStyle( 'rgba(255,255,255,0.28)' );
+                    roundRectUni( ctx, badgeX, badgeY, badgeW, badgeH, 999 );
+                    ctx.fill();
 
-                    await new Promise<void>( resolve =>
-                    {
-                        ctx.draw( true, () => resolve() );
-                    } );
-
-                    // 立即尝试导出一小张，验证 canvasToTempFilePath 是否可用
-                    const testPath = await new Promise<string>( ( resolve, reject ) =>
-                    {
-                        uni.canvasToTempFilePath( {
-                            canvasId: this.canvasId,
-                            width: 220,
-                            height: 220,
-                            destWidth: 220,
-                            destHeight: 220,
-                            fileType: 'png',
-                            quality: 1,
-                            success: ( res: any ) => resolve( res.tempFilePath ),
-                            fail: ( err: any ) => reject( err )
-                        } as any, this );
-                    } );
-
-                    // 如果测试导出都失败/是空白，直接提示
-                    const testBlob = await ( await fetch( testPath ) ).blob();
-                    if ( !testBlob || testBlob.size < 200 )
-                    {
-                        this.generating = false;
-                        this.hintText = '导出空白：canvasToTempFilePath 未生成有效图片（请换浏览器/检查 WebView 权限）';
-                        return;
-                    }
-                } catch ( e )
-                {
-                    console.error( 'canvas 最小绘制验证失败', e );
-                    this.generating = false;
-                    this.hintText = 'canvas 不可用：最小绘制/导出失败';
-                    return;
-                }
-
-                // 通过最小验证后，再绘制正式海报（使用设计稿坐标缩放）
-                const designW = 1280;
-                const designH = 1720;
-
-                // 布局更紧凑：稍微放大整体内容占比（同屏更“满”）
-                const compactScaleBoost = 1.08;
-                const scale = Math.min( W / designW, H / designH ) * compactScaleBoost;
-
-                // 重新开始一帧，避免 test draw 的内容叠加
-                if ( ctx.setTransform ) ctx.setTransform( 1, 0, 0, 1, 0, 0 );
-                if ( ctx.scale ) ctx.scale( scale, scale );
-
-                const CW = designW;
-                const CH = designH;
-
-                // 所有字体 +10px（uni setFontSize 使用 px）
-                const FONT_PLUS = 10;
-
-                // 更紧凑：整体上移一点、间距收紧
-                const yShift = -30;
-
-                // 背景
-                ctx.setFillStyle( '#f5f9ff' );
-                ctx.fillRect( 0, 0, CW, CH );
-
-                // 顶部渐变卡片
-                const grad = ctx.createLinearGradient( 0, 0, CW, 720 );
-                grad.addColorStop( 0, this.categoryColor || '#1890ff' );
-                grad.addColorStop( 1, '#52c4ff' );
-                ctx.setFillStyle( grad );
-                roundRectUni( ctx, 60, 120 + yShift, CW - 120, 520, 48 );
-                ctx.fill();
-
-                const leftMargin = 150;
-
-                // 分类徽章
-                const badgeX = leftMargin;
-                const badgeY = 170 + yShift;
-                const badgeW = 520;
-                const badgeH = 84;
-                ctx.setFillStyle( 'rgba(255,255,255,0.28)' );
-                roundRectUni( ctx, badgeX, badgeY, badgeW, badgeH, 999 );
-                ctx.fill();
-
-                ctx.setFillStyle( '#fff' );
-                ctx.setFontSize( 48 + FONT_PLUS );
-                ctx.setTextBaseline( 'middle' );
-                const icon = this.categoryIcon || '';
-                if ( icon ) ctx.fillText( icon, badgeX + 30, badgeY + badgeH / 2 );
-
-                ctx.setFontSize( 34 + FONT_PLUS );
-                ctx.fillText( this.categoryName || '奇妙日', badgeX + 30 + ( icon ? 64 : 0 ), badgeY + badgeH / 2 );
-
-                // 标题
-                ctx.setFillStyle( '#fff' );
-                ctx.setTextBaseline( 'top' );
-                ctx.setFontSize( 72 + FONT_PLUS );
-                const titleY = 300 + yShift;
-
-                // 注意：wrapText 的 maxWidth 仍按设计稿坐标（CW），不要用 W
-                const afterTitleY = this.wrapTextUni(
-                    ctx,
-                    this.title || '分享一个奇妙日',
-                    leftMargin,
-                    titleY,
-                    designW - 200,
-                    88, // 行高保持，后面通过整体上移/间距收紧来紧凑
-                    2
-                );
-
-                // 天数
-                const days = this.daysText || '';
-                if ( days )
-                {
+                    ctx.setFillStyle( '#fff' );
                     ctx.setFontSize( 48 + FONT_PLUS );
-                    ctx.setFillStyle( 'rgba(255,255,255,0.92)' );
-                    ctx.fillText( days, leftMargin, afterTitleY + 10 );
-                }
+                    ctx.setTextBaseline( 'middle' );
+                    const icon = this.categoryIcon || '';
+                    if ( icon ) ctx.fillText( icon, badgeX + 30, badgeY + badgeH / 2 );
 
-                // 日期
-                const dateText = this.dateText || '';
-                if ( dateText )
-                {
-                    ctx.setFontSize( 44 + FONT_PLUS );
-                    ctx.setFillStyle( 'rgba(255,255,255,0.9)' );
-                    ctx.fillText( dateText, leftMargin, afterTitleY + 92 );
-                }
+                    ctx.setFontSize( 34 + FONT_PLUS );
+                    ctx.fillText( this.categoryName || '奇妙日', badgeX + 30 + ( icon ? 64 : 0 ), badgeY + badgeH / 2 );
 
-                // 信息卡更靠上，整体更紧凑
-                const bottomBaseY = 620 + yShift;
+                    // 标题
+                    ctx.setFillStyle( '#fff' );
+                    ctx.setTextBaseline( 'top' );
+                    ctx.setFontSize( 72 + FONT_PLUS );
+                    const titleY = 300 + yShift;
+                    const afterTitleY = this.wrapTextUni( ctx, this.title || '分享一个奇妙日', leftMargin, titleY, designW - 200, 88, 2 );
 
-                // 中下部白色信息卡
-                ctx.setFillStyle( '#ffffff' );
-                // 修正：roundRect 的参数是 (x, y, w, h, r)，这里传高度（更紧凑）
-                roundRectUni( ctx, 60, bottomBaseY, designW - 120, 420, 40 );
-                ctx.fill();
-
-                // 左侧说明
-                ctx.setFillStyle( '#1890ff' );
-                ctx.setFontSize( 42 + FONT_PLUS );
-                ctx.fillText( '扫码打开详情', leftMargin, bottomBaseY + 58 );
-
-                // 二维码（往左一点 + 与文字更贴近）
-                const qrValue = ( this.qrText || this.shareUrl || '' ).trim();
-                if ( qrValue )
-                {
-                    try
+                    // 天数/日期
+                    const days = this.daysText || '';
+                    if ( days )
                     {
-                        // 固定二维码尺寸：256px（无需太大）
-                        const qrBoxSize = 256;
-                        const qrPngUrl = await this.getQrDataUrl( qrValue, qrBoxSize );
+                        ctx.setFontSize( 48 + FONT_PLUS );
+                        ctx.setFillStyle( 'rgba(255,255,255,0.92)' );
+                        ctx.fillText( days, leftMargin, afterTitleY + 10 );
+                    }
 
-                        // 往左一点：-40
-                        const qrX = designW - 100 - qrBoxSize - 70;
+                    const dateText = this.dateText || '';
+                    if ( dateText )
+                    {
+                        ctx.setFontSize( 44 + FONT_PLUS );
+                        ctx.setFillStyle( 'rgba(255,255,255,0.9)' );
+                        ctx.fillText( dateText, leftMargin, afterTitleY + 92 );
+                    }
+
+                    // 信息卡
+                    const bottomBaseY = 620 + yShift;
+                    ctx.setFillStyle( '#ffffff' );
+                    roundRectUni( ctx, 60, bottomBaseY, designW - 120, 420, 40 );
+                    ctx.fill();
+
+                    // 二维码（固定入口图：1710x624，按“适应宽度”等比缩放）
+                    const qrValue = ( this.qrText || this.shareUrl || '' ).trim();
+                    if ( qrValue )
+                    {
+                        const qrPngUrl = await this.getQrDataUrl( qrValue, 0 );
+
+                        // 容器大小（保持原有外框），图片按容器宽度等比缩放
+                        const boxW = designW;
+                        const boxH = 420;
+                        const qrX = designW - 100 - boxW - 70;
                         const qrY = bottomBaseY + 26;
 
                         ctx.setFillStyle( '#ffffff' );
-                        roundRectUni( ctx, qrX - 20, qrY - 20, qrBoxSize + 40, qrBoxSize + 40, 28 );
+                        roundRectUni( ctx, qrX - 20, qrY - 20, boxW + 40, boxH + 40, 28 );
                         ctx.fill();
 
-                        // uni canvas：drawImage 直接传 URL（前提是图片可跨域访问）
-                        ctx.drawImage( qrPngUrl, qrX, qrY, qrBoxSize, qrBoxSize );
-
-                        ctx.setFillStyle( '#666' );
-                        ctx.setFontSize( 28 + FONT_PLUS );
-                        ctx.fillText( '长按/截图识别二维码', leftMargin, bottomBaseY + 210 );
-                    } catch ( e )
-                    {
-                        console.error( '二维码生成失败', e );
-                        this.hintText = '二维码生成失败，已仅保留链接';
+                        // 已知原图像素 1710*624：按“适应宽度”缩放，保证宽度填满 boxW
+                        const iw = 1710;
+                        const ih = 624;
+                        const dw = boxW - 100 - 100;
+                        const dh = Math.max( 1, Math.floor( ( ih / iw ) * dw ) );
+                        const dx = qrX + 240;
+                        const dy = qrY + Math.floor( ( boxH - dh ) / 2 );
+                        ctx.drawImage( qrPngUrl, dx, dy, dw, dh );
                     }
-                }
 
-                // 链接文本
-                const url = ( this.shareUrl || '' ).trim();
-                ctx.setFillStyle( '#666' );
-                ctx.setFontSize( 30 + FONT_PLUS );
-                if ( url )
-                {
-                    // 同样使用设计稿坐标宽度
-                    this.wrapTextUni( ctx, url, leftMargin, bottomBaseY + 258, designW - 200, 44, 3 );
-                } else
-                {
-                    ctx.fillText( '（未提供分享链接）', leftMargin, bottomBaseY + 242 );
-                }
+                    // 链接文本
+                    // const url = ( this.shareUrl || '' ).trim();
+                    // ctx.setFillStyle( '#666' );
+                    // ctx.setFontSize( 30 + FONT_PLUS );
+                    // if ( url )
+                    // {
+                    //     this.wrapTextUni( ctx, url, leftMargin, bottomBaseY + 258, designW - 200, 44, 3 );
+                    // }
 
-                // 底部品牌（更靠上，紧凑）
-                ctx.setFillStyle( '#999' );
-                ctx.setFontSize( 28 + FONT_PLUS );
-                ctx.fillText( '由长寿奇妙日生成', leftMargin, bottomBaseY + 342 );
+                    // // 底部品牌
+                    // ctx.setFillStyle( '#999' );
+                    // ctx.setFontSize( 28 + FONT_PLUS );
+                    // ctx.fillText( '由长寿奇妙日生成', leftMargin, bottomBaseY + 342 );
 
-                // 关键：draw 触发真正绘制
-                await new Promise<void>( resolve =>
-                {
-                    ctx.draw( false, () => resolve() );
-                } );
+                    await new Promise<void>( resolve =>
+                    {
+                        ctx.draw( false, () => resolve() );
+                    } );
 
-                // 导出：务必用实际导出尺寸（W/H）
-                try
-                {
                     const tempPath = await new Promise<string>( ( resolve, reject ) =>
                     {
                         uni.canvasToTempFilePath( {
@@ -634,22 +558,34 @@ export default defineComponent( {
                     } );
 
                     // 转为 dataURL
-                    const blob = await ( await fetch( tempPath ) ).blob();
-                    this.posterDataUrl = await new Promise<string>( ( resolve, reject ) =>
+                    // #ifdef H5
+                    try
                     {
-                        const reader = new FileReader();
-                        reader.onload = () => resolve( String( reader.result || '' ) );
-                        reader.onerror = () => reject( new Error( 'read blob failed' ) );
-                        reader.readAsDataURL( blob );
-                    } );
+                        const blob = await ( await fetch( tempPath ) ).blob();
+                        this.posterDataUrl = await new Promise<string>( ( resolve, reject ) =>
+                        {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve( String( reader.result || '' ) );
+                            reader.onerror = () => reject( new Error( 'read blob failed' ) );
+                            reader.readAsDataURL( blob );
+                        } );
+                    } catch ( e )
+                    {
+                        this.posterDataUrl = tempPath;
+                    }
+                    // #endif
+
+                    // #ifndef H5
+                    this.posterDataUrl = tempPath;
+                    // #endif
+
+                    this.generating = false;
+                    return;
                 } catch ( e )
                 {
-                    console.error( e );
-                    this.hintText = '海报导出失败';
+                    console.error( 'uni canvas 绘制失败', e );
+                    // 继续走原生兜底
                 }
-
-                this.generating = false;
-                return;
 
                 function roundRectUni ( c2: any, x: number, y: number, w: number, h: number, r: number )
                 {
@@ -664,152 +600,50 @@ export default defineComponent( {
                 }
             }
 
-            // ---- 原生 canvas 兜底保持原逻辑 ----
-            c!.width = W;
-            c!.height = H;
+            // ====== 原生 canvas 兜底（保持简化实现）======
+            try
+            {
+                // 重新获取原生 canvas（确保变量在该作用域存在）
+                const c2 = ( nativeCanvas || await this.getNativeCanvasWithRetry( 10, 16 ) ) as HTMLCanvasElement | null;
+                if ( !c2 ) throw new Error( 'missing native canvas' );
 
-            const ctx = c!.getContext( '2d' );
-            if ( !ctx )
+                c2.width = W;
+                c2.height = H;
+                const ctx2d = c2.getContext( '2d' ) as CanvasRenderingContext2D | null;
+                if ( !ctx2d ) throw new Error( 'ctx null' );
+
+                // 背景
+                ctx2d.fillStyle = '#f5f9ff';
+                ctx2d.fillRect( 0, 0, W, H );
+
+                // 二维码容器
+                const boxW = 160;
+                const boxH = 160;
+                const qrX = W - 20 - boxW;
+                const qrY = H - 20 - boxH;
+
+                ctx2d.fillStyle = '#fff';
+                ctx2d.fillRect( qrX - 10, qrY - 10, boxW + 20, boxH + 20 );
+
+                const qrPngUrl = await this.getQrDataUrl( ( this.qrText || this.shareUrl || '' ).trim(), 0 );
+                const img = await this.loadImage( qrPngUrl );
+
+                const iw = 1710;
+                const ih = 624;
+                const dw = boxW;
+                const dh = Math.max( 1, Math.floor( ( ih / iw ) * dw ) );
+                const dx = qrX;
+                const dy = qrY + Math.floor( ( boxH - dh ) / 2 );
+                ctx2d.drawImage( img, dx, dy, dw, dh );
+
+                this.posterDataUrl = c2.toDataURL( 'image/png' );
+            } catch ( e )
+            {
+                console.error( '原生canvas兜底失败', e );
+                this.hintText = '海报生成失败';
+            } finally
             {
                 this.generating = false;
-                this.hintText = '海报生成失败：ctx不可用';
-                return;
-            }
-            const ctx2d = ctx as CanvasRenderingContext2D;
-
-            // 背景
-            ctx2d.fillStyle = '#f5f9ff';
-            ctx2d.fillRect( 0, 0, W, H );
-
-            // 顶部渐变卡片
-            const grad = ctx2d.createLinearGradient( 0, 0, W, 520 );
-            grad.addColorStop( 0, this.categoryColor || '#1890ff' );
-            grad.addColorStop( 1, '#52c4ff' );
-            ctx2d.fillStyle = grad;
-            roundRect2d( ctx2d, 60, 120, W - 120, 520, 48 );
-            ctx2d.fill();
-
-            // 分类徽章
-            const badgeX = 100;
-            const badgeY = 170;
-            const badgeW = 520;
-            const badgeH = 84;
-            ctx2d.fillStyle = 'rgba(255,255,255,0.28)';
-            roundRect2d( ctx2d, badgeX, badgeY, badgeW, badgeH, 999 );
-            ctx2d.fill();
-
-            ctx2d.fillStyle = '#fff';
-            ctx2d.font = '48px sans-serif';
-            ctx2d.textBaseline = 'middle';
-            const icon = this.categoryIcon || '';
-            if ( icon ) ctx2d.fillText( icon, badgeX + 30, badgeY + badgeH / 2 );
-
-            ctx2d.font = '34px sans-serif';
-            ctx2d.fillText( this.categoryName || '奇妙日', badgeX + 30 + ( icon ? 64 : 0 ), badgeY + badgeH / 2 );
-
-            // 标题
-            ctx2d.fillStyle = '#fff';
-            ctx2d.textBaseline = 'top';
-            ctx2d.font = '72px sans-serif';
-            const titleY = 300;
-            const afterTitleY = this.wrapText( ctx2d, this.title || '分享一个奇妙日', 100, titleY, W - 200, 88, 2 );
-
-            // 天数
-            const days = this.daysText || '';
-            if ( days )
-            {
-                ctx2d.font = '44px sans-serif';
-                ctx2d.fillStyle = 'rgba(255,255,255,0.92)';
-                ctx2d.fillText( days, 100, afterTitleY + 20 );
-            }
-
-            // 日期
-            const dateText = this.dateText || '';
-            if ( dateText )
-            {
-                ctx2d.font = '34px sans-serif';
-                ctx2d.fillStyle = 'rgba(255,255,255,0.9)';
-                ctx2d.fillText( dateText, 100, afterTitleY + 92 );
-            }
-
-            // 中下部白色信息卡
-            ctx2d.fillStyle = '#ffffff';
-            roundRect2d( ctx2d, 60, 1020, W - 120, 620, 40 );
-            ctx2d.fill();
-
-            // 左侧说明
-            ctx2d.fillStyle = '#1890ff';
-            ctx2d.font = '42px sans-serif';
-            ctx2d.fillText( '扫码打开详情', 100, 1080 );
-
-            // 二维码
-            const qrValue = ( this.qrText || this.shareUrl || '' ).trim();
-            if ( qrValue )
-            {
-                try
-                {
-                    const qrPngUrl = await this.getQrDataUrl( qrValue, this.qrSize );
-                    const qrBoxSize = Math.max( 240, Math.min( 420, Number( this.qrSize ) || 360 ) );
-                    const qrX = W - 100 - qrBoxSize;
-                    const qrY = 1080;
-
-                    ctx2d.fillStyle = '#ffffff';
-                    roundRect2d( ctx2d, qrX - 20, qrY - 20, qrBoxSize + 40, qrBoxSize + 40, 28 );
-                    ctx2d.fill();
-
-                    await new Promise<void>( ( resolve, reject ) =>
-                    {
-                        const img = new Image();
-                        img.crossOrigin = 'anonymous';
-                        img.onload = () =>
-                        {
-                            ctx2d.drawImage( img, qrX, qrY, qrBoxSize, qrBoxSize );
-                            resolve();
-                        };
-                        img.onerror = () => reject( new Error( 'load qr failed' ) );
-                        img.src = qrPngUrl;
-                    } );
-
-                    ctx2d.fillStyle = '#666';
-                    ctx2d.font = '28px sans-serif';
-                    ctx2d.fillText( '长按/截图识别二维码', 100, 1140 );
-                } catch ( e )
-                {
-                    console.error( '二维码生成失败', e );
-                    this.hintText = '二维码生成失败，已仅保留链接';
-                }
-            }
-
-            // 链接文本
-            const url = ( this.shareUrl || '' ).trim();
-            ctx2d.fillStyle = '#666';
-            ctx2d.font = '30px sans-serif';
-            if ( url )
-            {
-                this.wrapText( ctx2d, url, 100, 1240, W - 200, 44, 3 );
-            } else
-            {
-                ctx2d.fillText( '（未提供分享链接）', 100, 1240 );
-            }
-
-            // 底部品牌
-            ctx2d.fillStyle = '#999';
-            ctx2d.font = '28px sans-serif';
-            ctx2d.fillText( '奇妙本 · Countdown', 100, 1600 );
-
-            this.posterDataUrl = c!.toDataURL( 'image/png' );
-            this.generating = false;
-
-            function roundRect2d ( c2: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number )
-            {
-                const radius = Math.min( r, w / 2, h / 2 );
-                c2.beginPath();
-                c2.moveTo( x + radius, y );
-                c2.arcTo( x + w, y, x + w, y + h, radius );
-                c2.arcTo( x + w, y + h, x, y + h, radius );
-                c2.arcTo( x, y + h, x, y, radius );
-                c2.arcTo( x, y, x + w, y, radius );
-                c2.closePath();
             }
         },
 
