@@ -461,7 +461,10 @@ export default defineComponent( {
                 // 通过最小验证后，再绘制正式海报（使用设计稿坐标缩放）
                 const designW = 1280;
                 const designH = 1720;
-                const scale = Math.min( W / designW, H / designH );
+
+                // 布局更紧凑：稍微放大整体内容占比（同屏更“满”）
+                const compactScaleBoost = 1.08;
+                const scale = Math.min( W / designW, H / designH ) * compactScaleBoost;
 
                 // 重新开始一帧，避免 test draw 的内容叠加
                 if ( ctx.setTransform ) ctx.setTransform( 1, 0, 0, 1, 0, 0 );
@@ -469,6 +472,12 @@ export default defineComponent( {
 
                 const CW = designW;
                 const CH = designH;
+
+                // 所有字体 +10px（uni setFontSize 使用 px）
+                const FONT_PLUS = 10;
+
+                // 更紧凑：整体上移一点、间距收紧
+                const yShift = -30;
 
                 // 背景
                 ctx.setFillStyle( '#f5f9ff' );
@@ -479,12 +488,14 @@ export default defineComponent( {
                 grad.addColorStop( 0, this.categoryColor || '#1890ff' );
                 grad.addColorStop( 1, '#52c4ff' );
                 ctx.setFillStyle( grad );
-                roundRectUni( ctx, 60, 120, CW - 120, 520, 48 );
+                roundRectUni( ctx, 60, 120 + yShift, CW - 120, 520, 48 );
                 ctx.fill();
+
                 const leftMargin = 150;
+
                 // 分类徽章
                 const badgeX = leftMargin;
-                const badgeY = 170;
+                const badgeY = 170 + yShift;
                 const badgeW = 520;
                 const badgeH = 84;
                 ctx.setFillStyle( 'rgba(255,255,255,0.28)' );
@@ -492,52 +503,64 @@ export default defineComponent( {
                 ctx.fill();
 
                 ctx.setFillStyle( '#fff' );
-                ctx.setFontSize( 48 );
+                ctx.setFontSize( 48 + FONT_PLUS );
                 ctx.setTextBaseline( 'middle' );
                 const icon = this.categoryIcon || '';
                 if ( icon ) ctx.fillText( icon, badgeX + 30, badgeY + badgeH / 2 );
 
-                ctx.setFontSize( 34 );
+                ctx.setFontSize( 34 + FONT_PLUS );
                 ctx.fillText( this.categoryName || '奇妙日', badgeX + 30 + ( icon ? 64 : 0 ), badgeY + badgeH / 2 );
 
                 // 标题
                 ctx.setFillStyle( '#fff' );
                 ctx.setTextBaseline( 'top' );
-                ctx.setFontSize( 72 );
-                const titleY = 300;
+                ctx.setFontSize( 72 + FONT_PLUS );
+                const titleY = 300 + yShift;
+
                 // 注意：wrapText 的 maxWidth 仍按设计稿坐标（CW），不要用 W
-                const afterTitleY = this.wrapTextUni( ctx, this.title || '分享一个奇妙日', leftMargin, titleY, designW - 200, 88, 2 );
+                const afterTitleY = this.wrapTextUni(
+                    ctx,
+                    this.title || '分享一个奇妙日',
+                    leftMargin,
+                    titleY,
+                    designW - 200,
+                    88, // 行高保持，后面通过整体上移/间距收紧来紧凑
+                    2
+                );
 
                 // 天数
                 const days = this.daysText || '';
                 if ( days )
                 {
-                    ctx.setFontSize( 48 );
+                    ctx.setFontSize( 48 + FONT_PLUS );
                     ctx.setFillStyle( 'rgba(255,255,255,0.92)' );
-                    ctx.fillText( days, leftMargin, afterTitleY + 20 );
+                    ctx.fillText( days, leftMargin, afterTitleY + 10 );
                 }
 
                 // 日期
                 const dateText = this.dateText || '';
                 if ( dateText )
                 {
-                    ctx.setFontSize( 44 );
+                    ctx.setFontSize( 44 + FONT_PLUS );
                     ctx.setFillStyle( 'rgba(255,255,255,0.9)' );
-                    ctx.fillText( dateText, leftMargin, afterTitleY + 122 );
+                    ctx.fillText( dateText, leftMargin, afterTitleY + 92 );
                 }
 
-                const bottomBaseY = 660;
+                // 信息卡更靠上，整体更紧凑
+                const bottomBaseY = 620 + yShift;
+
                 // 中下部白色信息卡
                 ctx.setFillStyle( '#ffffff' );
-                roundRectUni( ctx, 60, bottomBaseY, designW - 120, bottomBaseY + 300, 40 );
+                // 修正：roundRect 的参数是 (x, y, w, h, r)，这里传高度（更紧凑）
+                roundRectUni( ctx, 60, bottomBaseY, designW - 120, 420, 40 );
                 ctx.fill();
 
                 // 左侧说明
                 ctx.setFillStyle( '#1890ff' );
-                ctx.setFontSize( 42 );
-                ctx.fillText( '扫码打开详情', leftMargin, bottomBaseY + 60 );
+                ctx.setFontSize( 42 + FONT_PLUS );
+                ctx.fillText( '扫码打开详情', leftMargin, bottomBaseY + 58 );
 
-                // 二维码
+                // 二维码（往左一点 + 与文字更贴近）
                 const qrValue = ( this.qrText || this.shareUrl || '' ).trim();
                 if ( qrValue )
                 {
@@ -547,9 +570,9 @@ export default defineComponent( {
                         const qrBoxSize = 256;
                         const qrPngUrl = await this.getQrDataUrl( qrValue, qrBoxSize );
 
-                        // 注意：当前 ctx 已按 scale 缩放，坐标应使用设计稿坐标系（designW/designH）
-                        const qrX = designW - 100 - qrBoxSize;
-                        const qrY = bottomBaseY + 40;
+                        // 往左一点：-40
+                        const qrX = designW - 100 - qrBoxSize - 70;
+                        const qrY = bottomBaseY + 26;
 
                         ctx.setFillStyle( '#ffffff' );
                         roundRectUni( ctx, qrX - 20, qrY - 20, qrBoxSize + 40, qrBoxSize + 40, 28 );
@@ -559,8 +582,8 @@ export default defineComponent( {
                         ctx.drawImage( qrPngUrl, qrX, qrY, qrBoxSize, qrBoxSize );
 
                         ctx.setFillStyle( '#666' );
-                        ctx.setFontSize( 28 );
-                        ctx.fillText( '长按/截图识别二维码', leftMargin, bottomBaseY + 220 );
+                        ctx.setFontSize( 28 + FONT_PLUS );
+                        ctx.fillText( '长按/截图识别二维码', leftMargin, bottomBaseY + 210 );
                     } catch ( e )
                     {
                         console.error( '二维码生成失败', e );
@@ -571,20 +594,20 @@ export default defineComponent( {
                 // 链接文本
                 const url = ( this.shareUrl || '' ).trim();
                 ctx.setFillStyle( '#666' );
-                ctx.setFontSize( 30 );
+                ctx.setFontSize( 30 + FONT_PLUS );
                 if ( url )
                 {
                     // 同样使用设计稿坐标宽度
-                    this.wrapTextUni( ctx, url, leftMargin, bottomBaseY + 280, designW - 200, 44, 3 );
+                    this.wrapTextUni( ctx, url, leftMargin, bottomBaseY + 258, designW - 200, 44, 3 );
                 } else
                 {
-                    ctx.fillText( '（未提供分享链接）', leftMargin, bottomBaseY + 240 );
+                    ctx.fillText( '（未提供分享链接）', leftMargin, bottomBaseY + 242 );
                 }
 
-                // 底部品牌
+                // 底部品牌（更靠上，紧凑）
                 ctx.setFillStyle( '#999' );
-                ctx.setFontSize( 28 );
-                ctx.fillText( '由长寿奇妙日生成', leftMargin, bottomBaseY + 360 );
+                ctx.setFontSize( 28 + FONT_PLUS );
+                ctx.fillText( '由长寿奇妙日生成', leftMargin, bottomBaseY + 342 );
 
                 // 关键：draw 触发真正绘制
                 await new Promise<void>( resolve =>
