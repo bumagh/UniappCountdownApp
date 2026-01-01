@@ -1,5 +1,8 @@
 // API配置
-const API_BASE_URL: string = 'https://app.tutlab.tech/api/v1.'; // 替换为你的实际域名
+// Vite 在客户端仅暴露 VITE_ 前缀环境变量
+const API_BASE_URL: string =(process as any)?.env?.VITE_API_BASE_URL ||
+  ( import.meta as any )?.env?.VITE_API_BASE_URL ||
+  'https://app.tutlab.tech/api/v1.';
 
 
 export const API = {
