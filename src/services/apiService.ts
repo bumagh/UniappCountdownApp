@@ -43,10 +43,10 @@ class ApiService
     const res = await request.post<User>( API.user.register, data );
     return res;
   }
-  async updateUser ( data: Partial<User> ): Promise<User>
+  async updateUser ( data: Partial<User> ): Promise<CommonResponse>
   {
     const res = await request.post<User>( API.user.update, data );
-    return res.data;
+    return res;
   }
   async initInfo ( data: Partial<User> ): Promise<User>
   {

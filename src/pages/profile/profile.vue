@@ -564,8 +564,7 @@ export default defineComponent({
         return;
       }
       const updated = await apiService.updateUser({ id: this.user.id, nickname: this.newNickname });
-      // const updated = db.updateUser(this.user.id, { nickname: this.newNickname });
-      if (updated) {
+      if (updated.code == 200) {
         this.user.nickname = this.newNickname;
         uni.showToast({
           title: '修改成功',
@@ -588,7 +587,8 @@ export default defineComponent({
     async handleReminderToggle(e: any) {
       this.reminderEnabled = e.detail.value;
       const updated = await apiService.updateUser({ id: this.user.id, serviceno_notice: this.reminderEnabled ? 1 : 0 });
-      if (updated) {
+            if (updated.code == 200) {
+
         this.user.nickname = this.newNickname;
         uni.showToast({
           title: this.reminderEnabled ? '已开启提醒' : '已关闭提醒',
