@@ -11,6 +11,7 @@ export interface User
   name?: string;
   created_at: string;
   updated_at: string;
+  serviceno_notice?:number;
 }
 
 // 分类类型

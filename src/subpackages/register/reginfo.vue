@@ -185,7 +185,7 @@ export default defineComponent( {
     if ( options.nickname )
     {
       this.form.username = options.nickname;
-      this.form.gender = options.gender == 0 ? 'male' : 'female';
+      this.form.gender = parseInt(options.gender) == 0 ? 'male' : 'female';
       this.form.name = options.nickname;
       this.form.birthday = '1985-06-15';
       this.userid = options.id;

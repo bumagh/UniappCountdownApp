@@ -12,7 +12,7 @@ export const API = {
         current: `${ API_BASE_URL }account/profileDirect`,
         login: `${ API_BASE_URL }user/login`,
         register: `${ API_BASE_URL }user/register`,
-        update: `${ API_BASE_URL }user/update`,
+        update: `${ API_BASE_URL }account/profileDirect`,
         initInfo: `${ API_BASE_URL }account/initInfo`,
         loginByWeixin: `${ API_BASE_URL }wechat/loginByWeixin`,
     },

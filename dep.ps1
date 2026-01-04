@@ -211,9 +211,9 @@ function Deploy-ToServer {
         $destination = "${Server}:${RemoteDir}"
         # 先清理远程目录 /www/wwwroot/app.tutlab.tech/public/countdown/assets 下的所有文件
 
-        Write-Info "清理远程目录: $RemoteAssetsDir"
+        # Write-Info "清理远程目录: $RemoteAssetsDir"
         
-        ssh $Server "rm -rf ${RemoteAssetsDir}/*"
+        # ssh $Server "rm -rf ${RemoteAssetsDir}/*"
         Write-Host "执行命令: scp -r `"$sourcePath`" `"$destination`"" -ForegroundColor Gray
         
         scp -r "$sourcePath" "$destination"
