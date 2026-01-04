@@ -7,7 +7,8 @@ param(
     [string]$LocalDirPub = ".\dist\build\",
     [switch]$BuildOnly = $false,
     [switch]$SkipBuild = $false,
-    [switch]$Clean = $false
+    [switch]$Clean = $false,
+    [string]$RemoteAssetsDir = "/www/wwwroot/app.tutlab.tech/public/countdown/assets/"
 )
 
 # 设置控制台编码为UTF-8
@@ -208,7 +209,11 @@ function Deploy-ToServer {
         # 构建完整的scp命令
         $sourcePath = $LocalDirPub + "*"
         $destination = "${Server}:${RemoteDir}"
+        # 先清理远程目录 /www/wwwroot/app.tutlab.tech/public/countdown/assets 下的所有文件
+
+        Write-Info "清理远程目录: $RemoteAssetsDir"
         
+        ssh $Server "rm -rf ${RemoteAssetsDir}/*"
         Write-Host "执行命令: scp -r `"$sourcePath`" `"$destination`"" -ForegroundColor Gray
         
         scp -r "$sourcePath" "$destination"

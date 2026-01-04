@@ -270,7 +270,7 @@ export default defineComponent({
           username: this.form.username,
           name: this.form.name,
           gender: this.form.gender,
-          birth_date: this.form.birthday,
+          birthday: this.form.birthday,
           password: this.form.password
         });
 

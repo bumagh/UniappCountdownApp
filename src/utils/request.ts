@@ -3,12 +3,21 @@ import { ApiResponse } from 'types/index';
 interface RequestOptions
 {
     header?: Record<string, string>;
+    // 是否跳过自动注入token
+    skipAuth?: boolean;
 }
 
 // 请求封装
 class Request
 {
-    private baseURL: string = 'http://app.tutlabtech';
+    private getAuthHeader (): Record<string, string>
+    {
+        const token = uni.getStorageSync( 'token' );
+        if ( !token ) return {};
+        return {
+            'ba-user-token': `${ token }`
+        };
+    }
 
     // 通用请求方法
     async request<T = any> (
@@ -20,12 +29,15 @@ class Request
     {
         return new Promise( ( resolve, reject ) =>
         {
+            const authHeader = options.skipAuth ? {} : this.getAuthHeader();
+
             uni.request( {
                 url: url,
                 method: method,
                 data: data,
                 header: {
                     'Content-Type': 'application/json',
+                    ...authHeader,
                     ...options.header
                 },
                 success: ( res: any ) =>

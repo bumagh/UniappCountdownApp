@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from "vite";
 import uni from "@dcloudio/vite-plugin-uni";
 
 export default defineConfig( ( { mode } ) => {
+  console.log( 'Vite 运行模式:', mode );
   const env = loadEnv( mode, process.cwd(), '' );
 
   return {

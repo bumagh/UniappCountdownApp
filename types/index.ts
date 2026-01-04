@@ -7,7 +7,7 @@ export interface User
   password: string;
   avatar: string;
   gender?: string;
-  birth_date?: string;
+  birthday?: string;
   name?: string;
   created_at: string;
   updated_at: string;

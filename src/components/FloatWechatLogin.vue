@@ -114,6 +114,7 @@ export default defineComponent( {
       if ( !wxauth.isInWechat() ) return;
 
       const code = wxauth.handleAuthCallback();
+      uni.setStorageSync( 'wx_code', code );
       if ( !code ) return;
 
       await this.processWechatLogin( code );

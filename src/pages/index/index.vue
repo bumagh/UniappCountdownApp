@@ -233,7 +233,7 @@ export default defineComponent(
 
     onShow (): void
     {
-      console.log(process.env);
+      // console.log(process.env);
       this.loadData();
     },
 
@@ -246,8 +246,7 @@ export default defineComponent(
           // 获取当前用户信息
           const userid = uni.getStorageSync( 'userid' );
           const currentUser = await apiService.getCurrentUser( userid || '1' );
-
-          this.user = currentUser;
+          this.user = currentUser.;
 
           // 获取分类和奇妙日数据
           const [ countdownsRes, categoriesRes ] = await Promise.all( [

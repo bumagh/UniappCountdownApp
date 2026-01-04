@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "nvm use 18.20.4 && vite dev",
-    "build": "vite build"
+    "build": "vite build --mode production"
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-4030620241128001",

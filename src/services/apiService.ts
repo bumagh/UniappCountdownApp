@@ -17,20 +17,20 @@ class ApiService
   // 用户相关
   async getCurrentUser ( id: string ): Promise<User>
   {
-    const res = await request.get<User>( API.user.current, { id } );
+    const res = await request.request<User>( API.user.current, 'GET',{ id });
     return res.data;
   }
   // 微信登录
   async loginByWeixin ( data: { code: string } ): Promise<{ token: string; userInfo: any }>
   {
-    const res = await request.post( '/api/v1.wechat/loginByWeixin', data );
+    const res = await request.post( API.user.loginByWeixin, data );
     return res.data;
   }
 
   // 获取用户信息（通过openid，需要token）
   async getUserInfo ( data: { openid: string } ): Promise<{ userInfo: any }>
   {
-    const res = await request.post( '/api/v1.wechat/userInfo', data );
+    const res = await request.post( '/wechat/userInfo', data );
     return res.data;
   }
   async loginUser ( data: Partial<User> ): Promise<CommonResponse>

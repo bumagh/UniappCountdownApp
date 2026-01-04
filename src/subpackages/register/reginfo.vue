@@ -308,8 +308,8 @@ export default defineComponent( {
           id: this.userid,
           username: this.form.username,
           name: this.form.name,
-          gender: this.form.gender,
-          birth_date: this.form.birthday,
+          gender: this.form.gender=='male'?'1':'0',
+          birthday: this.form.birthday,
           password: this.form.password
         } );
 

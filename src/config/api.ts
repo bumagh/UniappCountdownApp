@@ -1,18 +1,20 @@
 // API配置
 // Vite 在客户端仅暴露 VITE_ 前缀环境变量
-const API_BASE_URL: string =(process as any)?.env?.VITE_API_BASE_URL ||
-  ( import.meta as any )?.env?.VITE_API_BASE_URL ||
-  'https://app.tutlab.tech/api/v1.';
-
+// const API_BASE_URL: string =(process as any)?.env?.VITE_API_BASE_URL ||
+//   ( import.meta as any )?.env?.VITE_API_BASE_URL ||
+//   'https://app.tutlab.tech/api/v1.';
+const API_BASE_URL: string =
+  'https://app.tutlab.tech/index.php/api/';
 
 export const API = {
     // 用户相关
     user: {
-        current: `${ API_BASE_URL }user/index`,
+        current: `${ API_BASE_URL }account/profileDirect`,
         login: `${ API_BASE_URL }user/login`,
         register: `${ API_BASE_URL }user/register`,
         update: `${ API_BASE_URL }user/update`,
-        initInfo: `${ API_BASE_URL }user/initInfo`
+        initInfo: `${ API_BASE_URL }account/initInfo`,
+        loginByWeixin: `${ API_BASE_URL }wechat/loginByWeixin`,
     },
     // 分类相关
     category: {
