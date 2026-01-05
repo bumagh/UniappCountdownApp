@@ -225,13 +225,13 @@ function Deploy-ToServer {
         Write-Success "文件上传完成!"
         
         # 验证上传
-        Write-Info "验证服务器文件..."
-        try {
-            ssh $Server "ls -la ${RemoteDir} | head -5"
-        }
-        catch {
-            Write-Warning "无法验证服务器文件，但上传可能已成功"
-        }
+        # Write-Info "验证服务器文件..."
+        # try {
+        #     ssh $Server "ls -la ${RemoteDir} | head -5"
+        # }
+        # catch {
+        #     Write-Warning "无法验证服务器文件，但上传可能已成功"
+        # }
         
         return $true
     }
