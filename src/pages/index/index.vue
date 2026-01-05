@@ -302,7 +302,7 @@ export default defineComponent(
               //先弹窗询问是否要补全信息
               uni.showModal( {
                 title: '提示',
-                content: '您的注册信息还不完整，是否现在去补全？',
+                content: '您的信息还不完整，是否现在去补全？（为了您更好的使用体验，请尽快补全个人信息）',
                 confirmText: '去补全',
                 cancelText: '稍后再说',
                 success: ( res ) =>
