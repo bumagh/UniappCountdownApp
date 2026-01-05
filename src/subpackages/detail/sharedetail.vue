@@ -3,7 +3,7 @@
     <!-- 顶部导航栏 -->
     <view class="navbar">
       <view class="navbar-icon" @click=" goBack ">
-        <text>‹</text>
+        <text>‹首页</text>
       </view>
       <view class="navbar-title">
         <text>奇妙日详情</text>
@@ -11,9 +11,6 @@
       <view class="navbar-actions">
         <view class="navbar-action" @click=" handleShare ">
           <text style="white-space: nowrap;">⤴ 分享</text>
-        </view>
-        <view class="navbar-action" @click=" handleEdit ">
-          <text style="white-space: nowrap;">✎ 编辑</text>
         </view>
       </view>
     </view>
@@ -116,7 +113,9 @@
           <text>返回</text>
         </view>
       </view>
-
+  <!-- 未登录浮动按钮 -->
+    <FloatWechatLogin :show="true" :firstLoginUrlBuilder=" buildFirstLoginUrl " text="微信登录立即体验"
+      @success=" onWechatLoginSuccess " />
       <!-- 底部空白 -->
       <view style="height: 40rpx;"></view>
     </scroll-view>
@@ -137,6 +136,7 @@ import { defineComponent } from 'vue';
 import db from '../../utils/db.js';
 import { Category, Countdown } from 'types';
 import ShareCountdown from '@/components/ShareCountdown.vue';
+import FloatWechatLogin from '@/components/FloatWechatLogin.vue';
 
 interface DetailPageData
 {
@@ -149,7 +149,7 @@ interface DetailPageData
 }
 export default defineComponent( {
   name: 'Detail',
-  components: { ShareCountdown },
+  components: { ShareCountdown,FloatWechatLogin },
   data (): DetailPageData
   {
     return {
@@ -218,7 +218,7 @@ export default defineComponent( {
   {
     const title = this.countdown?.title ? `分享：${ this.countdown.title }` : '分享一个奇妙日';
     // 让对方通过链接进入：携带 countdownId（如需做权限/可见性控制，请在服务端校验 shareToken）
-    const path = `/subpackages/detail/detail?id=${ this.countdownId }`;
+    const path = `/countdown/#/subpackages/detail/sharedetail?id=${ this.countdownId }`;
     return {
       title,
       path
@@ -242,6 +242,19 @@ export default defineComponent( {
     }
   },
   methods: {
+      buildFirstLoginUrl ( u: { id: any; nickname: any; sex: any } ): string
+      {
+        console.log("u.sex="+u.sex);
+        return `/subpackages/register/reginfo?id=${ u.id }&nickname=${ u.nickname }&gender=${ u.sex }`;
+      },
+      
+      onWechatLoginSuccess (): void
+      {
+        uni.switchTab( {
+          url: '/pages/index/index'
+        } );
+      },
+
     async loadData ()
     {
       try
@@ -266,7 +279,7 @@ export default defineComponent( {
       // #ifdef H5
       const base = window.location.origin;
       // 这里根据你的路由形态可能需要调整（如 hash 模式）
-      return `${ base }/countdown/#/subpackages/detail/detail?id=${ this.countdownId }`;
+      return `${ base }/countdown/#/subpackages/detail/sharedetail?id=${ this.countdownId }`;
       // #endif
 
       // #ifndef H5

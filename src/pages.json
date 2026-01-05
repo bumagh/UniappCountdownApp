@@ -63,6 +63,14 @@
             "navigationStyle": "custom",
             "enablePullDownRefresh": false
           }
+        },
+         {
+          "path": "sharedetail",
+          "style": {
+            "navigationBarTitleText": "奇妙日分享",
+            "navigationStyle": "custom",
+            "enablePullDownRefresh": false
+          }
         }
       ]
     },

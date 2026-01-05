@@ -254,9 +254,9 @@ export default defineComponent( {
   transform: translateX(-50%);
   background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%);
   color: #fff;
-  padding: 24rpx 80rpx;
+  padding: 24rpx 40rpx;
   border-radius: 999rpx;
-  font-size: 32rpx;
+  font-size: 30rpx;
   box-shadow: 0 8rpx 32rpx rgba(24, 144, 255, 0.18);
   text-align: center;
   font-weight: bold;
