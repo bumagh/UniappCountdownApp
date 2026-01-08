@@ -231,11 +231,83 @@ export default defineComponent(
       {
         try
         {
-          // 未登录时不拉取远端数据（避免接口报错）
+          // 未登录时：展示本地测试数据（用于空态预览）
           if ( !this.isLoggedIn )
           {
-            this.allCountdowns = [];
-            this.categories = [];
+            const today = new Date();
+            const toYmd = ( d: Date ) =>
+            {
+              const y = d.getFullYear();
+              const m = String( d.getMonth() + 1 ).padStart( 2, '0' );
+              const day = String( d.getDate() ).padStart( 2, '0' );
+              return `${ y }-${ m }-${ day }`;
+            };
+
+            this.categories = [
+              { id: 1, name: '健康', color: '#1890ff', icon: '💪', user_id: 0, created_at: '', updated_at: '' } as any,
+              { id: 2, name: '计划', color: '#52c41a', icon: '🗓️', user_id: 0, created_at: '', updated_at: '' } as any,
+              { id: 3, name: '纪念', color: '#fa8c16', icon: '🎉', user_id: 0, created_at: '', updated_at: '' } as any
+            ];
+
+            const d1 = new Date( today );
+            d1.setDate( d1.getDate() + 2 );
+            const d2 = new Date( today );
+            d2.setDate( d2.getDate() + 7 );
+            const d3 = new Date( today );
+            d3.setDate( d3.getDate() + 18 );
+            const d4 = new Date( today );
+            d4.setDate( d4.getDate() - 60 );
+
+            this.allCountdowns = [
+              {
+                id: 1001,
+                title: '荷尔蒙注射（半月）',
+                date: toYmd( d1 ),
+                is_pinned: false,
+                repeat_cycle: 0,
+                repeat_frequency: '不重复',
+                created_at: '',
+                updated_at: new Date().toISOString(),
+                category_id: 1,
+                user_id: 0
+              },
+              {
+                id: 1002,
+                title: 'NK/CIK免疫细胞回输（每月）',
+                date: toYmd( d2 ),
+                is_pinned: false,
+                repeat_cycle: 0,
+                repeat_frequency: '不重复',
+                created_at: '',
+                updated_at: new Date().toISOString(),
+                category_id: 1,
+                user_id: 0
+              },
+              {
+                id: 1003,
+                title: '抽血检查（每月）',
+                date: toYmd( d3 ),
+                is_pinned: true,
+                repeat_cycle: 0,
+                repeat_frequency: '不重复',
+                created_at: '',
+                updated_at: new Date().toISOString(),
+                category_id: 2,
+                user_id: 0
+              },
+              {
+                id: 1004,
+                title: '外泌体面部抗衰',
+                date: toYmd( d4 ),
+                is_pinned: false,
+                repeat_cycle: 0,
+                repeat_frequency: '不重复',
+                created_at: '',
+                updated_at: new Date().toISOString(),
+                category_id: 3,
+                user_id: 0
+              }
+            ] as any;
             return;
           }
 
