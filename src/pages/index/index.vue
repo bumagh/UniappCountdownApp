@@ -69,7 +69,7 @@
           <text>✕</text>
         </view>
       </view>
-      <scroll-view scroll-y class="drawer-content">
+      <scroll-view scroll-y class="drawer-content" show-scrollbar="false">
         <view class="category-list">
           <view class="category-drawer-item" @click=" handleAllCategory ">
             <view class="category-drawer-icon" style="background-color: #1890ff;">
@@ -678,14 +678,14 @@ export default defineComponent(
 }
 
 .countdown-section {
-  padding: 30rpx;
+  padding: 6rpx;
 }
 
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20rpx;
+  margin-bottom: 4rpx;
 }
 
 .section-title {

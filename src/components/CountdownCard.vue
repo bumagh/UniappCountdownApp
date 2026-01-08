@@ -4,17 +4,21 @@
       <!-- <text>📌</text> -->
     </view>
 
-    <view class="countdown-left">
+    <view class="countdown-left" :class="{ 'pinned-left': countdown.is_pinned }">
       <view class="category-pill" :style=" { borderColor: categoryColor } ">
         <view class="category-dot" :style=" { backgroundColor: categoryColor } "></view>
         <text class="category-name">{{ categoryName }}</text>
       </view>
-      <text class="countdown-title">{{ countdown.title }}</text>
+      <view class="title-date-wrap" v-if="countdown.is_pinned">
+        <text class="countdown-title pinned-title">{{ countdown.title }}{{ titleSuffix }}</text>
+        <text class="pinned-date">{{ countdown.displayDate }}</text>
+      </view>
+      <text v-else class="countdown-title">{{ countdown.title }}{{ titleSuffix }}</text>
     </view>
 
-    <view class="countdown-right" :class="[ mainClass ]">
-      <text class="countdown-number" :class="daysClass">{{ absDays }}</text>
-      <text class="countdown-unit" :class="[ daysClass ]">天</text>
+    <view class="countdown-right" :class="[ mainClass, { 'pinned-right': countdown.is_pinned } ]">
+      <text class="countdown-number" :class="[ daysClass, { 'pinned-number': countdown.is_pinned } ]">{{ absDays }}</text>
+      <text class="countdown-unit" :class="[ daysClass, { 'pinned-unit': countdown.is_pinned } ]">天</text>
     </view>
   </view>
 </template>
@@ -70,6 +74,12 @@ export default defineComponent( {
       'unit-past': days.value < 0
     } ) );
 
+    const titleSuffix = computed( () => {
+      if ( days.value > 0 ) return '还有';
+      if ( days.value < 0 ) return '已经';
+      return '就在今天';
+    } );
+
     const handleClick = () =>
     {
       emit( 'click', props.countdown );
@@ -83,7 +93,8 @@ export default defineComponent( {
       mainClass,
       daysClass,
       unitClass,
-      handleClick
+      handleClick,
+      titleSuffix
     };
   }
 } );
@@ -109,9 +120,11 @@ export default defineComponent( {
 }
 
 .pinned-card {
-  border: 2rpx solid #1890ff;
-  background: linear-gradient(135deg, #ffffff 0%, #e8f4ff 100%);
-  box-shadow: 0 6rpx 20rpx rgba(24, 144, 255, 0.15);
+  border: 3rpx solid #1890ff;
+  background: linear-gradient(135deg, #e6f7ff 0%, #ffffff 100%);
+  box-shadow: 0 8rpx 32rpx rgba(24, 144, 255, 0.18);
+  min-height: 160rpx;
+  padding: 16rpx 16rpx;
 }
 
 .pin-badge {
@@ -192,6 +205,34 @@ export default defineComponent( {
 
 }
 
+.pinned-left {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.title-date-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-left: 0;
+}
+
+.pinned-title {
+  font-size: 32rpx !important;
+  font-weight: 700;
+  color: #1d39c4;
+  margin-bottom: 2rpx;
+  padding-bottom: 0;
+}
+
+.pinned-date {
+  font-size: 22rpx;
+  color: #888;
+  margin: 0;
+  padding: 0;
+}
+
 .compact-card .countdown-title {
   font-size: 26rpx;
 }
@@ -239,6 +280,16 @@ export default defineComponent( {
   padding: 0;
 }
 
+.pinned-right {
+  width: 270rpx !important;
+  min-width: 270rpx !important;
+}
+
+.pinned-number {
+  font-size: 64rpx !important;
+  font-weight: 900;
+}
+
 .compact-card .countdown-number {
   font-size: 58rpx;
 }
@@ -261,8 +312,6 @@ export default defineComponent( {
   position: relative;
   overflow: hidden;
 }
-
-
 
 .countdown-unit {
   /* 确保文字在遮罩之上 */
