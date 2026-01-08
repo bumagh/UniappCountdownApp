@@ -246,7 +246,7 @@ export default defineComponent( {
 /* “天”字：与数字同高，胶囊背景使用与 days 同色系的更深色（通过叠加黑色遮罩加深） */
 .countdown-unit {
   font-size: 20rpx;
-  color: rgba( 255, 255, 255, 0.92 );
+  color: rgba( 255, 255, 255, 1 );
   line-height: 1;
 
   flex: 0 0 auto;
@@ -262,12 +262,7 @@ export default defineComponent( {
   overflow: hidden;
 }
 
-.countdown-unit::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-color: rgba( 0, 0, 0, 0.18 );
-}
+
 
 .countdown-unit {
   /* 确保文字在遮罩之上 */
