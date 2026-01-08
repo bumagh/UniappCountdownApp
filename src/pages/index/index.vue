@@ -527,6 +527,14 @@ export default defineComponent(
 
       handleCountdownClick ( countdown: CountdownWithDisplayDate ): void
       {
+        //需要判断是否登录
+        if ( !this.isLoggedIn ){
+          uni.showToast( {
+            title: '请先登录',
+            icon: 'none'
+          } );
+          return;
+        }
         uni.navigateTo( {
           url: `/subpackages/detail/detail?id=${ countdown.id }`
         } );
