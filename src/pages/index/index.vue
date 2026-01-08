@@ -243,39 +243,29 @@ export default defineComponent(
               const day = String( d.getDate() ).padStart( 2, '0' );
               return `${ y }-${ m }-${ day }`;
             };
-
             this.categories = [
-              { id: 1, name: '健康', color: '#1890ff', icon: '💪', user_id: 0, created_at: '', updated_at: '' } as any,
-              { id: 2, name: '计划', color: '#52c41a', icon: '🗓️', user_id: 0, created_at: '', updated_at: '' } as any,
-              { id: 3, name: '纪念', color: '#fa8c16', icon: '🎉', user_id: 0, created_at: '', updated_at: '' } as any
+              { id: 1, name: '健康', color: '#1890ff', icon: '💪', user_id: 0, created_at: '', updated_at: '' },
+              { id: 2, name: '计划', color: '#52c41a', icon: '🗓️', user_id: 0, created_at: '', updated_at: '' },
+              { id: 3, name: '纪念', color: '#fa8c16', icon: '🎉', user_id: 0, created_at: '', updated_at: '' }
             ];
-            const d0 = new Date( today );
-            d0.setDate( d0.getDate() + 365*80 );
-            const d1 = new Date( today );
-            d1.setDate( d1.getDate() + 2 );
-            const d2 = new Date( today );
-            d2.setDate( d2.getDate() + 7 );
-            const d3 = new Date( today );
-            d3.setDate( d3.getDate() + 18 );
-            const d4 = new Date( today );
-            d4.setDate( d4.getDate() - 60 );
-
+            // 未来
+            const d1 = new Date( today ); d1.setDate( d1.getDate() + 2 );
+            const d2 = new Date( today ); d2.setDate( d2.getDate() + 7 );
+            const d3 = new Date( today ); d3.setDate( d3.getDate() + 18 );
+            const d4 = new Date( today ); d4.setDate( d4.getDate() + 22 );
+            const d5 = new Date( today ); d5.setDate( d5.getDate() + 22873 );
+            // 已过
+            const d6 = new Date( today ); d6.setDate( d6.getDate() - 60 );
+            const d7 = new Date( today ); d7.setDate( d7.getDate() - 82 );
+            const d8 = new Date( today ); d8.setDate( d8.getDate() - 129 );
+            const d9 = new Date( today ); d9.setDate( d9.getDate() - 949 );
+            const d10 = new Date( today ); d10.setDate( d10.getDate() - 992 );
+            const d11 = new Date( today ); d11.setDate( d11.getDate() - 1243 );
+            const d12 = new Date( today ); d12.setDate( d12.getDate() - 2653 );
             this.allCountdowns = [
               {
-                id: 999,
-                title: '突破120岁',
-                date: toYmd( d0 ),
-                is_pinned: true,
-                repeat_cycle: 0,
-                repeat_frequency: '不重复',
-                created_at: '',
-                updated_at: new Date().toISOString(),
-                category_id: 1,
-                user_id: 0
-              },
-              {
                 id: 1001,
-                title: '荷尔蒙注射（半月）',
+                title: '荷尔蒙注射(半月)',
                 date: toYmd( d1 ),
                 is_pinned: false,
                 repeat_cycle: 0,
@@ -287,7 +277,7 @@ export default defineComponent(
               },
               {
                 id: 1002,
-                title: 'NK/CIK免疫细胞回输（每月）',
+                title: 'NK/CIK免疫细胞回输(每月)',
                 date: toYmd( d2 ),
                 is_pinned: false,
                 repeat_cycle: 0,
@@ -299,8 +289,8 @@ export default defineComponent(
               },
               {
                 id: 1003,
-                title: '抽血检查（每月）',
-                date: toYmd( d3 ),
+                title: '抽血检查(每月)',
+                date: toYmd( d2 ),
                 is_pinned: false,
                 repeat_cycle: 0,
                 repeat_frequency: '不重复',
@@ -311,8 +301,45 @@ export default defineComponent(
               },
               {
                 id: 1004,
-                title: '外泌体面部抗衰',
+                title: '长寿医学检测(每季度)',
+                date: toYmd( d3 ),
+                is_pinned: false,
+                repeat_cycle: 0,
+                repeat_frequency: '不重复',
+                created_at: '',
+                updated_at: new Date().toISOString(),
+                category_id: 2,
+                user_id: 0
+              },
+              {
+                id: 1005,
+                title: 'MSC间充质干细胞回输(每月)',
                 date: toYmd( d4 ),
+                is_pinned: false,
+                repeat_cycle: 0,
+                repeat_frequency: '不重复',
+                created_at: '',
+                updated_at: new Date().toISOString(),
+                category_id: 1,
+                user_id: 0
+              },
+              {
+                id: 1006,
+                title: '突破120岁',
+                date: toYmd( d5 ),
+                is_pinned: true,
+                repeat_cycle: 0,
+                repeat_frequency: '不重复',
+                created_at: '',
+                updated_at: new Date().toISOString(),
+                category_id: 1,
+                user_id: 0
+              },
+              // 已过
+              {
+                id: 1007,
+                title: '外泌体面部抗衰老入组',
+                date: toYmd( d6 ),
                 is_pinned: false,
                 repeat_cycle: 0,
                 repeat_frequency: '不重复',
@@ -320,8 +347,80 @@ export default defineComponent(
                 updated_at: new Date().toISOString(),
                 category_id: 3,
                 user_id: 0
+              },
+              {
+                id: 1008,
+                title: '长寿修炼(空腹力半日断食法)',
+                date: toYmd( d7 ),
+                is_pinned: false,
+                repeat_cycle: 0,
+                repeat_frequency: '不重复',
+                created_at: '',
+                updated_at: new Date().toISOString(),
+                category_id: 2,
+                user_id: 0
+              },
+              {
+                id: 1009,
+                title: '荷尔蒙抗衰疗程开启',
+                date: toYmd( d8 ),
+                is_pinned: false,
+                repeat_cycle: 0,
+                repeat_frequency: '不重复',
+                created_at: '',
+                updated_at: new Date().toISOString(),
+                category_id: 1,
+                user_id: 0
+              },
+              {
+                id: 1010,
+                title: 'IPSC种子细胞存储',
+                date: toYmd( d9 ),
+                is_pinned: false,
+                repeat_cycle: 0,
+                repeat_frequency: '不重复',
+                created_at: '',
+                updated_at: new Date().toISOString(),
+                category_id: 1,
+                user_id: 0
+              },
+              {
+                id: 1011,
+                title: 'IPSC重编程采血',
+                date: toYmd( d10 ),
+                is_pinned: false,
+                repeat_cycle: 0,
+                repeat_frequency: '不重复',
+                created_at: '',
+                updated_at: new Date().toISOString(),
+                category_id: 1,
+                user_id: 0
+              },
+              {
+                id: 1012,
+                title: '细胞抗衰疗程正式启动',
+                date: toYmd( d11 ),
+                is_pinned: false,
+                repeat_cycle: 0,
+                repeat_frequency: '不重复',
+                created_at: '',
+                updated_at: new Date().toISOString(),
+                category_id: 1,
+                user_id: 0
+              },
+              {
+                id: 1013,
+                title: '口服NMN抗衰老',
+                date: toYmd( d12 ),
+                is_pinned: false,
+                repeat_cycle: 0,
+                repeat_frequency: '不重复',
+                created_at: '',
+                updated_at: new Date().toISOString(),
+                category_id: 1,
+                user_id: 0
               }
-            ] as any;
+            ];
             return;
           }
 
