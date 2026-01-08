@@ -100,6 +100,7 @@ import { calculateDays, getAbsoluteDays, formatDate, getRepeatText } from '@/uti
 import { Category, Countdown } from 'types';
 import FloatWechatLogin from '@/components/FloatWechatLogin.vue';
 import CountdownCard from '@/components/CountdownCard.vue';
+import { sassTrue } from 'sass';
 // 扩展 Countdown 接口，添加 displayDate 字段
 interface CountdownWithDisplayDate extends Countdown
 {
@@ -129,7 +130,7 @@ export default defineComponent(
       return {
         user: {
           id: 1,
-          nickname: '张三',
+          nickname: '未登录用户',
           avatar: '',
           created_at: '',
           updated_at: ''
@@ -248,7 +249,8 @@ export default defineComponent(
               { id: 2, name: '计划', color: '#52c41a', icon: '🗓️', user_id: 0, created_at: '', updated_at: '' } as any,
               { id: 3, name: '纪念', color: '#fa8c16', icon: '🎉', user_id: 0, created_at: '', updated_at: '' } as any
             ];
-
+            const d0 = new Date( today );
+            d0.setDate( d0.getDate() + 365*80 );
             const d1 = new Date( today );
             d1.setDate( d1.getDate() + 2 );
             const d2 = new Date( today );
@@ -259,6 +261,18 @@ export default defineComponent(
             d4.setDate( d4.getDate() - 60 );
 
             this.allCountdowns = [
+              {
+                id: 999,
+                title: '突破120岁',
+                date: toYmd( d0 ),
+                is_pinned: true,
+                repeat_cycle: 0,
+                repeat_frequency: '不重复',
+                created_at: '',
+                updated_at: new Date().toISOString(),
+                category_id: 1,
+                user_id: 0
+              },
               {
                 id: 1001,
                 title: '荷尔蒙注射（半月）',
@@ -287,7 +301,7 @@ export default defineComponent(
                 id: 1003,
                 title: '抽血检查（每月）',
                 date: toYmd( d3 ),
-                is_pinned: true,
+                is_pinned: false,
                 repeat_cycle: 0,
                 repeat_frequency: '不重复',
                 created_at: '',
@@ -614,6 +628,7 @@ export default defineComponent(
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 9998;
 }
+
 .category-list {
   display: flex;
   flex-direction: column;
