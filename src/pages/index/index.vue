@@ -421,6 +421,7 @@ export default defineComponent(
                 user_id: 0
               }
             ];
+             this.allCountdowns=[];
             return;
           }
 
