@@ -21,26 +21,8 @@
           <text class="section-title">置顶</text>
           <text class="section-count">{{ pinnedCountdowns.length }}个</text>
         </view>
-        <view v-for=" countdown in pinnedCountdowns " :key=" countdown.id " class="countdown-card shadow pinned-card"
-          :class=" { 'past-card': calculateDays( countdown.displayDate ) < 0 } "
-          @click="handleCountdownClick( countdown )">
-          <view class="pin-badge">
-            <text>📌</text>
-          </view>
-          <view class="countdown-main" :class=" { 'past-main': calculateDays( countdown.displayDate ) < 0 } ">
-            <text class="countdown-number">{{ getAbsoluteDays( countdown.displayDate ) }}</text>
-            <text class="countdown-unit">天</text>
-          </view>
-          <view class="countdown-info">
-            <text class="countdown-title">{{ countdown.title }}</text>
-            <text class="countdown-date">{{ formatDate( countdown.displayDate ) }}</text>
-            <view class="countdown-category">
-              <view class="category-dot" :style=" { backgroundColor: getCategoryColor( countdown.category_id ) } ">
-              </view>
-              <text class="category-name">{{ getCategoryName( countdown.category_id ) }}</text>
-            </view>
-          </view>
-        </view>
+        <CountdownCard v-for=" countdown in pinnedCountdowns " :key=" countdown.id " :countdown=" countdown "
+          :categories=" categories " :compact=" true " @click=" handleCountdownClick " />
       </view>
 
       <!-- 未来奇妙日（包含置顶的） -->
@@ -49,27 +31,8 @@
           <text class="section-title">未来</text>
           <text class="section-count">{{ futureCountdowns.length }}个</text>
         </view>
-        <view v-for=" countdown in futureCountdowns " :key=" countdown.id " class="countdown-card shadow" :class=" {
-          'pinned-card': countdown.is_pinned,
-          'past-card': calculateDays( countdown.displayDate ) < 0
-        } " @click="handleCountdownClick( countdown )">
-          <view v-if=" countdown.is_pinned " class="pin-badge">
-            <text>📌</text>
-          </view>
-          <view class="countdown-main" :class=" { 'past-main': calculateDays( countdown.displayDate ) < 0 } ">
-            <text class="countdown-number">{{ getAbsoluteDays( countdown.displayDate ) }}</text>
-            <text class="countdown-unit">天</text>
-          </view>
-          <view class="countdown-info">
-            <text class="countdown-title">{{ countdown.title }}</text>
-            <text class="countdown-date">{{ formatDate( countdown.displayDate ) }}</text>
-            <view class="countdown-category">
-              <view class="category-dot" :style=" { backgroundColor: getCategoryColor( countdown.category_id ) } ">
-              </view>
-              <text class="category-name">{{ getCategoryName( countdown.category_id ) }}</text>
-            </view>
-          </view>
-        </view>
+        <CountdownCard v-for=" countdown in futureCountdowns " :key=" countdown.id " :countdown=" countdown "
+          :categories=" categories " :compact=" true " @click=" handleCountdownClick " />
       </view>
 
       <!-- 已经奇妙日（包含置顶的） -->
@@ -78,25 +41,8 @@
           <text class="section-title">已经</text>
           <text class="section-count">{{ pastCountdowns.length }}个</text>
         </view>
-        <view v-for=" countdown in pastCountdowns " :key=" countdown.id " class="countdown-card shadow past-card"
-          :class=" { 'pinned-card': countdown.is_pinned } " @click="handleCountdownClick( countdown )">
-          <view v-if=" countdown.is_pinned " class="pin-badge">
-            <text>📌</text>
-          </view>
-          <view class="countdown-main past-main">
-            <text class="countdown-number">{{ getAbsoluteDays( countdown.displayDate ) }}</text>
-            <text class="countdown-unit">天</text>
-          </view>
-          <view class="countdown-info">
-            <text class="countdown-title">{{ countdown.title }}</text>
-            <text class="countdown-date">{{ formatDate( countdown.displayDate ) }}</text>
-            <view class="countdown-category">
-              <view class="category-dot" :style=" { backgroundColor: getCategoryColor( countdown.category_id ) } ">
-              </view>
-              <text class="category-name">{{ getCategoryName( countdown.category_id ) }}</text>
-            </view>
-          </view>
-        </view>
+        <CountdownCard v-for=" countdown in pastCountdowns " :key=" countdown.id " :countdown=" countdown "
+          :categories=" categories " :compact=" true " @click=" handleCountdownClick " />
       </view>
 
       <!-- 空状态 -->
@@ -153,6 +99,7 @@ import apiService from '@/services/apiService';
 import { calculateDays, getAbsoluteDays, formatDate, getRepeatText } from '@/utils/countdownUtils';
 import { Category, Countdown } from 'types';
 import FloatWechatLogin from '@/components/FloatWechatLogin.vue';
+import CountdownCard from '@/components/CountdownCard.vue';
 // 扩展 Countdown 接口，添加 displayDate 字段
 interface CountdownWithDisplayDate extends Countdown
 {
@@ -173,7 +120,8 @@ export default defineComponent(
     name: 'Index',
 
     components: {
-      FloatWechatLogin
+      FloatWechatLogin,
+      CountdownCard
     },
 
     data (): IndexPageData
@@ -566,137 +514,6 @@ export default defineComponent(
   color: #666666;
 }
 
-.countdown-card {
-  background-color: #ffffff;
-  border-radius: 20rpx;
-  padding: 40rpx 30rpx;
-  margin-bottom: 20rpx;
-  display: flex;
-  align-items: center;
-  gap: 30rpx;
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.pinned-card {
-  border: 2rpx solid #1890ff;
-  background: linear-gradient(135deg, #ffffff 0%, #e8f4ff 100%);
-  box-shadow: 0 6rpx 20rpx rgba(24, 144, 255, 0.15);
-}
-
-.pin-badge {
-  position: absolute;
-  top: 10rpx;
-  right: 10rpx;
-  font-size: 32rpx;
-  background-color: rgba(255, 149, 0, 0.1);
-  padding: 8rpx;
-  border-radius: 8rpx;
-}
-
-.past-card {
-  opacity: 0.8;
-  background-color: #f5f5f5 !important;
-}
-
-.past-card.pinned-card {
-  border-color: #999999;
-  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%) !important;
-  border-left: 6rpx solid #999999;
-}
-
-.countdown-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 160rpx;
-}
-
-.countdown-number {
-  font-size: 80rpx;
-  font-weight: bold;
-  color: #1890ff;
-  line-height: 1;
-}
-
-.past-main .countdown-number {
-  color: #666666;
-}
-
-.countdown-unit {
-  font-size: 24rpx;
-  color: #666666;
-  margin-top: 8rpx;
-}
-
-.countdown-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
-}
-
-.countdown-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333333;
-}
-
-.countdown-date {
-  font-size: 24rpx;
-  color: #666666;
-}
-
-.countdown-category {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  margin-top: 4rpx;
-}
-
-.category-dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-}
-
-.category-name {
-  font-size: 22rpx;
-  color: #666666;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 150rpx 0;
-  color: #aaaaaa;
-}
-
-.empty-icon {
-  font-size: 120rpx;
-  margin-bottom: 20rpx;
-}
-
-.empty-text {
-  font-size: 28rpx;
-  margin-bottom: 40rpx;
-}
-
-.btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20rpx 40rpx;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-}
-
-.btn-primary {
-  background-color: #1890ff;
-  color: #ffffff;
-}
 
 .drawer {
   position: fixed;
@@ -724,6 +541,11 @@ export default defineComponent(
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 9998;
+}
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
 }
 
 .drawer-header {
@@ -753,12 +575,6 @@ export default defineComponent(
 .drawer-content {
   flex: 1;
   padding: 20rpx;
-}
-
-.category-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
 }
 
 .category-drawer-item {
@@ -792,9 +608,5 @@ export default defineComponent(
   background-color: #e8f4ff;
   padding: 4rpx 16rpx;
   border-radius: 999rpx;
-}
-
-.shadow {
-  box-shadow: 0 4rpx 16rpx rgba(24, 144, 255, 0.08);
 }
 </style>
