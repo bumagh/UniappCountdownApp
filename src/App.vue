@@ -106,7 +106,7 @@ export default defineComponent( {
           // 弹窗展示更新标题与描述（字段可能为空，做兜底）
           const modalTitle = ( '版本更新' + ( latest?.title && String( latest.title ).trim() ) ) || '版本更新提示';
           const modalContent = ( ( latest?.description && String( latest.description ).trim() ) + '\n检测到新版本，为保证数据一致性已清除本地数据，请重新登录。' )
-            || '检测到新版本，为保证数据一致性已清除本地数据，请重新登录。';
+            || '检测到新版本，为保证数据一致性已清除本地数据(不影响使用)，请重新登录。';
 
           await new Promise<void>( ( resolve ) =>
           {

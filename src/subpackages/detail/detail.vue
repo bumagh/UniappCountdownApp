@@ -266,7 +266,7 @@ export default defineComponent( {
       // #ifdef H5
       const base = window.location.origin;
       // 这里根据你的路由形态可能需要调整（如 hash 模式）
-      return `${ base }/countdown/#/subpackages/detail/detail?id=${ this.countdownId }`;
+      return `${ base }/countdown/#/subpackages/sharedetail/detail?id=${ this.countdownId }`;
       // #endif
 
       // #ifndef H5
