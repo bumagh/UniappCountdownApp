@@ -218,7 +218,7 @@ export default defineComponent( {
   {
     const title = this.countdown?.title ? `分享：${ this.countdown.title }` : '分享一个奇妙日';
     // 让对方通过链接进入：携带 countdownId（如需做权限/可见性控制，请在服务端校验 shareToken）
-    const path = `/subpackages/detail/detail?id=${ this.countdownId }`;
+    const path = `/subpackages/detail/sharedetail?id=${ this.countdownId }`;
     return {
       title,
       path
@@ -266,7 +266,7 @@ export default defineComponent( {
       // #ifdef H5
       const base = window.location.origin;
       // 这里根据你的路由形态可能需要调整（如 hash 模式）
-      return `${ base }/countdown/#/subpackages/sharedetail/detail?id=${ this.countdownId }`;
+      return `${ base }/countdown/#/subpackages/detail/sharedetail?id=${ this.countdownId }`;
       // #endif
 
       // #ifndef H5

@@ -443,6 +443,7 @@ export default defineComponent(
                 {
                   if ( res.confirm )
                   {
+                    uni.setStorageSync('gender',currentUser.gender);
                     uni.navigateTo( {
                       url: `/subpackages/register/reginfo?id=${ currentUser.id }&nickname=${ currentUser.nickname }&gender=${ currentUser.gender }`
                     } );

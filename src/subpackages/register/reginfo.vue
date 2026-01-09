@@ -308,7 +308,7 @@ export default defineComponent( {
           id: this.userid,
           username: this.form.username,
           name: this.form.name,
-          gender: this.form.gender=='male'?'1':'0',
+          gender: this.form.gender=='male'?'0':'1',
           birthday: this.form.birthday,
           password: this.form.password
         } );
