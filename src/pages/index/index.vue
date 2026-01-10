@@ -111,6 +111,7 @@ interface IndexPageData
 {
   user: any;
   isLoggedIn: boolean;
+  isLoadingData: boolean;
   allCountdowns: Countdown[];
   categories: Category[];
   drawerVisible: boolean;
@@ -136,6 +137,7 @@ export default defineComponent(
           updated_at: ''
         },
         isLoggedIn: false,
+        isLoadingData: false,
         allCountdowns: [
           {
             id: 1,
@@ -213,23 +215,26 @@ export default defineComponent(
       }
     },
 
-    onShow (): void
+    async onShow (): Promise<void>
     {
       // 简单以token判断登录态
       const token = uni.getStorageSync( 'token' );
       this.isLoggedIn = !!token;
 
-      this.loadData();
+      await this.loadData();
     },
 
     methods: {
       buildFirstLoginUrl ( u: { id: any; nickname: any; sex: any } ): string
       {
+      console.log('buildFirstLoginUrl'+u.sex)
         return `/subpackages/register/reginfo?id=${ u.id }&nickname=${ u.nickname }&gender=${ u.sex }`;
       },
 
       async loadData (): Promise<void>
       {
+        if(this.isLoadingData) return;
+        this.isLoadingData = true;
         try
         {
           // 未登录时：展示本地测试数据（用于空态预览）
@@ -444,6 +449,7 @@ export default defineComponent(
                   if ( res.confirm )
                   {
                     uni.setStorageSync('gender',currentUser.gender);
+                    console.log('currentUser.gender:', currentUser.gender);
                     uni.navigateTo( {
                       url: `/subpackages/register/reginfo?id=${ currentUser.id }&nickname=${ currentUser.nickname }&gender=${ currentUser.gender }`
                     } );
@@ -468,10 +474,12 @@ export default defineComponent(
             icon: 'none'
           } );
         }
+        this.isLoadingData = false;
       },
 
-      onWechatLoginSuccess (): void
+      onWechatLoginSuccess (params:any): void
       {
+        console.log('onWechatLoginSuccess',params);
         this.isLoggedIn = true;
         this.loadData();
       },

@@ -175,14 +175,15 @@ export default defineComponent( {
         } );
 
         this.$emit( 'success', loginRes as LoginSuccessPayload );
-
+        
         if ( !this.autoRedirect ) return;
 
         // 首次登录处理（沿用 login.vue 逻辑：isfirst == 'yes'）
         const isFirst = loginRes.userInfo?.isfirst === 'yes';
 
-        if ( isFirst && this.firstLoginUrlBuilder ) {
-          const url = this.firstLoginUrlBuilder( loginRes.userInfo );
+        if ( isFirst && this.firstLoginUrlBuilder!=null ) {
+           const url =  `/subpackages/register/reginfo?id=${ loginRes.userInfo.id }&nickname=${ loginRes.userInfo.nickname }&gender=${ loginRes.userInfo.gender }`;
+          // const url = this.firstLoginUrlBuilder( loginRes.userInfo );
           setTimeout( () => {
             uni.navigateTo( { url } );
           }, 1500 );

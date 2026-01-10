@@ -198,6 +198,7 @@ export default defineComponent( {
         if ( loginRes.userInfo.isfirst == 'yes' )
           setTimeout( () =>
           {
+            console.log(loginRes.userInfo.sex);
             uni.navigateTo( { url: `/subpackages/register/reginfo?id=${ loginRes.userInfo.id }&nickname=${ loginRes.userInfo.nickname }&gender=${ loginRes.userInfo.sex }` } );
           }, 1500 );
         else
