@@ -3,9 +3,12 @@
 // const API_BASE_URL: string =(process as any)?.env?.VITE_API_BASE_URL ||
 //   ( import.meta as any )?.env?.VITE_API_BASE_URL ||
 //   'https://app.tutlab.tech/api/v1.';
-const API_BASE_URL: string =
-  'https://app.tutlab.tech/index.php/api/';
+// const API_BASE_URL: string =
 
+import { getUrl } from "@/utils/axios";
+
+//   'https://app.tutlab.tech/index.php/api/';
+const API_BASE_URL: string = getUrl()+'/index.php/api/';
 export const API = {
     // 用户相关
     user: {
@@ -15,6 +18,7 @@ export const API = {
         update: `${ API_BASE_URL }account/profileDirect`,
         initInfo: `${ API_BASE_URL }account/initInfo`,
         loginByWeixin: `${ API_BASE_URL }wechat/loginByWeixin`,
+        pwdLogin: `${ API_BASE_URL }user/pwdLogin`,
     },
     // 分类相关
     category: {

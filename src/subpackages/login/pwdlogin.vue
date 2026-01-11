@@ -338,7 +338,7 @@ export default defineComponent( {
       try
       {
         // 4. 调用注册接口
-        const retLogin = await apiService.loginUser( {
+        const retLogin = await apiService.loginPwd( {
           username: this.form.username,
           password: this.form.password
         } );
@@ -350,8 +350,9 @@ export default defineComponent( {
           username: this.form.username,
           password: this.form.password,
         } );
-        uni.setStorageSync( 'token', retLogin.data.token );
-        uni.setStorageSync( 'userid', retLogin.data.userid );
+        uni.setStorageSync( 'token', retLogin.data.userInfo.token );
+        uni.setStorageSync( 'userid', retLogin.data.userInfo.id );
+        uni.setStorageSync( 'userinfo', retLogin.data.userInfo );
         console.log( retLogin )
         // 6. 延迟跳转，确保用户能看到成功提示
         setTimeout( () =>

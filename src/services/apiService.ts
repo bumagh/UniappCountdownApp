@@ -38,6 +38,11 @@ class ApiService
     const res = await request.post<User>( API.user.login, data );
     return res;
   }
+    async loginPwd ( data: Partial<User> ): Promise<CommonResponse>
+  {
+    const res = await request.request<User>( API.user.pwdLogin,'POST',  data );
+    return res;
+  }
   async registerUser ( data: Partial<User> ): Promise<CommonResponse>
   {
     const res = await request.post<User>( API.user.register, data );
