@@ -23,6 +23,7 @@
     "@dcloudio/uni-quickapp-webview": "3.0.0-4030620241128001",
     "@dcloudio/uni-ui": "1.4.29",
     "@fortawesome/fontawesome-svg-core": "latest",
+        "axios": "1.9.0",
     "@fortawesome/free-solid-svg-icons": "latest",
     "@fortawesome/vue-fontawesome": "latest",
     "colorui": "^1.0.0",

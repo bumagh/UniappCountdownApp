@@ -7,6 +7,7 @@
 import { defineComponent } from 'vue';
 import apiService from './services/apiService';
 import { Version } from 'types'
+import { getUrl } from './utils/axios';
 export default defineComponent( {
   name: 'App',
   data ()
@@ -17,6 +18,7 @@ export default defineComponent( {
   },
   onLaunch ()
   {
+    console.log( getUrl() );
     console.log( 'App Launch' );
     this.initApp();
     if ( !uni.getStorageSync( 'userid' ) )
