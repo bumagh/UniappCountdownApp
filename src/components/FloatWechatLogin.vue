@@ -129,11 +129,20 @@ export default defineComponent( {
     async startWechatLogin (): Promise<void> {
       // 1) 必须在微信环境
       if ( !wxauth.isInWechat() ) {
-        uni.showModal( {
+    
+        //输出当前url域名,如果是localhost,则跳转到账号密码登录
+        // console.log('当前url域名:',window.location.hostname);
+        if(window.location.hostname==='localhost'){
+          uni.navigateTo({
+            url:'/subpackages/login/pwdlogin'
+          });
+        }else{
+              uni.showModal( {
           title: '提示',
           content: '请在微信客户端中打开此页面使用微信登录',
           showCancel: false
         } );
+        }
         return;
       }
 

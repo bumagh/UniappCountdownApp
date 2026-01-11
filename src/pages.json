@@ -97,6 +97,14 @@
             "navigationStyle": "custom",
             "enablePullDownRefresh": false
           }
+        },
+           {
+          "path": "pwdlogin",
+          "style": {
+            "navigationBarTitleText": "登录",
+            "navigationStyle": "custom",
+            "enablePullDownRefresh": false
+          }
         }
       ]
     },
