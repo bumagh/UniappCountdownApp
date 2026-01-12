@@ -3,13 +3,13 @@
     <!-- 顶部导航栏 -->
     <view class="navbar">
       <view class="navbar-icon" @click=" goBack ">
-        <text>‹</text>
+        <text style="white-space: nowrap;">‹返回</text>
       </view>
       <view class="navbar-title">
         <text>{{ isEdit ? '编辑奇妙日' : '添加奇妙日' }}</text>
       </view>
-      <view class="navbar-icon" @click=" handleSubmit ">
-        <text>✓</text>
+      <view class="navbar-icon navbar-icon-right" @click=" handleSubmit ">
+        <text style="white-space: nowrap;">✓确认</text>
       </view>
     </view>
 
@@ -534,7 +534,9 @@ export default defineComponent( {
   font-size: 40rpx;
   color: #ffffff;
 }
-
+.navbar-icon-right {
+  margin-right: 20rpx;
+}
 .page-content {
   height: calc(100vh - 88rpx);
   padding-top: 88rpx;

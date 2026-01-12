@@ -8,8 +8,8 @@
       <view class="navbar-title">
         <text>{{ user.nickname }}的日历</text>
       </view>
-      <view class="navbar-icon" @click=" goToEventEdit ">
-        <text>+</text>
+      <view class="navbar-icon navbar-icon-right" @click=" goToEventEdit ">
+          <text style="white-space: nowrap;">+添加</text>
       </view>
     </view>
 
@@ -1093,5 +1093,8 @@ export default defineComponent( {
   padding: 30rpx;
   border-top: 2rpx solid #f0ebe6;
   gap: 20rpx;
+}
+.navbar-icon-right{
+  margin-right: 60rpx;
 }
 </style>

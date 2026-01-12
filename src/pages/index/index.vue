@@ -9,7 +9,7 @@
         <text>{{ user.nickname }}的奇妙日</text>
       </view>
       <view class="navbar-icon" @click=" showAddCountdown ">
-        <text>+</text>
+        <text style="white-space: nowrap;">+添加</text>
       </view>
     </view>
 
@@ -687,6 +687,7 @@ export default defineComponent(
   justify-content: center;
   font-size: 40rpx;
   color: #ffffff;
+  margin-right: 20rpx;
 }
 
 .page-content {

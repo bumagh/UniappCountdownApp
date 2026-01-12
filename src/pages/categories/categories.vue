@@ -8,9 +8,10 @@
       <view class="navbar-title">
         <text>{{ user.nickname }}的奇妙本</text>
       </view>
-      <view class="navbar-icon" @click=" goToBookEdit ">
+      <view></view>
+      <!-- <view class="navbar-icon" @click=" goToBookEdit ">
         <text>+</text>
-      </view>
+      </view> -->
     </view>
 
     <!-- 主体内容 -->
