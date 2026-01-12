@@ -269,7 +269,7 @@ export default defineComponent({
         const retReg = await apiService.registerUser({
           username: this.form.username,
           name: this.form.name,
-          gender: this.form.gender,
+          gender: this.form.gender=='male' ?'1':'0',
           birthday: this.form.birthday,
           password: this.form.password
         });
@@ -287,7 +287,7 @@ export default defineComponent({
         // 5. 延迟跳转，确保用户能看到成功提示
         setTimeout(() => {
           uni.redirectTo({
-            url: '/subpackages/login/login'
+            url: '/subpackages/login/pwdlogin'
           });
         }, 1500);
 

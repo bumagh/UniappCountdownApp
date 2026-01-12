@@ -219,7 +219,7 @@ export default defineComponent(
     {
       // 简单以token判断登录态
       const token = uni.getStorageSync( 'token' );
-      this.isLoggedIn = !!token;
+      this.isLoggedIn = token==undefined? false:true;
 
       await this.loadData();
     },
