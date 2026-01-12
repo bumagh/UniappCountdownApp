@@ -60,24 +60,24 @@
               <text class="menu-arrow">›</text>
             </view>
           </view>
-        <view class="menu-item">
-      <view class="menu-item-left">
-        <view class="menu-icon" style="background-color: #1890ff;">
-          <text>🎂</text>
-        </view>
-        <text class="menu-label">修改生日</text>
-      </view>
-      <view class="menu-item-right birthday-right">
-        <picker class="picker-birthday" mode="date" :value="user.birthday" fields="year-month" start="1900-01-01" :end="today"
-          @change="onBirthdayChange">
-          <view class="birthday-content">
-            <text class="menu-value">{{ user.birthday || '请选择出生年月' }}</text>
+          <view class="menu-item">
+            <view class="menu-item-left">
+              <view class="menu-icon" style="background-color: #1890ff;">
+                <text>🎂</text>
+              </view>
+              <text class="menu-label">修改生日</text>
+            </view>
+            <view class="menu-item-right birthday-right">
+              <picker class="picker-birthday" mode="date" :value="user.birthday" fields="year-month" start="1900-01-01"
+                :end="today" @change="onBirthdayChange">
+                <view class="birthday-content">
+                  <text class="menu-value">{{ user.birthday || '请选择出生年月' }}</text>
+                </view>
+              </picker>
+              <text class="menu-arrow">›</text>
+            </view>
           </view>
-        </picker>
-        <text class="menu-arrow">›</text>
-      </view>
-    </view>
-          <view class="menu-item" @click="handleEmailSetting">
+          <!-- <view class="menu-item" @click="handleEmailSetting">
             <view class="menu-item-left">
               <view class="menu-icon" style="background-color: #1cbbb4;">
                 <text>📧</text>
@@ -88,14 +88,14 @@
               <text class="menu-value">未设置</text>
               <text class="menu-arrow">›</text>
             </view>
-          </view>
+          </view> -->
 
           <view class="menu-item">
             <view class="menu-item-left">
               <view class="menu-icon" style="background-color: #fbbd08;">
                 <text>🔔</text>
               </view>
-              <text class="menu-label">提醒功能</text>
+              <text class="menu-label">服务号提醒</text>
             </view>
             <view class="menu-item-right">
               <switch :checked="reminderEnabled" @change="handleReminderToggle" color="#1890ff" />
@@ -349,9 +349,9 @@ export default defineComponent({
   },
   methods: {
     // 出生日期变化
-   async onBirthdayChange(e: any) {
+    async onBirthdayChange(e: any) {
       this.user.birthday = e.detail.value;
-         const updated = await apiService.updateUser({ id: this.user.id, birthday:this.user.birthday});
+      const updated = await apiService.updateUser({ id: this.user.id, birthday: this.user.birthday });
       if (updated.code == 200) {
         this.user.nickname = this.newNickname;
         uni.showToast({
@@ -702,7 +702,8 @@ export default defineComponent({
     },
     handleDataManagement() {
       uni.showActionSheet({
-        itemList: ['导出数据', '导入数据', '清空数据'],
+        // itemList: ['导出数据', '导入数据', '清空数据'],
+        itemList: ['导出数据', '导入数据'],
         success: (res) => {
           if (res.tapIndex === 2) {
             uni.showModal({
@@ -725,13 +726,129 @@ export default defineComponent({
               }
             });
           } else {
-            uni.showToast({
-              title: '功能开发中',
-              icon: 'none'
-            });
+            if (res.tapIndex === 0) {
+              this.simpleExport();
+            } else if (res.tapIndex === 1) {
+              this.simpleImport();
+            }
           }
         }
       });
+    },
+    // 简单导入
+    async simpleImport() {
+      uni.getClipboardData({
+        success: async (res) => {
+          try {
+            const data = JSON.parse(res.data) as {
+              countdowns: Countdown[];
+              categories: Category[];
+            };
+            const userid = this.user.id.toString();
+
+            if (!data.countdowns || !data.categories) {
+              uni.showToast({ title: '数据格式错误', icon: 'none' });
+              return;
+            }
+
+            uni.showModal({
+              title: '导入确认',
+              content: `发现 ${data.countdowns.length} 个倒计时，是否导入？`,
+              success: async (modalRes) => {
+                if (modalRes.confirm) {
+                  uni.showLoading({ title: '导入中...' });
+
+                  // 导入分类
+                  for (const cat of data.categories) {
+                    try {
+                      await apiService.createCategory({
+                        user_id: parseInt(userid),
+                        name: cat.name,
+                        icon: cat.icon,
+                        color: cat.color
+                      });
+                    } catch (e) {
+                      // 分类可能已存在，忽略
+                    }
+                  }
+
+                  // 导入倒计时
+                  const categories = await apiService.getCategories(userid);
+                  for (const item of data.countdowns) {
+                    try {
+                      await apiService.createCountdown({
+                        user_id: parseInt(userid),
+                        title: item.title,
+                        date: item.date,
+                        category_id: item.category_id,
+                        is_pinned: item.is_pinned,
+                        is_archived: item.is_archived,
+                        repeat_cycle: item.repeat_cycle,
+                        repeat_frequency:item.repeat_frequency
+                      });
+                    } catch (e) {
+                      // 跳过重复项
+                    }
+                  }
+
+                  uni.hideLoading();
+                  uni.showToast({
+                    title: '导入成功',
+                    icon: 'success'
+                  });
+
+                  // 刷新页面
+                  this.loadCategories();
+                  this.calculateStats();
+                }
+              }
+            });
+          } catch (error) {
+            uni.showToast({
+              title: '解析数据失败',
+              icon: 'none'
+            });
+          }
+        },
+        fail: () => {
+          uni.showToast({
+            title: '读取剪贴板失败',
+            icon: 'none'
+          });
+        }
+      });
+    },
+    // 简单导出
+    async simpleExport() {
+      uni.showLoading({ title: '导出中...' });
+
+      try {
+        const userid = this.user.id.toString();
+        const countdowns = await apiService.getCountdowns({ userid });
+        const categories = await apiService.getCategories(userid);
+
+        const data = {
+          countdowns: countdowns,
+          categories: categories
+        };
+
+        uni.setClipboardData({
+          data: JSON.stringify(data),
+          success: () => {
+            uni.hideLoading();
+            uni.showToast({
+              title: '已复制到剪贴板',
+              icon: 'success'
+            });
+          }
+        });
+      } catch (error) {
+        uni.hideLoading();
+        uni.showToast({
+          title: '导出失败',
+          icon: 'none'
+        });
+      }
     },
     handleAbout() {
       uni.showModal({
@@ -1182,6 +1299,7 @@ export default defineComponent({
 .shadow {
   box-shadow: 0 4rpx 16rpx rgba(24, 144, 255, 0.08);
 }
+
 .birthday-right {
   display: flex;
   align-items: center;

@@ -1,0 +1,58 @@
+{
+    "countdowns": [
+        {
+            "days_diff": null,
+            "display_date": null,
+            "repeat_frequency_text": null,
+            "id": 6,
+            "title": "120岁奇妙日",
+            "date": "2141-01-12",
+            "category_id": 17,
+            "user_id": 6,
+            "is_pinned": 1,
+            "repeat_cycle": 0,
+            "repeat_frequency": "不重复",
+            "is_archived": 0,
+            "created_at": "2026-01-12 21:40:40",
+            "updated_at": "2026-01-12 21:40:40"
+        }
+    ],
+    "categories": [
+        {
+            "id": 14,
+            "name": "工作",
+            "icon": "💼",
+            "color": "#52c41a",
+            "user_id": "6",
+            "created_at": "2026-01-12 21:40:40",
+            "updated_at": "2026-01-12 21:40:40"
+        },
+        {
+            "id": 15,
+            "name": "家庭",
+            "icon": "👨‍👩‍👧",
+            "color": "#faad14",
+            "user_id": "6",
+            "created_at": "2026-01-12 21:40:40",
+            "updated_at": "2026-01-12 21:40:40"
+        },
+        {
+            "id": 16,
+            "name": "生活",
+            "icon": "🏠",
+            "color": "#1890ff",
+            "user_id": "6",
+            "created_at": "2026-01-12 21:40:40",
+            "updated_at": "2026-01-12 21:40:40"
+        },
+        {
+            "id": 17,
+            "name": "长寿",
+            "icon": "❤️",
+            "color": "#f5222d",
+            "user_id": "6",
+            "created_at": "2026-01-12 21:40:40",
+            "updated_at": "2026-01-12 21:40:40"
+        }
+    ]
+}
