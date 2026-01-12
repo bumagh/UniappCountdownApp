@@ -60,7 +60,23 @@
               <text class="menu-arrow">›</text>
             </view>
           </view>
-
+        <view class="menu-item">
+      <view class="menu-item-left">
+        <view class="menu-icon" style="background-color: #1890ff;">
+          <text>🎂</text>
+        </view>
+        <text class="menu-label">修改生日</text>
+      </view>
+      <view class="menu-item-right birthday-right">
+        <picker class="picker-birthday" mode="date" :value="user.birthday" fields="year-month" start="1900-01-01" :end="today"
+          @change="onBirthdayChange">
+          <view class="birthday-content">
+            <text class="menu-value">{{ user.birthday || '请选择出生年月' }}</text>
+          </view>
+        </picker>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
           <view class="menu-item" @click="handleEmailSetting">
             <view class="menu-item-left">
               <view class="menu-icon" style="background-color: #1cbbb4;">
@@ -277,12 +293,15 @@ interface ProfilePageData {
     id: number;
     nickname: string;
     avatar: string;
+    birthday: string;
   };
   countdownStats: {
     total: number;
     future: number;
     past: number;
   };
+  today: string;
+
   reminderEnabled: boolean;
   drawerVisible: boolean;
   categories: Array<Category>;
@@ -301,13 +320,16 @@ export default defineComponent({
       user: {
         id: 1,
         nickname: '张三',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop'
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop',
+        birthday: '1980-01-01'
       },
+      today: new Date().toISOString().split('T')[0],
       countdownStats: {
         total: 0,
         future: 0,
         past: 0
       },
+
       reminderEnabled: true,
       drawerVisible: false,
       categories: [],
@@ -326,6 +348,23 @@ export default defineComponent({
     await this.loadArchivedCountdowns();
   },
   methods: {
+    // 出生日期变化
+   async onBirthdayChange(e: any) {
+      this.user.birthday = e.detail.value;
+         const updated = await apiService.updateUser({ id: this.user.id, birthday:this.user.birthday});
+      if (updated.code == 200) {
+        this.user.nickname = this.newNickname;
+        uni.showToast({
+          title: '修改成功',
+          icon: 'success'
+        });
+      } else {
+        uni.showToast({
+          title: '修改失败',
+          icon: 'none'
+        });
+      }
+    },
     async loadUserData() {
       try {
         if (!uni.getStorageSync('userid')) {
@@ -338,7 +377,7 @@ export default defineComponent({
         const userid = uni.getStorageSync('userid');
         const currentUser = await apiService.getCurrentUser(userid || '1');
 
-        this.user = currentUser;
+        this.user = currentUser as any;
         if (currentUser != null) {
           // 从本地存储加载头像
           const savedAvatar = uni.getStorageSync('user_avatar');
@@ -551,6 +590,7 @@ export default defineComponent({
       this.newNickname = this.user.nickname;
       this.nicknameModalVisible = true;
     },
+
     closeNicknameModal() {
       this.nicknameModalVisible = false;
       this.newNickname = '';
@@ -587,7 +627,7 @@ export default defineComponent({
     async handleReminderToggle(e: any) {
       this.reminderEnabled = e.detail.value;
       const updated = await apiService.updateUser({ id: this.user.id, serviceno_notice: this.reminderEnabled ? 1 : 0 });
-            if (updated.code == 200) {
+      if (updated.code == 200) {
 
         this.user.nickname = this.newNickname;
         uni.showToast({
@@ -1141,5 +1181,21 @@ export default defineComponent({
 
 .shadow {
   box-shadow: 0 4rpx 16rpx rgba(24, 144, 255, 0.08);
+}
+.birthday-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.birthday-content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.picker-birthday {
+  display: flex;
+  align-items: center;
 }
 </style>
