@@ -440,14 +440,54 @@ export default defineComponent({
       const countdowns = await apiService.getCountdowns({ userid: this.user.id.toString() });
       this.countdownStats.total = countdowns.length;
 
+      this.calculateStatsCountdowns(countdowns);
+    },
+     calculateStatsCountdowns(countdowns:Countdown[]) {
+      this.countdownStats.total = countdowns.length;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // 标准化为当天开始时间
+
       let future = 0;
       let past = 0;
 
       countdowns.forEach(countdown => {
-        const days = db.calculateDays(countdown.date);
-        if (days >= 0) {
+        let targetDate;
+
+        // 判断是否为重复事件
+        const isRepeating = countdown.repeat_cycle && countdown.repeat_cycle > 0
+          && countdown.repeat_frequency && countdown.repeat_frequency !== '不重复';
+
+        if (isRepeating) {
+          // 对于重复事件，获取最近的下一个未来日期
+          const nextRepeatDate = db.getNextRepeatDate(
+            countdown.date,
+            countdown.repeat_cycle,
+            countdown.repeat_frequency
+          );
+          targetDate = new Date(nextRepeatDate);
+        } else {
+          // 非重复事件，使用原日期
+          targetDate = new Date(countdown.date);
+        }
+
+        // 标准化目标日期为当天开始时间
+        targetDate.setHours(0, 0, 0, 0);
+
+        // 计算天数差
+        const timeDiff = targetDate.getTime() - today.getTime();
+        const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        console.log("countdown");
+        console.log(countdown);
+        console.log(targetDate);
+        console.log(timeDiff);
+        console.log(daysDiff);
+        console.log("daysDiff");
+        if (daysDiff >= 0) {
           future++;
         } else {
+          // 对于重复事件，理论上不应该有过去的状态
+          // 除非 getNextRepeatDate 逻辑有问题
           past++;
         }
       });
@@ -784,7 +824,7 @@ export default defineComponent({
                         is_pinned: item.is_pinned,
                         is_archived: item.is_archived,
                         repeat_cycle: item.repeat_cycle,
-                        repeat_frequency:item.repeat_frequency
+                        repeat_frequency: item.repeat_frequency
                       });
                     } catch (e) {
                       // 跳过重复项

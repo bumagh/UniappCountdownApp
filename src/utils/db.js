@@ -334,49 +334,124 @@ class Database {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   }
-
-  // 获取重复日程的未来最近日期
-  getNextRepeatDate(originalDate, repeatCycle, repeatFrequency) {
-    // 如果不是重复日程，返回原日期
-    if (repeatCycle === 0 || repeatFrequency === '不重复') {
-      return originalDate;
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    let nextDate = new Date(originalDate);
-    nextDate.setHours(0, 0, 0, 0);
-
-    // 如果起始日期在未来，直接返回
-    if (nextDate > today) {
-      return originalDate;
-    }
-
-    // 循环计算下一个未来日期
-    while (nextDate <= today) {
-      switch (repeatFrequency) {
-        case '天重复':
-          nextDate.setDate(nextDate.getDate() + repeatCycle);
-          break;
-        case '周重复':
-          nextDate.setDate(nextDate.getDate() + repeatCycle * 7);
-          break;
-        case '月重复':
-          nextDate.setMonth(nextDate.getMonth() + repeatCycle);
-          break;
-        case '年重复':
-          nextDate.setFullYear(nextDate.getFullYear() + repeatCycle);
-          break;
-      }
-    }
-
-    // 格式化为 YYYY-MM-DD
-    const year = nextDate.getFullYear();
-    const month = String(nextDate.getMonth() + 1).padStart(2, '0');
-    const day = String(nextDate.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+// 获取重复日程的未来最近日期
+// 获取重复日程的未来最近日期
+getNextRepeatDate(originalDate, repeatCycle, repeatFrequency) {
+  // 如果不是重复日程，返回原日期
+  if (!repeatCycle || repeatCycle <= 0 || !repeatFrequency || repeatFrequency === '不重复') {
+    return originalDate;
   }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const original = new Date(originalDate);
+  original.setHours(0, 0, 0, 0);
+  
+  // 如果起始日期在未来，直接返回
+  if (original > today) {
+    return this.formatDate(original);
+  }
+
+  let nextDate = new Date(original);
+
+  // 对于重复事件，计算最近的下一个未来日期（包括今天）
+  switch (repeatFrequency) {
+    case '天重复':
+      const daysDiff = Math.floor((today - original) / (1000 * 60 * 60 * 24));
+      const cyclesToAdd = Math.floor(daysDiff / repeatCycle);
+      nextDate.setDate(original.getDate() + (cyclesToAdd + 1) * repeatCycle);
+      break;
+      
+    case '周重复':
+      const weeksDiff = Math.floor((today - original) / (1000 * 60 * 60 * 24 * 7));
+      const weeksToAdd = Math.floor(weeksDiff / repeatCycle);
+      nextDate.setDate(original.getDate() + (weeksToAdd + 1) * repeatCycle * 7);
+      break;
+      
+    case '月重复':
+      let monthsDiff = (today.getFullYear() - original.getFullYear()) * 12 + 
+                      (today.getMonth() - original.getMonth());
+      
+      // 如果今天的日期 >= 原始日期，说明本月已经发生或正在发生
+      if (today.getDate() >= original.getDate()) {
+        monthsDiff++;
+      }
+      
+      const monthsToAdd = Math.floor(monthsDiff / repeatCycle);
+      nextDate.setMonth(original.getMonth() + (monthsToAdd + 1) * repeatCycle);
+      
+      // 处理日期溢出
+      const lastDayOfMonth = new Date(nextDate.getFullYear(), nextDate.getMonth() + 1, 0).getDate();
+      nextDate.setDate(Math.min(original.getDate(), lastDayOfMonth));
+      break;
+      
+    case '年重复':
+      let yearsDiff = today.getFullYear() - original.getFullYear();
+      
+      if (today.getMonth() > original.getMonth() || 
+          (today.getMonth() === original.getMonth() && today.getDate() >= original.getDate())) {
+        yearsDiff++;
+      }
+      
+      const yearsToAdd = Math.floor(yearsDiff / repeatCycle);
+      nextDate.setFullYear(original.getFullYear() + (yearsToAdd + 1) * repeatCycle);
+      
+      // 处理2月29日等特殊情况
+      if (original.getMonth() === 1 && original.getDate() === 29) {
+        const isLeapYear = (year) => (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+        while (!isLeapYear(nextDate.getFullYear())) {
+          nextDate.setFullYear(nextDate.getFullYear() + repeatCycle);
+        }
+      }
+      break;
+  }
+
+  // 确保日期在今天或之后
+  if (nextDate < today) {
+    // 如果计算出的日期仍在过去，再加一个周期
+    switch (repeatFrequency) {
+      case '天重复':
+        nextDate.setDate(nextDate.getDate() + repeatCycle);
+        break;
+      case '周重复':
+        nextDate.setDate(nextDate.getDate() + repeatCycle * 7);
+        break;
+      case '月重复':
+        nextDate.setMonth(nextDate.getMonth() + repeatCycle);
+        // 处理月份天数
+        const lastDay = new Date(nextDate.getFullYear(), nextDate.getMonth() + 1, 0).getDate();
+        nextDate.setDate(Math.min(original.getDate(), lastDay));
+        break;
+      case '年重复':
+        nextDate.setFullYear(nextDate.getFullYear() + repeatCycle);
+        break;
+    }
+  }
+
+  return this.formatDate(nextDate);
+}
+
+// 格式化日期 - 支持 Date 对象或字符串
+formatDate(dateInput) {
+  let date;
+  
+  if (typeof dateInput === 'string') {
+    date = new Date(dateInput);
+  } else {
+    date = dateInput;
+  }
+  
+  if (isNaN(date.getTime())) {
+    console.error('Invalid date:', dateInput);
+    return ''; // 或返回一个默认值
+  }
+  
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
   // 获取倒数日的显示日期（考虑重复日程）
   getCountdownDisplayDate(countdown) {
@@ -386,16 +461,16 @@ class Database {
     return countdown.date;
   }
 
-  // 格式化日期
-  formatDate(dateStr) {
-    const date = new Date(dateStr);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
-    const weekDay = weekDays[date.getDay()];
-    return `${year}年${month}月${day}日 星期${weekDay}`;
-  }
+  // // 格式化日期
+  // formatDate(dateStr) {
+  //   const date = new Date(dateStr);
+  //   const year = date.getFullYear();
+  //   const month = date.getMonth() + 1;
+  //   const day = date.getDate();
+  //   const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+  //   const weekDay = weekDays[date.getDay()];
+  //   return `${year}年${month}月${day}日 星期${weekDay}`;
+  // }
 
   // 获取重复选项文本
   getRepeatText(repeatCycle, repeatFrequency) {
