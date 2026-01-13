@@ -100,7 +100,6 @@ import { calculateDays, getAbsoluteDays, formatDate, getRepeatText } from '@/uti
 import { Category, Countdown } from 'types';
 import FloatWechatLogin from '@/components/FloatWechatLogin.vue';
 import CountdownCard from '@/components/CountdownCard.vue';
-import { sassTrue } from 'sass';
 // 扩展 Countdown 接口，添加 displayDate 字段
 interface CountdownWithDisplayDate extends Countdown
 {

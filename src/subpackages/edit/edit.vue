@@ -2,13 +2,13 @@
   <view class="page-container">
     <!-- 顶部导航栏 -->
     <view class="navbar">
-      <view class="navbar-icon" @click=" goBack ">
+      <view class="navbar-icon" @click="handleGoBack">
         <text style="white-space: nowrap;">‹返回</text>
       </view>
       <view class="navbar-title">
         <text>{{ isEdit ? '编辑奇妙日' : '添加奇妙日' }}</text>
       </view>
-      <view class="navbar-icon navbar-icon-right" @click=" handleSubmit ">
+      <view class="navbar-icon navbar-icon-right" @click="handleSubmit">
         <text style="white-space: nowrap;">✓确认</text>
       </view>
     </view>
@@ -209,7 +209,8 @@ export default defineComponent( {
     processRepeatData(data: RepeatData) {
       if (data.repeat_cycle > 0) {
         console.log('已启用重复设置，周期为:', data.repeat_cycle, data.repeat_frequency);
-        
+        this.formData.repeat_cycle = data.repeat_cycle;
+        this.formData.repeat_frequency = data.repeat_frequency as any;
         // 这里可以添加其他逻辑，比如发送事件到父组件等
         this.$emit('repeat-updated', data);
       } else {
@@ -416,12 +417,15 @@ export default defineComponent( {
     {
       return formatDate( dateStr );
     },
-
+    handleGoBack(): void {
+      uni.navigateBack();
+    },
     goBack ( deltas: number = 1 ): void
     {
-      uni.navigateBack( {
-        delta: deltas
-      } );
+      console.log( '返回上一级，delta:', deltas );
+              //  uni.switchTab({ url: '/pages/index/index' });
+      uni.navigateBack( { delta: deltas ?? 1 } );
+
     },
 
     async handleArchive (): Promise<void>
@@ -494,6 +498,7 @@ export default defineComponent( {
 
     async handleSubmit (): Promise<void>
     {
+      // console.log( '提交表单数据:', this.formData );return;
       if ( !this.formData.title.trim() )
       {
         uni.showToast( {
@@ -557,7 +562,7 @@ export default defineComponent( {
 
         setTimeout( () =>
         {
-          this.goBack();
+          uni.switchTab({ url: '/pages/index/index' });
         }, 1000 );
       } catch ( error )
       {
