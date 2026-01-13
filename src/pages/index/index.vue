@@ -219,7 +219,7 @@ export default defineComponent(
     {
       // 简单以token判断登录态
       const token = uni.getStorageSync( 'token' );
-      this.isLoggedIn = token==undefined? false:true;
+      this.isLoggedIn = !!token;
 
       await this.loadData();
     },
@@ -233,8 +233,7 @@ export default defineComponent(
 
       async loadData (): Promise<void>
       {
-        if(this.isLoadingData) return;
-        this.isLoadingData = true;
+
         try
         {
           // 未登录时：展示本地测试数据（用于空态预览）

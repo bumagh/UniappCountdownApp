@@ -56,13 +56,13 @@
           </view>
         </view>
 
-        <view class="form-item">
+        <!-- <view class="form-item">
           <view class="form-label-row">
             <text class="form-label">重复设置</text>
             <switch :checked=" isRepeatEnabled " @change=" toggleRepeat " color="#1890ff" />
           </view>
-        </view>
-
+        </view> -->
+      <repeat-selector v-model="repeatData" @change="onRepeatChange" />
         <!-- 重复设置选择器（弹出选项框版本） -->
         <view v-if=" isRepeatEnabled " class="repeat-selector-section">
           <view class="repeat-button-wrapper">
@@ -98,6 +98,7 @@ import { defineComponent } from 'vue';
 import apiService from '@/services/apiService';
 import { formatDate, getRepeatText } from '@/utils/countdownUtils';
 import { Category, Countdown, CountdownForm } from 'types';
+import RepeatSelector, { type RepeatData } from '@/components/RepeatSelector.vue';
 
 interface EditPageData
 {
@@ -110,11 +111,14 @@ interface EditPageData
   repeatOptions: string[];
   repeatOption: string;
   isRepeatEnabled: boolean;
+  repeatData: RepeatData;
 }
 
 export default defineComponent( {
   name: 'Edit',
-
+  components: {
+    RepeatSelector
+  },
   data (): EditPageData
   {
     return {
@@ -131,7 +135,11 @@ export default defineComponent( {
       categories: [],
       repeatOptions: [ '不重复', '每天', '每周', '每月', '每年', '每2天', '每3天', '每4天', '每5天', '每6天', '每7天', '每2周', '每3周', '每2月', '每3月', '每6月', '每2年', '每3年', '每5年' ],
       repeatOption: '不重复',
-      isRepeatEnabled: false
+      isRepeatEnabled: false,
+       repeatData: {
+        repeat_cycle: 0,
+        repeat_frequency: '不重复'
+      } as RepeatData
     };
   },
 
@@ -169,6 +177,71 @@ export default defineComponent( {
   },
 
   methods: {
+     // 格式化显示重复数据
+    formattedRepeatData(): string {
+      const data = this.repeatData;
+      
+      if (data.repeat_cycle === 0) {
+        return '不重复';
+      }
+      
+      const unitMap: Record<string, string> = {
+        '天重复': '天',
+        '周重复': '周',
+        '月重复': '月',
+        '年重复': '年'
+      };
+      
+      const unit = unitMap[data.repeat_frequency] || data.repeat_frequency.replace('重复', '');
+      const interval = data.repeat_interval || data.repeat_cycle;
+      
+      return `每${interval}${unit}`;
+    },
+     // 监听重复设置变化
+    onRepeatChange(newData: RepeatData) {
+      console.log('重复设置变化:', newData);
+      
+      // 可以根据需要处理业务逻辑
+      this.processRepeatData(newData);
+    },
+    
+    // 处理重复数据
+    processRepeatData(data: RepeatData) {
+      if (data.repeat_cycle > 0) {
+        console.log('已启用重复设置，周期为:', data.repeat_cycle, data.repeat_frequency);
+        
+        // 这里可以添加其他逻辑，比如发送事件到父组件等
+        this.$emit('repeat-updated', data);
+      } else {
+        console.log('重复设置已关闭');
+      }
+    },
+    
+    // 重置重复设置
+    resetRepeatSettings() {
+      this.repeatData = {
+        repeat_cycle: 0,
+        repeat_frequency: '不重复',
+        repeat_interval: undefined,
+        repeat_unit: undefined
+      };
+    },
+    
+    // 设置每日重复
+    setDailyRepeat() {
+      this.repeatData = {
+        repeat_cycle: 1,
+        repeat_frequency: '天重复'
+      };
+    },
+    
+    // 设置每周重复
+    setWeeklyRepeat() {
+      this.repeatData = {
+        repeat_cycle: 1,
+        repeat_frequency: '周重复'
+      };
+    },
     getCurrentDate (): string
     {
       const date = new Date();
