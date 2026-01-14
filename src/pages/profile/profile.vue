@@ -477,12 +477,7 @@ export default defineComponent({
         // 计算天数差
         const timeDiff = targetDate.getTime() - today.getTime();
         const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-        console.log("countdown");
-        console.log(countdown);
-        console.log(targetDate);
-        console.log(timeDiff);
-        console.log(daysDiff);
-        console.log("daysDiff");
+      
         if (daysDiff >= 0) {
           future++;
         } else {
