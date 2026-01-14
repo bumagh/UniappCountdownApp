@@ -4,10 +4,13 @@
   </view>
 </template>
 <script lang="ts">
-import { defineComponent } from 'vue';
+  // 字体缩放相关
+import { defineComponent, ref } from 'vue';
 import apiService from './services/apiService';
 import { Version } from 'types'
 import { getUrl } from './utils/axios';
+const fontScale = ref(2.0)
+
 export default defineComponent({
   name: 'App',
   data() {
@@ -18,6 +21,13 @@ export default defineComponent({
   onLaunch() {
     console.log(getUrl());
     console.log('App Launch');
+     this.initFontScale()
+  
+  // 监听字体缩放变化
+  uni.$on('fontScaleChanged', (scale: number) => {
+    fontScale.value = scale
+    this.applyFontScale(scale)
+  })
     this.initApp();
     if (!uni.getStorageSync('userid')) {
       // uni.navigateTo( {
@@ -33,6 +43,28 @@ export default defineComponent({
     console.log('App Hide');
   },
   methods: {
+    // 初始化字体缩放
+ initFontScale()  {
+  try {
+    const saved = localStorage.getItem('app_font_scale')
+    const scale = saved ? parseFloat(saved) : 1.0
+    fontScale.value = scale
+    this.applyFontScale(scale)
+  } catch (error) {
+    console.log('初始化字体缩放失败:', error)
+  }
+},
+
+// 应用字体缩放
+ applyFontScale (scale: number) {
+  // 方法1：使用CSS变量
+  if (typeof document !== 'undefined') {
+    document.documentElement.style.setProperty('--font-scale', scale.toString())
+  }
+  
+  // 方法2：使用viewport scale（会影响整个页面）
+  // updateViewportScale(scale)
+},
     async initApp() {
       try {
         // 1) 检测版本：非最新版 -> 清理本地数据并提示重新登录
@@ -269,7 +301,9 @@ export default defineComponent({
 
 <style lang="scss">
 @import '@/uni.scss';
-
+:root {
+  --font-scale: 10;
+}
 #app {
   width: 100%;
   min-height: 100vh;
