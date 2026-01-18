@@ -43,6 +43,12 @@ class ApiService
     const res = await request.request<User>( API.user.pwdLogin,'POST',  data );
     return res;
   }
+
+      async getJsConfig ( url: string ): Promise<CommonResponse>
+  {
+    const res = await request.request<User>( API.user.pwdLogin,'POST',  { url } );
+    return res;
+  }
   async registerUser ( data: Partial<User> ): Promise<CommonResponse>
   {
     const res = await request.post<User>( API.user.register, data );

@@ -288,6 +288,7 @@ import apiService from '@/services/apiService';
 import db from '../../utils/db.js';
 import { defineComponent } from 'vue';
 import { Category, Countdown } from 'types';
+import wechatJSSDK from '@/utils/wechat';
 interface ProfilePageData {
   user: {
     id: number;
@@ -346,6 +347,8 @@ export default defineComponent({
     await this.loadCategories();
     await this.calculateStats();
     await this.loadArchivedCountdowns();
+    // 初始化微信JSSDK分享
+    this.initWechatShare();
   },
   methods: {
     // 出生日期变化
@@ -925,6 +928,29 @@ export default defineComponent({
           }
         }
       });
+    },
+    // 初始化微信JSSDK分享
+    async initWechatShare() {
+      if (!wechatJSSDK.isInWx()) {
+        console.log('当前不在微信环境中，跳过微信JSSDK初始化');
+        return;
+      }
+
+      try {
+        // 构建分享配置
+        const shareConfig = {
+          title: `${this.user.nickname}的奇妙本 - 记录了${this.countdownStats.total}个重要日子，还有${this.countdownStats.future}个即将到来`,
+          desc: `快来使用奇妙日，记录生活中的重要时刻！我已经记录了${this.countdownStats.total}个重要日子。`,
+          link: window.location.href,
+          imgUrl: 'https://app.tutlab.tech/countdown/static/qr.png'
+        };
+
+        // 初始化并设置分享
+        await wechatJSSDK.initAndSetShare(shareConfig);
+        console.log('微信JSSDK分享初始化成功');
+      } catch (error) {
+        console.error('微信JSSDK分享初始化失败:', error);
+      }
     }
   }
 });

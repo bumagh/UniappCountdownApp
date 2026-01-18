@@ -44,6 +44,9 @@ export const API = {
     version: {
         check: `${ API_BASE_URL }version/check`,
         getLatestVersion: `${ API_BASE_URL }version/getLatestVersion`,
+    },
+    wechat: {
+        jsconfig: `${ API_BASE_URL }wechat/getJsConfig`,
     }
 } as const;
 
