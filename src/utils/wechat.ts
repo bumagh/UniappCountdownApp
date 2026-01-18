@@ -1,15 +1,9 @@
 // 微信JSSDK配置和分享功能
 
 import apiService from "@/services/apiService";
-
-// 声明微信JSSDK全局变量
-declare global {
-  interface Window {
-    wx: any;
-  }
-}
-
-declare const wx: any;
+// #ifdef H5
+import wx from 'weixin-js-sdk';
+// #endif
 
 interface WxJSSDKConfig {
   debug?: boolean;
@@ -38,6 +32,7 @@ class WechatJSSDK {
   // 检查是否在微信环境中
   private checkWxEnvironment(): boolean {
     // #ifdef H5
+    // 使用weixin-js-sdk包检查微信环境
     const ua = navigator.userAgent.toLowerCase();
     const isWx = ua.includes('micromessenger');
     console.log('User Agent:', navigator.userAgent);
@@ -62,9 +57,7 @@ class WechatJSSDK {
 
     // #ifdef H5
     try {
-      // 等待微信JSSDK加载完成
-      await this.waitForWxSDK();
-      
+      // 使用weixin-js-sdk包，无需等待加载
       await new Promise<void>((resolve, reject) => {
         if (typeof wx !== 'undefined' && wx.config) {
           wx.config({
@@ -78,8 +71,8 @@ class WechatJSSDK {
               'updateTimelineShareData',
               'onMenuShareTimeline',
               'onMenuShareAppMessage',
-              ...config.jsApiList
-            ]
+              ...(config.jsApiList || []) as string[]
+            ] as any[]
           });
 
           wx.ready(() => {
@@ -105,29 +98,6 @@ class WechatJSSDK {
     // #ifndef H5
     return false;
     // #endif
-  }
-
-  // 等待微信JSSDK加载完成
-  private waitForWxSDK(timeout: number = 15000): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const startTime = Date.now();
-      
-      const checkWx = () => {
-        if (typeof wx !== 'undefined' && wx.config) {
-          resolve();
-          return;
-        }
-        
-        if (Date.now() - startTime > timeout) {
-          reject(new Error('等待微信JSSDK加载超时'));
-          return;
-        }
-        
-        setTimeout(checkWx, 100);
-      };
-      
-      checkWx();
-    });
   }
 
   // 设置分享给朋友
@@ -159,6 +129,9 @@ class WechatJSSDK {
           imgUrl: config.imgUrl,
           success: () => {
             console.log('设置分享给朋友成功（兼容版本）');
+          },
+          cancel: () => {
+            console.log('用户取消分享给朋友（兼容版本）');
           },
           fail: (err: any) => {
             console.error('设置分享给朋友失败（兼容版本）:', err);
@@ -198,6 +171,9 @@ class WechatJSSDK {
           imgUrl: config.imgUrl,
           success: () => {
             console.log('设置分享到朋友圈成功（兼容版本）');
+          },
+          cancel: () => {
+            console.log('用户取消分享到朋友圈（兼容版本）');
           },
           fail: (err: any) => {
             console.error('设置分享到朋友圈失败（兼容版本）:', err);

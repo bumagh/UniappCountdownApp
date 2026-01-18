@@ -150,7 +150,7 @@
               <text class="menu-label">主题设置</text>
             </view>
             <view class="menu-item-right">
-              <text class="menu-value">蓝白系</text>
+              <text class="menu-value">{{ themeManager.getThemeName() }}</text>
               <text class="menu-arrow">›</text>
             </view>
           </view>
@@ -289,6 +289,7 @@ import db from '../../utils/db.js';
 import { defineComponent } from 'vue';
 import { Category, Countdown } from 'types';
 import wechatJSSDK from '@/utils/wechat';
+import { getDataUrl } from '@/utils/common';
 interface ProfilePageData {
   user: {
     id: number;
@@ -343,12 +344,14 @@ export default defineComponent({
     };
   },
   async onShow() {
+    console.log(getDataUrl('qr'));
     await this.loadUserData();
     await this.loadCategories();
     await this.calculateStats();
     await this.loadArchivedCountdowns();
     // 初始化微信JSSDK分享
     this.initWechatShare();
+    
   },
   methods: {
     // 出生日期变化
@@ -371,9 +374,9 @@ export default defineComponent({
     async loadUserData() {
       try {
         if (!uni.getStorageSync('userid')) {
-          uni.navigateTo({
-            url: '/subpackages/login/login'
-          });
+          // uni.navigateTo({
+          //   url: '/subpackages/login/login'
+          // });
           return;
         }
         // 获取当前用户信息
@@ -942,7 +945,7 @@ export default defineComponent({
           title: `${this.user.nickname}的奇妙本 - 记录了${this.countdownStats.total}个重要日子，还有${this.countdownStats.future}个即将到来`,
           desc: `快来使用奇妙日，记录生活中的重要时刻！我已经记录了${this.countdownStats.total}个重要日子。`,
           link: window.location.href,
-          imgUrl: 'https://app.tutlab.tech/countdown/static/qr.png'
+          imgUrl: getDataUrl('qr')
         };
 
         // 初始化并设置分享
