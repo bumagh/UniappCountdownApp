@@ -46,7 +46,7 @@ class ApiService
 
       async getJsConfig ( url: string ): Promise<CommonResponse>
   {
-    const res = await request.request<User>( API.user.pwdLogin,'POST',  { url } );
+    const res = await request.request<User>( API.wechat.jsconfig,'POST',  { url } );
     return res;
   }
   async registerUser ( data: Partial<User> ): Promise<CommonResponse>

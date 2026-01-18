@@ -950,6 +950,8 @@ export default defineComponent({
         console.log('微信JSSDK分享初始化成功');
       } catch (error) {
         console.error('微信JSSDK分享初始化失败:', error);
+        // 不显示错误提示给用户，静默失败
+        // 在非微信环境或微信JSSDK加载失败时，不应该影响正常功能
       }
     }
   }

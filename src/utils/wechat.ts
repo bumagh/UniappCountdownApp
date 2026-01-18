@@ -1,5 +1,7 @@
 // 微信JSSDK配置和分享功能
 
+import apiService from "@/services/apiService";
+
 // 声明微信JSSDK全局变量
 declare global {
   interface Window {
@@ -37,7 +39,14 @@ class WechatJSSDK {
   private checkWxEnvironment(): boolean {
     // #ifdef H5
     const ua = navigator.userAgent.toLowerCase();
-    return ua.includes('micromessenger');
+    const isWx = ua.includes('micromessenger');
+    console.log('User Agent:', navigator.userAgent);
+    console.log('是否在微信环境:', isWx);
+    console.log('wx对象状态:', typeof wx !== 'undefined' ? '已加载' : '未加载');
+    if (typeof wx !== 'undefined') {
+      console.log('wx.config方法:', typeof wx.config);
+    }
+    return isWx;
     // #endif
     // #ifndef H5
     return false;
@@ -53,8 +62,11 @@ class WechatJSSDK {
 
     // #ifdef H5
     try {
+      // 等待微信JSSDK加载完成
+      await this.waitForWxSDK();
+      
       await new Promise<void>((resolve, reject) => {
-        if (typeof wx !== 'undefined') {
+        if (typeof wx !== 'undefined' && wx.config) {
           wx.config({
             debug: config.debug || false,
             appId: config.appId,
@@ -81,7 +93,7 @@ class WechatJSSDK {
             reject(err);
           });
         } else {
-          reject(new Error('微信JSSDK未加载'));
+          reject(new Error('微信JSSDK未加载或wx.config方法不存在'));
         }
       });
       return true;
@@ -93,6 +105,29 @@ class WechatJSSDK {
     // #ifndef H5
     return false;
     // #endif
+  }
+
+  // 等待微信JSSDK加载完成
+  private waitForWxSDK(timeout: number = 15000): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const startTime = Date.now();
+      
+      const checkWx = () => {
+        if (typeof wx !== 'undefined' && wx.config) {
+          resolve();
+          return;
+        }
+        
+        if (Date.now() - startTime > timeout) {
+          reject(new Error('等待微信JSSDK加载超时'));
+          return;
+        }
+        
+        setTimeout(checkWx, 100);
+      };
+      
+      checkWx();
+    });
   }
 
   // 设置分享给朋友
@@ -185,21 +220,27 @@ class WechatJSSDK {
     try {
       // 这里需要调用你的后端接口获取微信签名
       // 示例接口，你需要根据实际后端API调整
-      const response = await uni.request({
-        url: '/api/wechat/signature',
-        method: 'POST',
-        data: { url }
-      });
+      const response = await apiService.getJsConfig(url);
 
-      if (response.statusCode === 200 && response.data) {
+      console.log('微信签名API响应:', response);
+
+      if (response!=null) {
         const data = response.data as any;
-        return {
-          appId: data.appId,
-          timestamp: data.timestamp,
-          nonceStr: data.nonceStr,
-          signature: data.signature
-        };
+        
+        // 验证返回数据是否包含必要字段
+        if (data.appId && data.timestamp && data.nonceStr && data.signature) {
+          return {
+            appId: data.appId,
+            timestamp: data.timestamp,
+            nonceStr: data.nonceStr,
+            signature: data.signature
+          };
+        } else {
+          console.warn('微信签名API返回数据不完整:', data);
+          throw new Error('微信签名数据不完整');
+        }
       } else {
+        console.warn('微信签名API调用失败:', response);
         throw new Error('获取微信签名失败');
       }
     } catch (error) {
@@ -207,10 +248,10 @@ class WechatJSSDK {
       // 如果获取签名失败，返回测试数据（仅用于开发）
       console.warn('使用测试签名数据，请配置后端API');
       return {
-        appId: 'test-app-id',
+        appId: 'wx1234567890abcdef',
         timestamp: Math.floor(Date.now() / 1000),
         nonceStr: this.generateNonceStr(),
-        signature: 'test-signature'
+        signature: 'test-signature-development-only'
       };
     }
   }
@@ -233,7 +274,14 @@ class WechatJSSDK {
       // #ifdef H5
       const url = window.location.href.split('#')[0];
       const signatureData = await this.getSignature(url);
-      alert(signatureData);
+      console.log('获取到的签名数据:', signatureData);
+      
+      // 验证签名数据有效性
+      if (!signatureData.appId || !signatureData.timestamp || !signatureData.nonceStr || !signatureData.signature) {
+        console.error('签名数据无效:', signatureData);
+        return;
+      }
+      
       await this.init({
         appId: signatureData.appId,
         timestamp: signatureData.timestamp,
