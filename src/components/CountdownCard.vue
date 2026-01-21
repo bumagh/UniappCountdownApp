@@ -318,11 +318,16 @@ export default defineComponent( {
   z-index: 0;
 }
 
-.countdown-unit > * {
+/* .countdown-unit > * {
   z-index: 1;
-}
+} */
 
-/* 直接给 text 用时，没有子节点，用伪元素遮罩即可；这里显式抬升文字层级 */
+.countdown-unit > div,
+.countdown-unit > span,
+.countdown-unit > p,
+.countdown-unit > section {
+  z-index: 1;
+}/* 直接给 text 用时，没有子节点，用伪元素遮罩即可；这里显式抬升文字层级 */
 .countdown-unit {
   color: rgba( 255, 255, 255, 0.92 );
 }
