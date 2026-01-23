@@ -158,26 +158,26 @@
       {
         "pagePath": "pages/index/index",
         "text": "首页",
-        "iconPath": "static/home.png",
-        "selectedIconPath": "static/home-active.png"
+        "iconPath": "/static/home.png",
+        "selectedIconPath": "/static/home-active.png"
       },
       {
         "pagePath": "pages/categories/categories",
         "text": "奇妙本",
-        "iconPath": "static/book.png",
-        "selectedIconPath": "static/book-active.png"
+        "iconPath": "/static/book.png",
+        "selectedIconPath": "/static/book-active.png"
       },
       {
         "pagePath": "pages/calendar/calendar",
         "text": "日历",
-        "iconPath": "static/calendar.png",
-        "selectedIconPath": "static/calendar-active.png"
+        "iconPath": "/static/calendar.png",
+        "selectedIconPath": "/static/calendar-active.png"
       },
       {
         "pagePath": "pages/profile/profile",
         "text": "我的",
-        "iconPath": "static/profile.png",
-        "selectedIconPath": "static/profile-active.png"
+        "iconPath": "/static/profile.png",
+        "selectedIconPath": "/static/profile-active.png"
       }
     ]
   }
