@@ -10,14 +10,26 @@
         <text class="category-name">{{ categoryName }}</text>
       </view>
       <view class="title-date-wrap" v-if="countdown.is_pinned">
-        <text class="countdown-title pinned-title">{{ countdown.title }}{{ titleSuffix }}</text>
+        <view class="countdown-title pinned-title">
+          <template v-if="displayTitle.age !== undefined">
+            <text>{{ displayTitle.age }}岁奇妙日 + </text>
+            <text class="remaining-days-highlight">{{ displayTitle.remainingDays }}天</text>
+          </template>
+          <text v-else>{{ displayTitle.text }}{{ titleSuffix }}</text>
+        </view>
         <text class="pinned-date">{{ countdown.displayDate }}</text>
       </view>
-      <text v-else class="countdown-title">{{ countdown.title }}{{ titleSuffix }}</text>
+      <view v-else class="countdown-title">
+        <template v-if="displayTitle.age !== undefined">
+          <text>{{ displayTitle.age }}岁奇妙日 + </text>
+          <text class="remaining-days-highlight">{{ displayTitle.remainingDays }}天</text>
+        </template>
+        <text v-else>{{ displayTitle.text }}{{ titleSuffix }}</text>
+      </view>
     </view>
 
     <view class="countdown-right" :class="[ mainClass, { 'pinned-right': countdown.is_pinned } ]">
-      <text class="countdown-number" :class="[ daysClass, { 'pinned-number': countdown.is_pinned } ]">{{ absDays }}</text>
+      <text class="countdown-number" :class="[ daysClass, { 'pinned-number': countdown.is_pinned } ]">{{ displayDays }}</text>
       <text class="countdown-unit" :class="[ daysClass, { 'pinned-unit': countdown.is_pinned } ]">天</text>
     </view>
   </view>
@@ -45,6 +57,44 @@ export default defineComponent( {
   {
     const days = computed( () => calculateDays( props.countdown.displayDate ) );
     const absDays = computed( () => getAbsoluteDays( props.countdown.displayDate ) );
+
+    // 获取登录天数
+    const loginDays = computed( () => {
+      try {
+        return uni.getStorageSync( 'loginDays' ) || 0;
+      } catch (error) {
+        console.error( '获取登录天数失败:', error );
+        return 0;
+      }
+    } );
+
+    // 检查是否是120岁奇妙日
+    const is120Birthday = computed( () => {
+      return props.countdown.title.includes( '120岁奇妙日' );
+    } );
+
+    // 计算显示标题
+    const displayTitle = computed( () => {
+      if ( is120Birthday.value ) {
+        const baseAge = 120;
+        const additionalYears = Math.floor( loginDays.value / 365 );
+        const age = baseAge + additionalYears;
+        const remainingDays = loginDays.value % 365;
+        return {
+          age: age,
+          remainingDays: remainingDays
+        };
+      }
+      return { text: props.countdown.title };
+    } );
+
+    // 计算显示天数
+    const displayDays = computed( () => {
+      if ( is120Birthday.value ) {
+        return absDays.value + loginDays.value;
+      }
+      return absDays.value;
+    } );
 
     const category = computed( () => props.categories.find( c => c.id === props.countdown.category_id ) );
     const categoryColor = computed( () => category.value ? category.value.color : '#1890ff' );
@@ -87,6 +137,8 @@ export default defineComponent( {
 
     return {
       absDays,
+      displayDays,
+      displayTitle,
       categoryColor,
       categoryName,
       cardClass,
@@ -348,5 +400,12 @@ export default defineComponent( {
 .compact-card .countdown-right {
   width: 220rpx;
   min-width: 220rpx;
+}
+
+/* 剩余天数高亮样式 */
+.remaining-days-highlight {
+  color: #ff6b6b !important;
+  font-weight: bold !important;
+  font-size: 110% !important;
 }
 </style>

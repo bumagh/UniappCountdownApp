@@ -43,7 +43,10 @@ class ApiService
     const res = await request.request<User>( API.user.pwdLogin,'POST',  data );
     return res;
   }
-
+async incrementLoginDays(): Promise<{ login_days: number; message: string }> {
+    const res = await request.request<{ login_days: number; message: string }>( API.user.incrementLoginDays, 'POST');
+    return res.data;
+}
       async getJsConfig ( url: string ): Promise<CommonResponse>
   {
     const res = await request.request<User>( API.wechat.jsconfig,'POST',  { url } );
