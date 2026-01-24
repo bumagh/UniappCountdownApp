@@ -354,6 +354,16 @@ export default defineComponent( {
         uni.setStorageSync( 'userid', retLogin.data.userInfo.id );
         uni.setStorageSync( 'userinfo', retLogin.data.userInfo );
         console.log( retLogin )
+        
+        // 更新登录天数
+        try {
+          const res = await apiService.incrementLoginDays();
+          uni.setStorageSync('loginDays', res.login_days);
+          console.log('密码登录天数更新成功:', res.login_days);
+        } catch (error) {
+          console.error('密码登录天数更新失败:', error);
+        }
+        
         // 6. 延迟跳转，确保用户能看到成功提示
         setTimeout( () =>
         {

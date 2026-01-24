@@ -190,6 +190,16 @@ export default defineComponent( {
         uni.setStorageSync( 'token', loginRes.token );
         uni.setStorageSync( 'userInfo', JSON.stringify( loginRes.userInfo ) );
         uni.setStorageSync( 'userid', loginRes.userInfo.id )
+
+        // 更新登录天数
+        try {
+          const res = await apiService.incrementLoginDays();
+          uni.setStorageSync('loginDays', res.login_days);
+          console.log('微信登录天数更新成功:', res.login_days);
+        } catch (error) {
+          console.error('微信登录天数更新失败:', error);
+        }
+
         uni.showToast( {
           title: '微信登录成功',
           icon: 'success',
@@ -359,6 +369,17 @@ export default defineComponent( {
         uni.setStorageSync( 'token', retLogin.data.token );
         uni.setStorageSync( 'userid', retLogin.data.userid );
         console.log( retLogin )
+        
+        // 更新登录天数
+        try {
+          const apiService = require('@/services/apiService').default;
+          const res = await apiService.incrementLoginDays();
+          uni.setStorageSync('loginDays', res.login_days);
+          console.log('登录天数更新成功:', res.login_days);
+        } catch (error) {
+          console.error('更新登录天数失败:', error);
+        }
+        
         // 6. 延迟跳转，确保用户能看到成功提示
         setTimeout( () =>
         {

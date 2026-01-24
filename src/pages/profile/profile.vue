@@ -290,6 +290,7 @@ import { defineComponent } from 'vue';
 import { Category, Countdown } from 'types';
 import wechatJSSDK from '@/utils/wechat';
 import { getDataUrl } from '@/utils/common';
+import { themeManager } from '@/utils/theme';
 interface ProfilePageData {
   user: {
     id: number;
@@ -341,6 +342,11 @@ export default defineComponent({
       archivedCountdowns: [],
       archivedCount: 0,
       categoryCounts: {}
+    };
+  },
+  setup() {
+    return {
+      themeManager
     };
   },
   async onShow() {
@@ -945,7 +951,7 @@ export default defineComponent({
           title: `${this.user.nickname}的奇妙本 - 记录了${this.countdownStats.total}个重要日子，还有${this.countdownStats.future}个即将到来`,
           desc: `快来使用奇妙日，记录生活中的重要时刻！我已经记录了${this.countdownStats.total}个重要日子。`,
           link: window.location.href,
-          imgUrl: getDataUrl('qr')
+          imgUrl: 'static/qr.png'
         };
 
         // 初始化并设置分享

@@ -58,8 +58,7 @@
       <view style="height: 40rpx;"></view>
     </scroll-view>
     <!-- 未登录浮动按钮 -->
-    <FloatWechatLogin :show="!isLoggedIn" :firstLoginUrlBuilder="buildFirstLoginUrl"
-      @success="onWechatLoginSuccess" />
+    <FloatWechatLogin :show="!isLoggedIn" :firstLoginUrlBuilder="buildFirstLoginUrl" @success="onWechatLoginSuccess" />
     <!-- 侧边抽屉 -->
     <view v-if="drawerVisible" class="drawer-mask" @click="toggleDrawer"></view>
     <view class="drawer" :class="{ 'drawer-open': drawerVisible }">
@@ -219,6 +218,7 @@ export default defineComponent(
         }
       }
       await this.loadData();
+
     },
 
     methods: {
@@ -463,10 +463,23 @@ export default defineComponent(
         this.isLoadingData = false;
       },
 
-      onWechatLoginSuccess(params: any): void {
+      async onWechatLoginSuccess(params: any): Promise<void> {
         console.log('onWechatLoginSuccess', params);
         this.isLoggedIn = true;
-        this.loadData();
+        const token = uni.getStorageSync('token');
+        this.isLoggedIn = !!token;
+
+        if (this.isLoggedIn && token) {
+          try {
+            const res = await apiService.incrementLoginDays();
+            uni.setStorageSync('loginDays', res.login_days);
+          } catch (error) {
+            console.error('更新登录天数失败:', error);
+            // 如果调用失败，保持原有的loginDays值，不覆盖
+          }
+        }
+        await this.loadData();
+
       },
 
       calculateDays(targetDate: string): number {
