@@ -2,16 +2,18 @@
   <view class="page-container">
     <!-- 顶部导航栏 -->
     <view class="navbar">
-      <view class="navbar-icon" @click="toggleDrawer">
-        <text>☰</text>
-      </view>
-      <view class="navbar-icon" @click="toggleLayout" :title="currentLayout === 'grid' ? '切换到列表布局' : '切换到格子布局'">
-        <text>{{ currentLayout === 'grid' ? '📋' : '⊞' }}</text>
-        <text class="icon-hint">{{ currentLayout === 'grid' ? '列表' : '格子' }}</text>
-      </view>
-      <view class="navbar-icon" @click="toggleCareMode" :title="careMode ? '关闭关怀模式' : '开启关怀模式'">
-        <text>{{ careMode ? '👓' : 'Aa' }}</text>
-        <text class="icon-hint">{{ careMode ? '关怀' : '普通' }}</text>
+      <view class="navbar-left">
+        <view class="navbar-icon" @click="toggleDrawer">
+          <text>☰</text>
+        </view>
+        <view class="navbar-icon" @click="toggleLayout" :title="currentLayout === 'grid' ? '切换到列表布局' : '切换到格子布局'">
+          <text>{{ currentLayout === 'grid' ? '📋' : '⊞' }}</text>
+          <text class="icon-hint">{{ currentLayout === 'grid' ? '列表' : '格子' }}</text>
+        </view>
+        <view class="navbar-icon" @click="toggleCareMode" :title="careMode ? '关闭关怀模式' : '开启关怀模式'">
+          <text>{{ careMode ? '👓' : 'Aa' }}</text>
+          <text class="icon-hint">{{ careMode ? '关怀' : '普通' }}</text>
+        </view>
       </view>
       <view class="navbar-title">
         <text>{{ user.nickname }}的奇妙日</text>
@@ -544,7 +546,7 @@ export default defineComponent(
   height: 88rpx;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: 0 30rpx;
   background-color: #1890ff;
   position: fixed;
@@ -554,10 +556,26 @@ export default defineComponent(
   z-index: 999;
 }
 
+.navbar-left {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 46rpx;
+}
+
 .navbar-title {
+  flex: 1;
+  min-width: 0;
   font-size: 32rpx;
   font-weight: bold;
   color: #ffffff;
+  text-align: center;
+}
+
+.navbar-icons {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
 }
 
 .navbar-icon {
@@ -568,8 +586,12 @@ export default defineComponent(
   justify-content: center;
   font-size: 40rpx;
   color: #ffffff;
-  margin-right: 20rpx;
   position: relative;
+}
+
+.navbar-left .navbar-icon,
+.navbar-icons .navbar-icon {
+  margin-right: 0;
 }
 
 .icon-hint {
