@@ -9,6 +9,10 @@
         <text>{{ currentLayout === 'grid' ? '📋' : '⊞' }}</text>
         <text class="icon-hint">{{ currentLayout === 'grid' ? '列表' : '格子' }}</text>
       </view>
+      <view class="navbar-icon" @click="toggleCareMode" :title="careMode ? '关闭关怀模式' : '开启关怀模式'">
+        <text>{{ careMode ? '👓' : 'Aa' }}</text>
+        <text class="icon-hint">{{ careMode ? '关怀' : '普通' }}</text>
+      </view>
       <view class="navbar-title">
         <text>{{ user.nickname }}的奇妙日</text>
       </view>
@@ -29,11 +33,11 @@
         </view>
         <view v-if="currentLayout === 'grid'" class="grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx;">
           <CountdownCard v-for="countdown in pinnedCountdowns" :key="countdown.id" ref="countdownCard"
-            :countdown="countdown" :categories="categories" :compact="true" layout="grid" @click="handleCountdownClick" />
+            :countdown="countdown" :categories="categories" :compact="true" layout="grid" :careMode="careMode" @click="handleCountdownClick" />
         </view>
         <view v-else>
           <CountdownCard v-for="countdown in pinnedCountdowns" :key="countdown.id" ref="countdownCard"
-            :countdown="countdown" :categories="categories" :compact="true" @click="handleCountdownClick" />
+            :countdown="countdown" :categories="categories" :compact="true" :careMode="careMode" @click="handleCountdownClick" />
         </view>
       </view>
 
@@ -45,11 +49,11 @@
         </view>
         <view v-if="currentLayout === 'grid'" class="grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx;">
           <CountdownCard v-for="countdown in futureCountdowns" :key="countdown.id" ref="countdownCard"
-            :countdown="countdown" :categories="categories" :compact="true" layout="grid" @click="handleCountdownClick" />
+            :countdown="countdown" :categories="categories" :compact="true" layout="grid" :careMode="careMode" @click="handleCountdownClick" />
         </view>
         <view v-else>
           <CountdownCard v-for="countdown in futureCountdowns" :key="countdown.id" ref="countdownCard"
-            :countdown="countdown" :categories="categories" :compact="true" @click="handleCountdownClick" />
+            :countdown="countdown" :categories="categories" :compact="true" :careMode="careMode" @click="handleCountdownClick" />
         </view>
       </view>
 
@@ -61,11 +65,11 @@
         </view>
         <view v-if="currentLayout === 'grid'" class="grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx;">
           <CountdownCard v-for="countdown in pastCountdowns" :key="countdown.id" ref="countdownCard"
-            :countdown="countdown" :categories="categories" :compact="true" layout="grid" @click="handleCountdownClick" />
+            :countdown="countdown" :categories="categories" :compact="true" layout="grid" :careMode="careMode" @click="handleCountdownClick" />
         </view>
         <view v-else>
           <CountdownCard v-for="countdown in pastCountdowns" :key="countdown.id" ref="countdownCard"
-            :countdown="countdown" :categories="categories" :compact="true" @click="handleCountdownClick" />
+            :countdown="countdown" :categories="categories" :compact="true" :careMode="careMode" @click="handleCountdownClick" />
         </view>
       </view>
 
@@ -136,6 +140,7 @@ interface IndexPageData {
   categories: Category[];
   drawerVisible: boolean;
   currentLayout: 'default' | 'grid';
+  careMode: boolean;
 }
 
 export default defineComponent(
@@ -186,7 +191,8 @@ export default defineComponent(
         ],
         categories: [],
         drawerVisible: false,
-        currentLayout: 'default'
+        currentLayout: 'default',
+        careMode: !!uni.getStorageSync('careMode')
       };
     },
 
@@ -389,6 +395,11 @@ export default defineComponent(
 
       toggleLayout(): void {
         this.currentLayout = this.currentLayout === 'grid' ? 'default' : 'grid';
+      },
+
+      toggleCareMode(): void {
+        this.careMode = !this.careMode;
+        uni.setStorageSync('careMode', this.careMode);
       },
 
       showAddCountdown(): void {

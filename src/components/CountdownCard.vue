@@ -86,7 +86,8 @@ export default defineComponent( {
     countdown: { type: Object as PropType<CountdownWithDisplayDate>, required: true },
     categories: { type: Array as PropType<Category[]>, default: () => [] },
     compact: { type: Boolean as PropType<boolean>, default: true },
-    layout: { type: String as PropType<'default' | 'grid'>, default: 'default' }
+    layout: { type: String as PropType<'default' | 'grid'>, default: 'default' },
+    careMode: { type: Boolean as PropType<boolean>, default: false }
   },
   emits: [ 'click' ],
   setup ( props, { emit } )
@@ -160,7 +161,8 @@ export default defineComponent( {
       'pinned-card': !!props.countdown.is_pinned,
       'past-card': isPast.value,
       'compact-card': !!props.compact,
-      'grid-card': isGridLayout.value
+      'grid-card': isGridLayout.value,
+      'care-mode': !!props.careMode
     } ) );
 
     const titleSuffix = computed( () => {
@@ -443,6 +445,22 @@ export default defineComponent( {
   min-width: 220rpx;
 }
 
+.care-mode .category-name {
+  font-size: 30rpx;
+}
+
+.care-mode .countdown-title {
+  font-size: 38rpx;
+}
+
+.care-mode .countdown-number {
+  font-size: 86rpx;
+}
+
+.care-mode .countdown-unit {
+  font-size: 36rpx;
+}
+
 /* 剩余天数高亮样式 */
 .remaining-days-highlight {
   color: #ff6b6b !important;
@@ -461,6 +479,11 @@ export default defineComponent( {
   position: relative;
   width: 100%;
   box-sizing: border-box;
+}
+
+.care-mode.grid-card {
+  padding: 24rpx;
+  min-height: 240rpx;
 }
 
 .grid-pin-badge {
@@ -508,6 +531,10 @@ export default defineComponent( {
   line-height: 1;
 }
 
+.care-mode .grid-category-name {
+  font-size: 34rpx;
+}
+
 .grid-body {
   flex: 1;
   display: flex;
@@ -529,10 +556,18 @@ export default defineComponent( {
   line-height: 1.2;
 }
 
+.care-mode .grid-age {
+  font-size: 54rpx;
+}
+
 .grid-remaining {
   font-size: 38rpx;
   color: #ff6b6b;
   font-weight: 600;
+}
+
+.care-mode .grid-remaining {
+  font-size: 48rpx;
 }
 
 .grid-text {
@@ -540,6 +575,10 @@ export default defineComponent( {
   font-weight: bold;
   color: #333333;
   line-height: 1.2;
+}
+
+.care-mode .grid-text {
+  font-size: 54rpx;
 }
 
 .grid-footer {
@@ -553,6 +592,10 @@ export default defineComponent( {
 .grid-date {
   font-size: 30rpx;
   color: #888888;
+}
+
+.care-mode .grid-date {
+  font-size: 38rpx;
 }
 
 .grid-days {
@@ -573,10 +616,18 @@ export default defineComponent( {
   line-height: 1;
 }
 
+.care-mode .grid-days-number {
+  font-size: 56rpx;
+}
+
 .grid-days-unit {
   font-size: 26rpx;
   color: #ffffff;
   line-height: 1;
+}
+
+.care-mode .grid-days-unit {
+  font-size: 34rpx;
 }
 
 /* 格子布局的置顶样式 */
