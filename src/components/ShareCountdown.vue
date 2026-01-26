@@ -431,7 +431,7 @@ export default defineComponent({
                     ctx.setTextBaseline('middle');
                     // 添加黑色描边
                     ctx.setStrokeStyle('#000');
-                    ctx.setLineWidth(2);
+                    ctx.setLineWidth(16);
                     const icon = this.categoryIcon || '';
                     if (icon) {
                         ctx.strokeText(icon, badgeX + 30, badgeY + badgeH / 2);
@@ -440,15 +440,24 @@ export default defineComponent({
 
                     ctx.setFontSize(34 + FONT_PLUS);
                     const categoryText = this.categoryName || '奇妙日';
-                    ctx.strokeText(categoryText, badgeX + 30 + (icon ? 64 : 0), badgeY + badgeH / 2);
-                    ctx.fillText(categoryText, badgeX + 30 + (icon ? 64 : 0), badgeY + badgeH / 2);
+                    ctx.strokeText(categoryText, badgeX + 35 + (icon ? 64 : 0), badgeY + badgeH / 2);
+                    ctx.fillText(categoryText, badgeX + 35 + (icon ? 64 : 0), badgeY + badgeH / 2);
 
                     // 标题 - 添加黑色描边
+                    // 信息卡片透明背景
+                    const infoCardX = leftMargin - 20;
+                    const infoCardY = 170 + yShift;
+                    const infoCardW = designW - 80;
+                    const infoCardH = 250+130;
+                    ctx.setFillStyle('rgba(255,255,255,0.30)');
+                    roundRectUni(ctx, infoCardX, infoCardY, infoCardW, infoCardH, 20);
+                    ctx.fill();
+                    
                     ctx.setFillStyle('#fff');
                     ctx.setTextBaseline('top');
                     ctx.setFontSize(72 + FONT_PLUS);
                     ctx.setStrokeStyle('#000');
-                    ctx.setLineWidth(3);
+                    ctx.setLineWidth(16); // 统一使用2px描边
                     const titleY = 300 + yShift;
                     const titleText = this.title || '分享一个奇妙日';
                     // 先描边再填充
@@ -461,7 +470,7 @@ export default defineComponent({
                         ctx.setFontSize(48 + FONT_PLUS);
                         ctx.setFillStyle('rgba(255,255,255,0.92)');
                         ctx.setStrokeStyle('#000');
-                        ctx.setLineWidth(2);
+                        ctx.setLineWidth(16); // 统一使用2px描边
                         ctx.strokeText(days, leftMargin, afterTitleY + 10);
                         ctx.fillText(days, leftMargin, afterTitleY + 10);
                     }
@@ -471,7 +480,7 @@ export default defineComponent({
                         ctx.setFontSize(44 + FONT_PLUS);
                         ctx.setFillStyle('rgba(255,255,255,0.9)');
                         ctx.setStrokeStyle('#000');
-                        ctx.setLineWidth(2);
+                        ctx.setLineWidth(16); // 统一使用2px描边
                         ctx.strokeText(dateText, leftMargin, afterTitleY + 92);
                         ctx.fillText(dateText, leftMargin, afterTitleY + 92);
                     }
