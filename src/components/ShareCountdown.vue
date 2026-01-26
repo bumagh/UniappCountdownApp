@@ -44,6 +44,7 @@
 </template>
 
 <script lang="ts">
+import { getDataUrl } from '@/utils/common';
 import { defineComponent, PropType } from 'vue';
 
 export default defineComponent( {
@@ -446,6 +447,27 @@ export default defineComponent( {
                     // 背景
                     ctx.setFillStyle( '#f5f9ff' );
                     ctx.fillRect( 0, 0, CW, designH );
+                    
+                    // 底部随机背景图片
+                    try {
+                        const bgTypes = ['pic1', 'pic2'];
+                        const randomBg = bgTypes[Math.floor(Math.random() * bgTypes.length)];
+                        const bgImageUrl = await getDataUrl(randomBg);
+                        
+                        // 背景图片尺寸和等比缩放
+                        const bgImgW = 1672;
+                        const bgImgH = 2508;
+                        const bgScale = CW / bgImgW; // 按海报宽度缩放
+                        const bgDrawW = CW;
+                        const bgDrawH = bgImgH * bgScale;
+                        const bgX = 0;
+                        const bgY = designH - bgDrawH; // 放在底部
+                        
+                        // 绘制背景图片（等比截取缩放）
+                        ctx.drawImage(bgImageUrl, bgX, bgY, bgDrawW, bgDrawH);
+                    } catch (e) {
+                        console.warn('背景图片加载失败，使用默认背景');
+                    }
 
                     // 顶部渐变卡片
                     const grad = ctx.createLinearGradient( 0, 0, CW, 720 );
@@ -509,7 +531,7 @@ export default defineComponent( {
                     const qrValue = ( this.qrText || this.shareUrl || '' ).trim();
                     if ( qrValue )
                     {
-                        let qrPngUrl = await this.getQrDataUrl( qrValue, 0 );
+                        let qrPngUrl = await getDataUrl('qr');
                         // 兜底：如果构建后的 url 不可用，再尝试根路径 /static
                         try
                         {
@@ -631,6 +653,28 @@ export default defineComponent( {
                 // 背景
                 ctx2d.fillStyle = '#f5f9ff';
                 ctx2d.fillRect( 0, 0, W, H );
+                
+                // 底部随机背景图片
+                try {
+                    const bgTypes = ['pic1', 'pic2'];
+                    const randomBg = bgTypes[Math.floor(Math.random() * bgTypes.length)];
+                    const bgImageUrl = await getDataUrl(randomBg);
+                    const img = await this.loadImage(bgImageUrl);
+                    
+                    // 背景图片尺寸和等比缩放
+                    const bgImgW = 1672;
+                    const bgImgH = 2508;
+                    const bgScale = W / bgImgW; // 按海报宽度缩放
+                    const bgDrawW = W;
+                    const bgDrawH = bgImgH * bgScale;
+                    const bgX = 0;
+                    const bgY = H - bgDrawH; // 放在底部
+                    
+                    // 绘制背景图片（等比截取缩放）
+                    ctx2d.drawImage(img, bgX, bgY, bgDrawW, bgDrawH);
+                } catch (e) {
+                    console.warn('背景图片加载失败，使用默认背景');
+                }
 
                 // 二维码容器
                 const boxW = 160;
@@ -641,7 +685,7 @@ export default defineComponent( {
                 ctx2d.fillStyle = '#fff';
                 ctx2d.fillRect( qrX - 10, qrY - 10, boxW + 20, boxH + 20 );
 
-                let qrPngUrl = await this.getQrDataUrl( ( this.qrText || this.shareUrl || '' ).trim(), 0 );
+                let qrPngUrl = await getDataUrl('qr');
                 // 原生兜底同样做一次可用性回退
                 try
                 {

@@ -114,7 +114,7 @@
         </view>
       </view>
   <!-- 未登录浮动按钮 -->
-    <FloatWechatLogin :show="true" :firstLoginUrlBuilder=" buildFirstLoginUrl " text="微信登录立即体验"
+    <FloatWechatLogin :show="!isLoggedIn" :firstLoginUrlBuilder=" buildFirstLoginUrl " text="微信登录立即体验"
       @success=" onWechatLoginSuccess " />
       <!-- 底部空白 -->
       <view style="height: 40rpx;"></view>
@@ -145,7 +145,8 @@ interface DetailPageData
   categories: Category[],
   shareVisible: boolean,
   shareUrl: string,
-  shareImageUrl: string | null
+  shareImageUrl: string | null,
+  isLoggedIn: boolean
 }
 export default defineComponent( {
   name: 'Detail',
@@ -158,7 +159,8 @@ export default defineComponent( {
       categories: [],
       shareVisible: false,
       shareUrl: '',
-      shareImageUrl: null
+      shareImageUrl: null,
+      isLoggedIn: false
     };
   },
   computed: {
@@ -236,6 +238,8 @@ export default defineComponent( {
 
   onShow ()
   {
+    const token = uni.getStorageSync('token');
+    this.isLoggedIn = !!token;
     if ( this.countdownId )
     {
       this.loadData();
@@ -248,11 +252,23 @@ export default defineComponent( {
         return `/subpackages/register/reginfo?id=${ u.id }&nickname=${ u.nickname }&gender=${ u.sex }`;
       },
       
-      onWechatLoginSuccess (): void
+      async onWechatLoginSuccess (): Promise<void>
       {
+        this.isLoggedIn = true;
         uni.switchTab( {
           url: '/pages/index/index'
         } );
+        const token = uni.getStorageSync('token');
+        if (this.isLoggedIn && token) {
+          try {
+            const res = await apiService.incrementLoginDays();
+            uni.setStorageSync('loginDays', res.login_days);
+          } catch (error) {
+            console.error('更新登录天数失败:', error);
+            // 如果调用失败，保持原有的loginDays值，不覆盖
+          }
+        }
+        await this.loadData();
       },
 
     async loadData ()

@@ -467,8 +467,6 @@ export default defineComponent(
         console.log('onWechatLoginSuccess', params);
         this.isLoggedIn = true;
         const token = uni.getStorageSync('token');
-        this.isLoggedIn = !!token;
-
         if (this.isLoggedIn && token) {
           try {
             const res = await apiService.incrementLoginDays();
