@@ -380,9 +380,9 @@ export default defineComponent({
     async loadUserData() {
       try {
         if (!uni.getStorageSync('userid')) {
-          // uni.navigateTo({
-          //   url: '/subpackages/login/login'
-          // });
+          uni.navigateTo({
+            url: '/subpackages/login/login'
+          });
           return;
         }
         // 获取当前用户信息

@@ -21,8 +21,8 @@
           <text class="section-title">置顶</text>
           <text class="section-count">{{ pinnedCountdowns.length }}个</text>
         </view>
-        <CountdownCard v-for="countdown in pinnedCountdowns" :key="countdown.id" ref="countdownCard" :countdown="countdown"
-          :categories="categories" :compact="true" @click="handleCountdownClick" />
+        <CountdownCard v-for="countdown in pinnedCountdowns" :key="countdown.id" ref="countdownCard"
+          :countdown="countdown" :categories="categories" :compact="true" @click="handleCountdownClick" />
       </view>
 
       <!-- 未来奇妙日（包含置顶的） -->
@@ -31,8 +31,8 @@
           <text class="section-title">未来</text>
           <text class="section-count">{{ futureCountdowns.length }}个</text>
         </view>
-        <CountdownCard v-for="countdown in futureCountdowns" :key="countdown.id" ref="countdownCard" :countdown="countdown"
-          :categories="categories" :compact="true" @click="handleCountdownClick" />
+        <CountdownCard v-for="countdown in futureCountdowns" :key="countdown.id" ref="countdownCard"
+          :countdown="countdown" :categories="categories" :compact="true" @click="handleCountdownClick" />
       </view>
 
       <!-- 已经奇妙日（包含置顶的） -->
@@ -41,8 +41,8 @@
           <text class="section-title">已经</text>
           <text class="section-count">{{ pastCountdowns.length }}个</text>
         </view>
-        <CountdownCard v-for="countdown in pastCountdowns" :key="countdown.id" ref="countdownCard" :countdown="countdown"
-          :categories="categories" :compact="true" @click="handleCountdownClick" />
+        <CountdownCard v-for="countdown in pastCountdowns" :key="countdown.id" ref="countdownCard"
+          :countdown="countdown" :categories="categories" :compact="true" @click="handleCountdownClick" />
       </view>
 
       <!-- 空状态 -->
@@ -266,7 +266,7 @@ export default defineComponent(
           this.allCountdowns = [];
           return;
         }
-
+        try {
           // 获取当前用户信息
           const userid = uni.getStorageSync('userid');
           const currentUser = await apiService.getCurrentUser(userid || '1');
@@ -303,14 +303,14 @@ export default defineComponent(
         } catch (error) {
           console.error('加载数据失败:', error);
           uni.showToast({
-            title: '加载失败'+error,
+            title: '加载失败' + error,
             icon: 'none'
           });
         }
         this.isLoadingData = false;
       },
 
-      onWechatLoginSuccess(params: any): void {
+      async onWechatLoginSuccess(params: any): Promise<void> {
         console.log('onWechatLoginSuccess', params);
         this.isLoggedIn = true;
         const token = uni.getStorageSync('token');
