@@ -1,5 +1,6 @@
 <template>
-  <view class="countdown-card shadow" :class="cardClass" @click=" handleClick ">
+  <!-- 默认布局 -->
+  <view v-if="!isGridLayout" class="countdown-card shadow" :class="cardClass" @click=" handleClick ">
     <view v-if=" countdown.is_pinned " class="pin-badge">
       <!-- <text>📌</text> -->
     </view>
@@ -33,6 +34,40 @@
       <text class="countdown-unit" :class="[ daysClass, { 'pinned-unit': countdown.is_pinned } ]">天</text>
     </view>
   </view>
+
+  <!-- 格子布局 -->
+  <view v-else class="countdown-card grid-card shadow" :class="cardClass" @click=" handleClick ">
+    <view v-if=" countdown.is_pinned " class="grid-pin-badge">
+      <!-- <text>📌</text> -->
+    </view>
+
+    <view class="grid-content">
+      <view class="grid-header">
+        <view class="grid-category" :style=" { borderColor: categoryColor } ">
+          <view class="grid-category-dot" :style=" { backgroundColor: categoryColor } "></view>
+          <text class="grid-category-name">{{ categoryName }}</text>
+        </view>
+      </view>
+
+      <view class="grid-body">
+        <view class="grid-title">
+          <template v-if="displayTitle.age !== undefined">
+            <text class="grid-age">{{ displayTitle.age }}岁奇妙日</text>
+            <text class="grid-remaining">+{{ displayTitle.remainingDays }}天</text>
+          </template>
+          <text v-else class="grid-text">{{ displayTitle.text }}</text>
+        </view>
+
+        <view class="grid-footer">
+          <text class="grid-date">{{ countdown.displayDate }}</text>
+          <view class="grid-days" :class="[ daysClass ]">
+            <text class="grid-days-number">{{ displayDays }}</text>
+            <text class="grid-days-unit">天</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
 </template>
 
 <script lang="ts">
@@ -50,7 +85,8 @@ export default defineComponent( {
   props: {
     countdown: { type: Object as PropType<CountdownWithDisplayDate>, required: true },
     categories: { type: Array as PropType<Category[]>, default: () => [] },
-    compact: { type: Boolean as PropType<boolean>, default: true }
+    compact: { type: Boolean as PropType<boolean>, default: true },
+    layout: { type: String as PropType<'default' | 'grid'>, default: 'default' }
   },
   emits: [ 'click' ],
   setup ( props, { emit } )
@@ -101,12 +137,6 @@ export default defineComponent( {
 
     const isPast = computed( () => days.value < 0 );
 
-    const cardClass = computed( () => ( {
-      'pinned-card': !!props.countdown.is_pinned,
-      'past-card': isPast.value,
-      'compact-card': !!props.compact
-    } ) );
-
     const mainClass = computed( () => ( {
       'past-main': isPast.value
     } ) );
@@ -121,6 +151,16 @@ export default defineComponent( {
       'unit-future': days.value > 0,
       'unit-today': days.value === 0,
       'unit-past': days.value < 0
+    } ) );
+
+    // 布局相关的计算属性
+    const isGridLayout = computed( () => props.layout === 'grid' );
+
+    const cardClass = computed( () => ( {
+      'pinned-card': !!props.countdown.is_pinned,
+      'past-card': isPast.value,
+      'compact-card': !!props.compact,
+      'grid-card': isGridLayout.value
     } ) );
 
     const titleSuffix = computed( () => {
@@ -146,7 +186,8 @@ export default defineComponent( {
       unitClass,
       handleClick,
       titleSuffix,
-      refreshLoginDays
+      refreshLoginDays,
+      isGridLayout
     };
   }
 } );
@@ -407,5 +448,152 @@ export default defineComponent( {
   color: #ff6b6b !important;
   font-weight: bold !important;
   font-size: 110% !important;
+}
+
+/* 格子布局样式 */
+.grid-card {
+  padding: 20rpx;
+  margin-bottom: 16rpx;
+  border-radius: 16rpx;
+  min-height: 200rpx;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.grid-pin-badge {
+  position: absolute;
+  top: 12rpx;
+  right: 12rpx;
+  font-size: 28rpx;
+  background-color: rgba(255, 149, 0, 0.1);
+  padding: 6rpx;
+  border-radius: 6rpx;
+}
+
+.grid-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.grid-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.grid-category {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 10rpx;
+  border: 1rpx solid #e8e8e8;
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.grid-category-dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+}
+
+.grid-category-name {
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1;
+}
+
+.grid-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8rpx;
+}
+
+.grid-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.grid-age {
+  font-size: 44rpx;
+  font-weight: bold;
+  color: #333333;
+  line-height: 1.2;
+}
+
+.grid-remaining {
+  font-size: 38rpx;
+  color: #ff6b6b;
+  font-weight: 600;
+}
+
+.grid-text {
+  font-size: 44rpx;
+  font-weight: bold;
+  color: #333333;
+  line-height: 1.2;
+}
+
+.grid-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8rpx;
+  margin-top: auto;
+}
+
+.grid-date {
+  font-size: 30rpx;
+  color: #888888;
+}
+
+.grid-days {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 10rpx 20rpx;
+  border-radius: 14rpx;
+  min-width: 90rpx;
+  justify-content: center;
+  align-self: flex-end;
+}
+
+.grid-days-number {
+  font-size: 42rpx;
+  font-weight: bold;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.grid-days-unit {
+  font-size: 26rpx;
+  color: #ffffff;
+  line-height: 1;
+}
+
+/* 格子布局的置顶样式 */
+.grid-card.pinned-card {
+  border: 2rpx solid #1890ff;
+  background: linear-gradient(135deg, #e6f7ff 0%, #ffffff 100%);
+  box-shadow: 0 6rpx 24rpx rgba(24, 144, 255, 0.15);
+}
+
+/* 格子布局的过期样式 */
+.grid-card.past-card {
+  opacity: 0.85;
+  background-color: #f8f8f8 !important;
+}
+
+.grid-card.past-card.pinned-card {
+  border-color: #999999;
+  background: linear-gradient(135deg, #f8f8f8 0%, #eeeeee 100%) !important;
 }
 </style>

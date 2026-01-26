@@ -5,11 +5,17 @@
       <view class="navbar-icon" @click="toggleDrawer">
         <text>☰</text>
       </view>
+      <view class="navbar-icon" @click="toggleLayout" :title="currentLayout === 'grid' ? '切换到列表布局' : '切换到格子布局'">
+        <text>{{ currentLayout === 'grid' ? '📋' : '⊞' }}</text>
+        <text class="icon-hint">{{ currentLayout === 'grid' ? '列表' : '格子' }}</text>
+      </view>
       <view class="navbar-title">
         <text>{{ user.nickname }}的奇妙日</text>
       </view>
-      <view class="navbar-icon" @click="showAddCountdown">
-        <text style="white-space: nowrap;">+添加</text>
+      <view class="navbar-icons">
+        <view class="navbar-icon" @click="showAddCountdown">
+          <text style="white-space: nowrap;">+添加</text>
+        </view>
       </view>
     </view>
 
@@ -21,8 +27,14 @@
           <text class="section-title">置顶</text>
           <text class="section-count">{{ pinnedCountdowns.length }}个</text>
         </view>
-        <CountdownCard v-for="countdown in pinnedCountdowns" :key="countdown.id" ref="countdownCard"
-          :countdown="countdown" :categories="categories" :compact="true" @click="handleCountdownClick" />
+        <view v-if="currentLayout === 'grid'" class="grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx;">
+          <CountdownCard v-for="countdown in pinnedCountdowns" :key="countdown.id" ref="countdownCard"
+            :countdown="countdown" :categories="categories" :compact="true" layout="grid" @click="handleCountdownClick" />
+        </view>
+        <view v-else>
+          <CountdownCard v-for="countdown in pinnedCountdowns" :key="countdown.id" ref="countdownCard"
+            :countdown="countdown" :categories="categories" :compact="true" @click="handleCountdownClick" />
+        </view>
       </view>
 
       <!-- 未来奇妙日（包含置顶的） -->
@@ -31,8 +43,14 @@
           <text class="section-title">未来</text>
           <text class="section-count">{{ futureCountdowns.length }}个</text>
         </view>
-        <CountdownCard v-for="countdown in futureCountdowns" :key="countdown.id" ref="countdownCard"
-          :countdown="countdown" :categories="categories" :compact="true" @click="handleCountdownClick" />
+        <view v-if="currentLayout === 'grid'" class="grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx;">
+          <CountdownCard v-for="countdown in futureCountdowns" :key="countdown.id" ref="countdownCard"
+            :countdown="countdown" :categories="categories" :compact="true" layout="grid" @click="handleCountdownClick" />
+        </view>
+        <view v-else>
+          <CountdownCard v-for="countdown in futureCountdowns" :key="countdown.id" ref="countdownCard"
+            :countdown="countdown" :categories="categories" :compact="true" @click="handleCountdownClick" />
+        </view>
       </view>
 
       <!-- 已经奇妙日（包含置顶的） -->
@@ -41,8 +59,14 @@
           <text class="section-title">已经</text>
           <text class="section-count">{{ pastCountdowns.length }}个</text>
         </view>
-        <CountdownCard v-for="countdown in pastCountdowns" :key="countdown.id" ref="countdownCard"
-          :countdown="countdown" :categories="categories" :compact="true" @click="handleCountdownClick" />
+        <view v-if="currentLayout === 'grid'" class="grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx;">
+          <CountdownCard v-for="countdown in pastCountdowns" :key="countdown.id" ref="countdownCard"
+            :countdown="countdown" :categories="categories" :compact="true" layout="grid" @click="handleCountdownClick" />
+        </view>
+        <view v-else>
+          <CountdownCard v-for="countdown in pastCountdowns" :key="countdown.id" ref="countdownCard"
+            :countdown="countdown" :categories="categories" :compact="true" @click="handleCountdownClick" />
+        </view>
       </view>
 
       <!-- 空状态 -->
@@ -111,6 +135,7 @@ interface IndexPageData {
   allCountdowns: Countdown[];
   categories: Category[];
   drawerVisible: boolean;
+  currentLayout: 'default' | 'grid';
 }
 
 export default defineComponent(
@@ -160,7 +185,8 @@ export default defineComponent(
           }
         ],
         categories: [],
-        drawerVisible: false
+        drawerVisible: false,
+        currentLayout: 'default'
       };
     },
 
@@ -361,6 +387,10 @@ export default defineComponent(
         this.drawerVisible = !this.drawerVisible;
       },
 
+      toggleLayout(): void {
+        this.currentLayout = this.currentLayout === 'grid' ? 'default' : 'grid';
+      },
+
       showAddCountdown(): void {
         if (!uni.getStorageSync('userid')) {
           uni.navigateTo({
@@ -528,6 +558,20 @@ export default defineComponent(
   font-size: 40rpx;
   color: #ffffff;
   margin-right: 20rpx;
+  position: relative;
+}
+
+.icon-hint {
+  position: absolute;
+  bottom: -8rpx;
+  right: -8rpx;
+  font-size: 16rpx;
+  color: #ffffff;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 2rpx 4rpx;
+  border-radius: 4rpx;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .page-content {
