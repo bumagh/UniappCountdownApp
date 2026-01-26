@@ -12,6 +12,7 @@ export interface User
   created_at: string;
   updated_at: string;
   serviceno_notice?:number;
+  login_days?:number;
 }
 
 // 分类类型

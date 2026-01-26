@@ -21,7 +21,7 @@
           <text class="section-title">置顶</text>
           <text class="section-count">{{ pinnedCountdowns.length }}个</text>
         </view>
-        <CountdownCard v-for="countdown in pinnedCountdowns" :key="countdown.id" :countdown="countdown"
+        <CountdownCard v-for="countdown in pinnedCountdowns" :key="countdown.id" ref="countdownCard" :countdown="countdown"
           :categories="categories" :compact="true" @click="handleCountdownClick" />
       </view>
 
@@ -31,7 +31,7 @@
           <text class="section-title">未来</text>
           <text class="section-count">{{ futureCountdowns.length }}个</text>
         </view>
-        <CountdownCard v-for="countdown in futureCountdowns" :key="countdown.id" :countdown="countdown"
+        <CountdownCard v-for="countdown in futureCountdowns" :key="countdown.id" ref="countdownCard" :countdown="countdown"
           :categories="categories" :compact="true" @click="handleCountdownClick" />
       </view>
 
@@ -41,7 +41,7 @@
           <text class="section-title">已经</text>
           <text class="section-count">{{ pastCountdowns.length }}个</text>
         </view>
-        <CountdownCard v-for="countdown in pastCountdowns" :key="countdown.id" :countdown="countdown"
+        <CountdownCard v-for="countdown in pastCountdowns" :key="countdown.id" ref="countdownCard" :countdown="countdown"
           :categories="categories" :compact="true" @click="handleCountdownClick" />
       </view>
 
@@ -212,6 +212,8 @@ export default defineComponent(
         try {
           const res = await apiService.incrementLoginDays();
           uni.setStorageSync('loginDays', res.login_days);
+          // 刷新所有CountdownCard组件的loginDays
+          this.refreshAllCountdownCards();
         } catch (error) {
           console.error('更新登录天数失败:', error);
           // 如果调用失败，保持原有的loginDays值，不覆盖
@@ -436,6 +438,7 @@ export default defineComponent(
                 success: (res) => {
                   if (res.confirm) {
                     uni.setStorageSync('gender', currentUser.gender);
+                    uni.setStorageSync('loginDays', currentUser.login_days);
                     console.log('currentUser.gender:', currentUser.gender);
                     uni.navigateTo({
                       url: `/subpackages/register/reginfo?id=${currentUser.id}&nickname=${currentUser.nickname}&gender=${currentUser.gender}`
@@ -473,6 +476,8 @@ export default defineComponent(
           try {
             const res = await apiService.incrementLoginDays();
             uni.setStorageSync('loginDays', res.login_days);
+            // 刷新所有CountdownCard组件的loginDays
+            this.refreshAllCountdownCards();
           } catch (error) {
             console.error('更新登录天数失败:', error);
             // 如果调用失败，保持原有的loginDays值，不覆盖
@@ -599,6 +604,21 @@ export default defineComponent(
       // 获取重复文本
       getRepeatText(repeatCycle: number, repeatFrequency: string): string {
         return getRepeatText(repeatCycle, repeatFrequency as any);
+      },
+
+      // 刷新所有CountdownCard组件的loginDays
+      refreshAllCountdownCards(): void {
+        // 使用$refs获取所有CountdownCard组件并调用refreshLoginDays
+        this.$nextTick(() => {
+          const countdownCards = this.$refs.countdownCard as any[];
+          if (countdownCards && Array.isArray(countdownCards)) {
+            countdownCards.forEach((card: any) => {
+              if (card && card.refreshLoginDays) {
+                card.refreshLoginDays();
+              }
+            });
+          }
+        });
       },
 
       // 切换置顶状态

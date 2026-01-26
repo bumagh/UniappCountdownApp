@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, computed } from 'vue';
+import { defineComponent, PropType, computed, ref } from 'vue';
 import { Category, Countdown } from 'types';
 import { calculateDays, getAbsoluteDays } from '@/utils/countdownUtils';
 
@@ -58,15 +58,14 @@ export default defineComponent( {
     const days = computed( () => calculateDays( props.countdown.displayDate ) );
     const absDays = computed( () => getAbsoluteDays( props.countdown.displayDate ) );
 
-    // 获取登录天数
-    const loginDays = computed( () => {
-      try {
-        return uni.getStorageSync( 'loginDays' ) || 0;
-      } catch (error) {
-        console.error( '获取登录天数失败:', error );
-        return 0;
-      }
-    } );
+    // 获取登录天数 - 使用响应式引用
+    const loginDaysRef = ref(uni.getStorageSync('loginDays') || 0);
+    const loginDays = computed(() => loginDaysRef.value);
+
+    // 强制刷新登录天数的方法
+    const refreshLoginDays = () => {
+      loginDaysRef.value = uni.getStorageSync('loginDays') || 0;
+    };
 
     // 检查是否是120岁奇妙日
     const is120Birthday = computed( () => {
@@ -91,7 +90,7 @@ export default defineComponent( {
     // 计算显示天数
     const displayDays = computed( () => {
       if ( is120Birthday.value ) {
-        return absDays.value + loginDays.value;
+        return absDays.value;
       }
       return absDays.value;
     } );
@@ -146,7 +145,8 @@ export default defineComponent( {
       daysClass,
       unitClass,
       handleClick,
-      titleSuffix
+      titleSuffix,
+      refreshLoginDays
     };
   }
 } );
