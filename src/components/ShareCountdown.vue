@@ -431,7 +431,7 @@ export default defineComponent({
                     ctx.setTextBaseline('middle');
                     // 添加黑色描边
                     ctx.setStrokeStyle('#000');
-                    ctx.setLineWidth(16);
+                    ctx.setLineWidth(4);
                     const icon = this.categoryIcon || '';
                     if (icon) {
                         ctx.strokeText(icon, badgeX + 30, badgeY + badgeH / 2);
@@ -457,7 +457,7 @@ export default defineComponent({
                     ctx.setTextBaseline('top');
                     ctx.setFontSize(72 + FONT_PLUS);
                     ctx.setStrokeStyle('#000');
-                    ctx.setLineWidth(16); // 统一使用2px描边
+                    ctx.setLineWidth(4); // 统一使用2px描边
                     const titleY = 300 + yShift;
                     const titleText = this.title || '分享一个奇妙日';
                     // 先描边再填充
@@ -470,7 +470,7 @@ export default defineComponent({
                         ctx.setFontSize(48 + FONT_PLUS);
                         ctx.setFillStyle('rgba(255,255,255,0.92)');
                         ctx.setStrokeStyle('#000');
-                        ctx.setLineWidth(16); // 统一使用2px描边
+                        ctx.setLineWidth(4); // 统一使用2px描边
                         ctx.strokeText(days, leftMargin, afterTitleY + 10);
                         ctx.fillText(days, leftMargin, afterTitleY + 10);
                     }
@@ -480,7 +480,7 @@ export default defineComponent({
                         ctx.setFontSize(44 + FONT_PLUS);
                         ctx.setFillStyle('rgba(255,255,255,0.9)');
                         ctx.setStrokeStyle('#000');
-                        ctx.setLineWidth(16); // 统一使用2px描边
+                        ctx.setLineWidth(4); // 统一使用2px描边
                         ctx.strokeText(dateText, leftMargin, afterTitleY + 92);
                         ctx.fillText(dateText, leftMargin, afterTitleY + 92);
                     }
@@ -488,23 +488,21 @@ export default defineComponent({
                     // 二维码 - 无背景填充
                     const qrValue = (this.qrText || this.shareUrl || '').trim();
                     if (qrValue) {
-                        let qrPngUrl = await getDataUrl('qr');
-                        // 兜底：如果构建后的 url 不可用，再尝试根路径 /static
                         try {
-                            await this.getImageInfo(qrPngUrl);
+                            const qrPngUrl = await getDataUrl('qr');
+                            
+                            // 直接绘制二维码，无背景
+                            const dw = 258;
+                            const dh = 258;
+                            const dx = 0; // 左边距
+                            // 反推计算：实际海报高度1135，二维码位置900
+                            // 采用canvas缩放系数的倒数：1/scale ≈ 1/0.35 ≈ 2.86
+                            const actualHeight = H * 2.86; // 420 * 2.86 = 1201.2
+                            const dy = actualHeight - dh - 50; // 1201.2 - 258 - 50 = 893.2 (接近900)
+                            ctx.drawImage(qrPngUrl, dx, dy, dw, dh);
                         } catch (e) {
-                            qrPngUrl = '/static/qr.png';
+                            console.warn('二维码图片加载失败，跳过二维码绘制');
                         }
-
-                        // 直接绘制二维码，无背景
-                        const dw = 258;
-                        const dh = 258;
-                        const dx = 0; // 左边距
-                        // 反推计算：实际海报高度1135，二维码位置900
-                        // 采用canvas缩放系数的倒数：1/scale ≈ 1/0.35 ≈ 2.86
-                        const actualHeight = H * 2.86; // 420 * 2.86 = 1201.2
-                        const dy = actualHeight - dh - 50; // 1201.2 - 258 - 50 = 893.2 (接近900)
-                        ctx.drawImage(qrPngUrl, dx, dy, dw, dh);
                     }
 
                     await new Promise<void>(resolve => {

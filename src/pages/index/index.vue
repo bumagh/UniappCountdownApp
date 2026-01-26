@@ -229,223 +229,67 @@ export default defineComponent(
 
       async loadData(): Promise<void> {
 
-        try {
-          // 未登录时：展示本地测试数据（用于空态预览）
-          if (!this.isLoggedIn) {
-            const today = new Date();
-            const toYmd = (d: Date) => {
-              const y = d.getFullYear();
-              const m = String(d.getMonth() + 1).padStart(2, '0');
-              const day = String(d.getDate()).padStart(2, '0');
-              return `${y}-${m}-${day}`;
-            };
-            this.categories = [
-              { id: 1, name: '健康', color: '#1890ff', icon: '💪', user_id: 0, created_at: '', updated_at: '' },
-              { id: 2, name: '计划', color: '#52c41a', icon: '🗓️', user_id: 0, created_at: '', updated_at: '' },
-              { id: 3, name: '纪念', color: '#fa8c16', icon: '🎉', user_id: 0, created_at: '', updated_at: '' }
-            ];
-            // 未来
-            const d1 = new Date(today); d1.setDate(d1.getDate() + 2);
-            const d2 = new Date(today); d2.setDate(d2.getDate() + 7);
-            const d3 = new Date(today); d3.setDate(d3.getDate() + 18);
-            const d4 = new Date(today); d4.setDate(d4.getDate() + 22);
-            const d5 = new Date(today); d5.setDate(d5.getDate() + 22873);
-            // 已过
-            const d6 = new Date(today); d6.setDate(d6.getDate() - 60);
-            const d7 = new Date(today); d7.setDate(d7.getDate() - 82);
-            const d8 = new Date(today); d8.setDate(d8.getDate() - 129);
-            const d9 = new Date(today); d9.setDate(d9.getDate() - 949);
-            const d10 = new Date(today); d10.setDate(d10.getDate() - 992);
-            const d11 = new Date(today); d11.setDate(d11.getDate() - 1243);
-            const d12 = new Date(today); d12.setDate(d12.getDate() - 2653);
-            this.allCountdowns = [
-              {
-                id: 1001,
-                title: '荷尔蒙注射(半月)',
-                date: toYmd(d1),
-                is_pinned: false,
-                repeat_cycle: 0,
-                repeat_frequency: '不重复',
-                created_at: '',
-                updated_at: new Date().toISOString(),
-                category_id: 1,
-                user_id: 0
-              },
-              {
-                id: 1002,
-                title: 'NK/CIK免疫细胞回输(每月)',
-                date: toYmd(d2),
-                is_pinned: false,
-                repeat_cycle: 0,
-                repeat_frequency: '不重复',
-                created_at: '',
-                updated_at: new Date().toISOString(),
-                category_id: 1,
-                user_id: 0
-              },
-              {
-                id: 1003,
-                title: '抽血检查(每月)',
-                date: toYmd(d2),
-                is_pinned: false,
-                repeat_cycle: 0,
-                repeat_frequency: '不重复',
-                created_at: '',
-                updated_at: new Date().toISOString(),
-                category_id: 2,
-                user_id: 0
-              },
-              {
-                id: 1004,
-                title: '长寿医学检测(每季度)',
-                date: toYmd(d3),
-                is_pinned: false,
-                repeat_cycle: 0,
-                repeat_frequency: '不重复',
-                created_at: '',
-                updated_at: new Date().toISOString(),
-                category_id: 2,
-                user_id: 0
-              },
-              {
-                id: 1005,
-                title: 'MSC间充质干细胞回输(每月)',
-                date: toYmd(d4),
-                is_pinned: false,
-                repeat_cycle: 0,
-                repeat_frequency: '不重复',
-                created_at: '',
-                updated_at: new Date().toISOString(),
-                category_id: 1,
-                user_id: 0
-              },
-              {
-                id: 1006,
-                title: '突破120岁',
-                date: toYmd(d5),
-                is_pinned: true,
-                repeat_cycle: 0,
-                repeat_frequency: '不重复',
-                created_at: '',
-                updated_at: new Date().toISOString(),
-                category_id: 1,
-                user_id: 0
-              },
-              // 已过
-              {
-                id: 1007,
-                title: '外泌体面部抗衰老入组',
-                date: toYmd(d6),
-                is_pinned: false,
-                repeat_cycle: 0,
-                repeat_frequency: '不重复',
-                created_at: '',
-                updated_at: new Date().toISOString(),
-                category_id: 3,
-                user_id: 0
-              },
-              {
-                id: 1008,
-                title: '长寿修炼(空腹力半日断食法)',
-                date: toYmd(d7),
-                is_pinned: false,
-                repeat_cycle: 0,
-                repeat_frequency: '不重复',
-                created_at: '',
-                updated_at: new Date().toISOString(),
-                category_id: 2,
-                user_id: 0
-              },
-              {
-                id: 1009,
-                title: '荷尔蒙抗衰疗程开启',
-                date: toYmd(d8),
-                is_pinned: false,
-                repeat_cycle: 0,
-                repeat_frequency: '不重复',
-                created_at: '',
-                updated_at: new Date().toISOString(),
-                category_id: 1,
-                user_id: 0
-              },
-              {
-                id: 1010,
-                title: 'IPSC种子细胞存储',
-                date: toYmd(d9),
-                is_pinned: false,
-                repeat_cycle: 0,
-                repeat_frequency: '不重复',
-                created_at: '',
-                updated_at: new Date().toISOString(),
-                category_id: 1,
-                user_id: 0
-              },
-              {
-                id: 1011,
-                title: 'IPSC重编程采血',
-                date: toYmd(d10),
-                is_pinned: false,
-                repeat_cycle: 0,
-                repeat_frequency: '不重复',
-                created_at: '',
-                updated_at: new Date().toISOString(),
-                category_id: 1,
-                user_id: 0
-              },
-              {
-                id: 1012,
-                title: '细胞抗衰疗程正式启动',
-                date: toYmd(d11),
-                is_pinned: false,
-                repeat_cycle: 0,
-                repeat_frequency: '不重复',
-                created_at: '',
-                updated_at: new Date().toISOString(),
-                category_id: 1,
-                user_id: 0
-              },
-              {
-                id: 1013,
-                title: '口服NMN抗衰老',
-                date: toYmd(d12),
-                is_pinned: false,
-                repeat_cycle: 0,
-                repeat_frequency: '不重复',
-                created_at: '',
-                updated_at: new Date().toISOString(),
-                category_id: 1,
-                user_id: 0
-              }
-            ];
-            this.allCountdowns = [];
-            return;
-          }
 
-          // 获取当前用户信息
-          const userid = uni.getStorageSync('userid');
-          const currentUser = await apiService.getCurrentUser(userid || '1');
-          if (currentUser != null) {
-            this.user = currentUser;
-            if (currentUser.birthday == "" || currentUser.birthday == null || currentUser.birthday == undefined) {
-              //先弹窗询问是否要补全信息
-              uni.showModal({
-                title: '提示',
-                content: '您的信息还不完整，是否现在去补全？（为了您更好的使用体验，请尽快补全个人信息）',
-                confirmText: '去补全',
-                cancelText: '稍后再说',
-                success: (res) => {
-                  if (res.confirm) {
-                    uni.setStorageSync('gender', currentUser.gender);
-                    console.log('currentUser.gender:', currentUser.gender);
-                    uni.navigateTo({
-                      url: `/subpackages/register/reginfo?id=${currentUser.id}&nickname=${currentUser.nickname}&gender=${currentUser.gender}`
-                    });
-                  }
-                }
-              });
+        // 未登录时：展示本地测试数据（用于空态预览）
+        if (this.isLoggedIn == false) {
+          const today = new Date();
+          const toYmd = (d: Date) => {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+          };
+          this.categories = [
+            { id: 1, name: '健康', color: '#1890ff', icon: '💪', user_id: 0, created_at: '', updated_at: '' },
+            { id: 2, name: '计划', color: '#52c41a', icon: '🗓️', user_id: 0, created_at: '', updated_at: '' },
+            { id: 3, name: '纪念', color: '#fa8c16', icon: '🎉', user_id: 0, created_at: '', updated_at: '' }
+          ];
+          // 未来
+          const d1 = new Date(today); d1.setDate(d1.getDate() + 2);
+
+          this.allCountdowns = [
+            {
+              id: 1001,
+              title: '荷尔蒙注射(半月)',
+              date: toYmd(d1),
+              is_pinned: false,
+              repeat_cycle: 0,
+              repeat_frequency: '不重复',
+              created_at: '',
+              updated_at: new Date().toISOString(),
+              category_id: 1,
+              user_id: 0
             }
-          }
+          ];
+          this.allCountdowns = [];
+          return;
+        }
 
+        // 获取当前用户信息
+        const userid = uni.getStorageSync('userid');
+        const currentUser = await apiService.getCurrentUser(userid || '1');
+        if (currentUser != null) {
+          this.user = currentUser;
+          if (currentUser.birthday == "" || currentUser.birthday == null || currentUser.birthday == undefined) {
+            //先弹窗询问是否要补全信息
+            uni.showModal({
+              title: '提示',
+              content: '您的信息还不完整，是否现在去补全？（为了您更好的使用体验，请尽快补全个人信息）',
+              confirmText: '去补全',
+              cancelText: '稍后再说',
+              success: (res) => {
+                if (res.confirm) {
+                  uni.setStorageSync('gender', currentUser.gender);
+                  console.log('currentUser.gender:', currentUser.gender);
+                  uni.navigateTo({
+                    url: `/subpackages/register/reginfo?id=${currentUser.id}&nickname=${currentUser.nickname}&gender=${currentUser.gender}`
+                  });
+                }
+              }
+            });
+          }
+        }
+        try {
           // 获取分类和奇妙日数据
           const [countdownsRes, categoriesRes] = await Promise.all([
             apiService.getCountdowns({ userid }),
@@ -456,28 +300,17 @@ export default defineComponent(
         } catch (error) {
           console.error('加载数据失败:', error);
           uni.showToast({
-            title: '加载失败',
+            title: '加载失败'+error,
             icon: 'none'
           });
         }
         this.isLoadingData = false;
       },
 
-      async onWechatLoginSuccess(params: any): Promise<void> {
+      onWechatLoginSuccess(params: any): void {
         console.log('onWechatLoginSuccess', params);
         this.isLoggedIn = true;
-        const token = uni.getStorageSync('token');
-        if (this.isLoggedIn && token) {
-          try {
-            const res = await apiService.incrementLoginDays();
-            uni.setStorageSync('loginDays', res.login_days);
-          } catch (error) {
-            console.error('更新登录天数失败:', error);
-            // 如果调用失败，保持原有的loginDays值，不覆盖
-          }
-        }
-        await this.loadData();
-
+        this.loadData();
       },
 
       calculateDays(targetDate: string): number {
