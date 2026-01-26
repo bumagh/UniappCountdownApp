@@ -469,14 +469,7 @@ export default defineComponent( {
                         console.warn('背景图片加载失败，使用默认背景');
                     }
 
-                    // 顶部渐变卡片
-                    const grad = ctx.createLinearGradient( 0, 0, CW, 720 );
-                    grad.addColorStop( 0, this.categoryColor || '#1890ff' );
-                    grad.addColorStop( 1, '#52c4ff' );
-                    ctx.setFillStyle( grad );
-                    roundRectUni( ctx, 60, 120 + yShift, CW - 120, 520, 48 );
-                    ctx.fill();
-
+                    // 顶部区域 - 无背景卡片
                     const leftMargin = 150;
 
                     // 分类徽章
@@ -491,43 +484,54 @@ export default defineComponent( {
                     ctx.setFillStyle( '#fff' );
                     ctx.setFontSize( 48 + FONT_PLUS );
                     ctx.setTextBaseline( 'middle' );
+                    // 添加黑色描边
+                    ctx.setStrokeStyle('#000');
+                    ctx.setLineWidth(2);
                     const icon = this.categoryIcon || '';
-                    if ( icon ) ctx.fillText( icon, badgeX + 30, badgeY + badgeH / 2 );
+                    if (icon) {
+                        ctx.strokeText(icon, badgeX + 30, badgeY + badgeH / 2);
+                        ctx.fillText(icon, badgeX + 30, badgeY + badgeH / 2);
+                    }
 
                     ctx.setFontSize( 34 + FONT_PLUS );
-                    ctx.fillText( this.categoryName || '奇妙日', badgeX + 30 + ( icon ? 64 : 0 ), badgeY + badgeH / 2 );
+                    const categoryText = this.categoryName || '奇妙日';
+                    ctx.strokeText(categoryText, badgeX + 30 + (icon ? 64 : 0), badgeY + badgeH / 2);
+                    ctx.fillText(categoryText, badgeX + 30 + (icon ? 64 : 0), badgeY + badgeH / 2);
 
-                    // 标题
+                    // 标题 - 添加黑色描边
                     ctx.setFillStyle( '#fff' );
                     ctx.setTextBaseline( 'top' );
                     ctx.setFontSize( 72 + FONT_PLUS );
+                    ctx.setStrokeStyle('#000');
+                    ctx.setLineWidth(3);
                     const titleY = 300 + yShift;
-                    const afterTitleY = this.wrapTextUni( ctx, this.title || '分享一个奇妙日', leftMargin, titleY, designW - 200, 88, 2 );
+                    const titleText = this.title || '分享一个奇妙日';
+                    // 先描边再填充
+                    ctx.strokeText(titleText, leftMargin, titleY);
+                    const afterTitleY = this.wrapTextUni(ctx, titleText, leftMargin, titleY, designW - 200, 88, 2);
 
-                    // 天数/日期
+                    // 天数/日期 - 添加黑色描边
                     const days = this.daysText || '';
-                    if ( days )
-                    {
+                    if (days) {
                         ctx.setFontSize( 48 + FONT_PLUS );
                         ctx.setFillStyle( 'rgba(255,255,255,0.92)' );
-                        ctx.fillText( days, leftMargin, afterTitleY + 10 );
+                        ctx.setStrokeStyle('#000');
+                        ctx.setLineWidth(2);
+                        ctx.strokeText(days, leftMargin, afterTitleY + 10);
+                        ctx.fillText(days, leftMargin, afterTitleY + 10);
                     }
 
                     const dateText = this.dateText || '';
-                    if ( dateText )
-                    {
+                    if (dateText) {
                         ctx.setFontSize( 44 + FONT_PLUS );
                         ctx.setFillStyle( 'rgba(255,255,255,0.9)' );
-                        ctx.fillText( dateText, leftMargin, afterTitleY + 92 );
+                        ctx.setStrokeStyle('#000');
+                        ctx.setLineWidth(2);
+                        ctx.strokeText(dateText, leftMargin, afterTitleY + 92);
+                        ctx.fillText(dateText, leftMargin, afterTitleY + 92);
                     }
 
-                    // 信息卡
-                    const bottomBaseY = 620 + yShift;
-                    ctx.setFillStyle( '#ffffff' );
-                    roundRectUni( ctx, 60, bottomBaseY, designW - 120, 420, 40 );
-                    ctx.fill();
-
-                    // 二维码（固定入口图：1710x624，按“适应宽度”等比缩放）
+                    // 二维码 - 无背景填充
                     const qrValue = ( this.qrText || this.shareUrl || '' ).trim();
                     if ( qrValue )
                     {
@@ -541,39 +545,15 @@ export default defineComponent( {
                             qrPngUrl = '/static/qr.png';
                         }
 
-                        // 容器大小（保持原有外框），图片按容器宽度等比缩放
-                        const boxW = designW;
-                        const boxH = 420;
-                        const qrX = designW - 100 - boxW - 70;
-                        const qrY = bottomBaseY + 26;
-
-                        ctx.setFillStyle( '#ffffff' );
-                        roundRectUni( ctx, qrX - 20, qrY - 20, boxW + 40, boxH + 40, 28 );
-                        ctx.fill();
-
-                        // 已知原图像素 1710*624：按“适应宽度”缩放，保证宽度填满 boxW
+                        // 直接绘制二维码，无背景
                         const iw = 1710;
                         const ih = 624;
-                        const dw = boxW - 100 - 100;
+                        const dw = designW - 200; // 二维码宽度
                         const dh = Math.max( 1, Math.floor( ( ih / iw ) * dw ) );
-                        const dx = qrX + 240;
-                        const dy = qrY + Math.floor( ( boxH - dh ) / 2 );
+                        const dx = 100; // 左边距
+                        const dy = 670; // 位置
                         ctx.drawImage( qrPngUrl, dx, dy, dw, dh );
                     }
-
-                    // 链接文本
-                    // const url = ( this.shareUrl || '' ).trim();
-                    // ctx.setFillStyle( '#666' );
-                    // ctx.setFontSize( 30 + FONT_PLUS );
-                    // if ( url )
-                    // {
-                    //     this.wrapTextUni( ctx, url, leftMargin, bottomBaseY + 258, designW - 200, 44, 3 );
-                    // }
-
-                    // // 底部品牌
-                    // ctx.setFillStyle( '#999' );
-                    // ctx.setFontSize( 28 + FONT_PLUS );
-                    // ctx.fillText( '由长寿奇妙日生成', leftMargin, bottomBaseY + 342 );
 
                     await new Promise<void>( resolve =>
                     {
@@ -676,15 +656,7 @@ export default defineComponent( {
                     console.warn('背景图片加载失败，使用默认背景');
                 }
 
-                // 二维码容器
-                const boxW = 160;
-                const boxH = 160;
-                const qrX = W - 20 - boxW;
-                const qrY = H - 20 - boxH;
-
-                ctx2d.fillStyle = '#fff';
-                ctx2d.fillRect( qrX - 10, qrY - 10, boxW + 20, boxH + 20 );
-
+                // 二维码 - 无背景填充
                 let qrPngUrl = await getDataUrl('qr');
                 // 原生兜底同样做一次可用性回退
                 try
@@ -697,12 +669,13 @@ export default defineComponent( {
 
                 const img = await this.loadImage( qrPngUrl );
 
+                // 直接绘制二维码，无背景
                 const iw = 1710;
                 const ih = 624;
-                const dw = boxW;
+                const dw = W - 40; // 二维码宽度
                 const dh = Math.max( 1, Math.floor( ( ih / iw ) * dw ) );
-                const dx = qrX;
-                const dy = qrY + Math.floor( ( boxH - dh ) / 2 );
+                const dx = 20; // 左边距
+                const dy = H - dh - 20; // 底部位置
                 ctx2d.drawImage( img, dx, dy, dw, dh );
 
                 this.posterDataUrl = c2.toDataURL( 'image/png' );
