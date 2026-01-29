@@ -1,5 +1,5 @@
 <template>
-  <view class="page-container">
+  <view class="page-container" :class="{ 'care-mode': careModeEnabled }">
     <!-- 顶部导航栏 -->
     <view class="navbar">
       <view class="navbar-icon" @click="toggleDrawer">
@@ -155,6 +155,18 @@
             </view>
           </view>
 
+          <view class="menu-item">
+            <view class="menu-item-left">
+              <view class="menu-icon" style="background-color: #ff6b9d;">
+                <text>💝</text>
+              </view>
+              <text class="menu-label">关怀模式</text>
+            </view>
+            <view class="menu-item-right">
+              <switch :checked="careModeEnabled" @change="handleCareModeToggle" color="#ff6b9d" />
+            </view>
+          </view>
+
           <view class="menu-item" @click="handleAbout">
             <view class="menu-item-left">
               <view class="menu-icon" style="background-color: #8799a3;">
@@ -306,6 +318,7 @@ interface ProfilePageData {
   today: string;
 
   reminderEnabled: boolean;
+  careModeEnabled: boolean;
   drawerVisible: boolean;
   categories: Array<Category>;
   nicknameModalVisible: boolean;
@@ -334,6 +347,7 @@ export default defineComponent({
       },
 
       reminderEnabled: true,
+      careModeEnabled: false,
       drawerVisible: false,
       categories: [],
       nicknameModalVisible: false,
@@ -355,6 +369,8 @@ export default defineComponent({
     await this.loadCategories();
     await this.calculateStats();
     await this.loadArchivedCountdowns();
+    // 加载关怀模式状态
+    this.careModeEnabled = uni.getStorageSync('careMode') || false;
     // 初始化微信JSSDK分享
     this.initWechatShare();
     
@@ -690,6 +706,15 @@ export default defineComponent({
         });
       }
 
+    },
+    async handleCareModeToggle(e: any) {
+      this.careModeEnabled = e.detail.value;
+      // 保存到本地存储
+      uni.setStorageSync('careMode', this.careModeEnabled);
+      uni.showToast({
+        title: this.careModeEnabled ? '已开启关怀模式' : '已关闭关怀模式',
+        icon: 'success'
+      });
     },
     handleArchiveManagement() {
       this.archiveVisible = true;
@@ -1387,5 +1412,347 @@ export default defineComponent({
 .picker-birthday {
   display: flex;
   align-items: center;
+}
+
+/* 关怀模式样式 */
+.care-mode {
+  background: linear-gradient(135deg, #fff5f7 0%, #ffe0e6 100%);
+  min-height: 100vh;
+}
+
+/* 关怀模式字体设置 - 更大更粗 */
+.care-mode .navbar-title {
+  font-size: 36rpx;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.care-mode .user-nickname {
+  font-size: 42rpx;
+  font-weight: 900;
+  color: #333333;
+  margin-bottom: 30rpx;
+}
+
+.care-mode .stat-number {
+  color: #ff6b9d;
+  text-shadow: 0 2rpx 4rpx rgba(255, 107, 157, 0.2);
+  font-size: 48rpx;
+  font-weight: 900;
+}
+
+.care-mode .stat-label {
+  font-size: 28rpx;
+  color: #666666;
+  margin-top: 8rpx;
+  font-weight: 700;
+}
+
+.care-mode .menu-title {
+  font-size: 32rpx;
+  font-weight: 900;
+  color: #666666;
+  padding: 20rpx 0;
+}
+
+.care-mode .menu-label {
+  color: #2c2c2c;
+  font-weight: 700;
+  font-size: 32rpx;
+}
+
+.care-mode .menu-value {
+  color: #ff6b9d;
+  font-weight: 700;
+  font-size: 28rpx;
+}
+
+.care-mode .menu-arrow {
+  font-size: 44rpx;
+  color: #aaaaaa;
+  font-weight: 700;
+}
+
+.care-mode .navbar {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff8fa3 100%);
+  box-shadow: 0 4rpx 20rpx rgba(255, 107, 157, 0.3);
+}
+
+.care-mode .user-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fff0f3 100%);
+  border: 2rpx solid #ffe0e6;
+  box-shadow: 0 8rpx 32rpx rgba(255, 107, 157, 0.15);
+}
+
+.care-mode .user-avatar {
+  border-color: #ff6b9d;
+  box-shadow: 0 4rpx 20rpx rgba(255, 107, 157, 0.25);
+}
+
+.care-mode .avatar-edit-btn {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff8fa3 100%);
+  box-shadow: 0 2rpx 12rpx rgba(255, 107, 157, 0.4);
+}
+
+.care-mode .stat-divider {
+  background: linear-gradient(180deg, #ffe0e6 0%, #ff6b9d 50%, #ffe0e6 100%);
+}
+
+.care-mode .menu-list {
+  background: linear-gradient(135deg, #ffffff 0%, #fff9fa 100%);
+  border: 1rpx solid #ffe0e6;
+  box-shadow: 0 6rpx 24rpx rgba(255, 107, 157, 0.12);
+}
+
+.care-mode .menu-item {
+  border-bottom-color: #ffe0e6;
+  transition: all 0.3s ease;
+  padding: 36rpx 30rpx; /* 增加内边距 */
+}
+
+.care-mode .menu-item:hover {
+  background: linear-gradient(135deg, #fff5f7 0%, #ffe0e6 100%);
+  transform: translateX(4rpx);
+}
+
+.care-mode .menu-item:last-child {
+  border-bottom: none;
+}
+
+.care-mode .menu-icon {
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 157, 0.2);
+  transition: all 0.3s ease;
+  width: 90rpx;
+  height: 90rpx;
+  font-size: 44rpx;
+  margin-right: 24rpx;
+}
+
+.care-mode .menu-item:hover .menu-icon {
+  transform: scale(1.1);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 157, 0.3);
+}
+
+/* 关怀模式开关特殊样式 */
+.care-mode .menu-item-right switch {
+  transform: scale(1.3);
+}
+
+/* 关怀模式下的关怀模式菜单项特殊高亮 */
+.care-mode .menu-item:nth-child(2) {
+  background: linear-gradient(135deg, #fff0f3 0%, #ffe0e6 100%);
+  border-left: 4rpx solid #ff6b9d;
+  padding-left: 26rpx;
+}
+
+.care-mode .menu-item:nth-child(2) .menu-icon {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff8fa3 100%);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 2rpx 8rpx rgba(255, 107, 157, 0.2);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 4rpx 16rpx rgba(255, 107, 157, 0.4);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 2rpx 8rpx rgba(255, 107, 157, 0.2);
+  }
+}
+
+/* 模态框关怀模式样式 */
+.care-mode .modal-content {
+  background: linear-gradient(135deg, #ffffff 0%, #fff9fa 100%);
+  border: 2rpx solid #ffe0e6;
+  box-shadow: 0 12rpx 48rpx rgba(255, 107, 157, 0.2);
+}
+
+.care-mode .modal-header {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff8fa3 100%);
+  color: #ffffff;
+}
+
+.care-mode .modal-title {
+  color: #ffffff;
+  font-size: 36rpx;
+  font-weight: 900;
+}
+
+.care-mode .close-icon {
+  color: #ffffff;
+  font-size: 44rpx;
+  font-weight: 700;
+}
+
+.care-mode .nickname-input {
+  background: #fff9fa;
+  border: 2rpx solid #ffe0e6;
+  border-radius: 12rpx;
+  padding: 24rpx 20rpx;
+  color: #2c2c2c;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.care-mode .nickname-input:focus {
+  border-color: #ff6b9d;
+  box-shadow: 0 0 0 4rpx rgba(255, 107, 157, 0.1);
+}
+
+.care-mode .btn-primary {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff8fa3 100%);
+  border: none;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 157, 0.3);
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.care-mode .btn-ghost {
+  background: #fff9fa;
+  border: 2rpx solid #ffe0e6;
+  color: #ff6b9d;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+/* 归档管理关怀模式样式 */
+.care-mode .archive-content {
+  background: linear-gradient(135deg, #ffffff 0%, #fff9fa 100%);
+  border: 2rpx solid #ffe0e6;
+  box-shadow: 0 12rpx 48rpx rgba(255, 107, 157, 0.2);
+}
+
+.care-mode .archive-header {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff8fa3 100%);
+  color: #ffffff;
+}
+
+.care-mode .archive-title {
+  color: #ffffff;
+  font-size: 36rpx;
+  font-weight: 900;
+}
+
+.care-mode .archive-close {
+  color: #ffffff;
+  font-size: 44rpx;
+  font-weight: 700;
+}
+
+.care-mode .archived-item {
+  background: linear-gradient(135deg, #ffffff 0%, #fff9fa 100%);
+  border: 1rpx solid #ffe0e6;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 157, 0.1);
+  padding: 36rpx 30rpx;
+}
+
+.care-mode .archived-title {
+  font-size: 32rpx;
+  font-weight: 900;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+
+.care-mode .archived-date {
+  font-size: 28rpx;
+  color: #666666;
+  margin-bottom: 4rpx;
+  font-weight: 700;
+}
+
+.care-mode .archived-category {
+  font-size: 26rpx;
+  color: #999999;
+  font-weight: 700;
+}
+
+.care-mode .archived-btn {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff8fa3 100%);
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 157, 0.3);
+  font-size: 28rpx;
+  font-weight: 700;
+  padding: 12rpx 28rpx;
+}
+
+.care-mode .delete-btn {
+  background: linear-gradient(135deg, #e54d42 0%, #ff6b6b 100%);
+}
+
+/* 侧边抽屉关怀模式样式 */
+.care-mode .drawer {
+  background: linear-gradient(135deg, #ffffff 0%, #fff9fa 100%);
+  border-left: 2rpx solid #ffe0e6;
+  box-shadow: -8rpx 0 32rpx rgba(255, 107, 157, 0.2);
+}
+
+.care-mode .drawer-header {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff8fa3 100%);
+  color: #ffffff;
+}
+
+.care-mode .drawer-title {
+  color: #ffffff;
+  font-size: 36rpx;
+  font-weight: 900;
+}
+
+.care-mode .drawer-close {
+  color: #ffffff;
+  font-size: 44rpx;
+  font-weight: 700;
+}
+
+.care-mode .category-drawer-item {
+  background: linear-gradient(135deg, #ffffff 0%, #fff9fa 100%);
+  border: 1rpx solid #ffe0e6;
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 157, 0.1);
+  transition: all 0.3s ease;
+  padding: 24rpx 20rpx;
+}
+
+.care-mode .category-drawer-item:hover {
+  background: linear-gradient(135deg, #fff5f7 0%, #ffe0e6 100%);
+  transform: translateY(-2rpx);
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 157, 0.2);
+}
+
+.care-mode .category-drawer-icon {
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 157, 0.2);
+  width: 70rpx;
+  height: 70rpx;
+  font-size: 36rpx;
+}
+
+.care-mode .category-drawer-name {
+  flex: 1;
+  font-size: 32rpx;
+  color: #333333;
+  font-weight: 700;
+}
+
+.care-mode .category-drawer-count {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff8fa3 100%);
+  color: #ffffff;
+  border-radius: 20rpx;
+  padding: 6rpx 16rpx;
+  font-size: 24rpx;
+  font-weight: 900;
+}
+
+/* 空状态关怀模式样式 */
+.care-mode .empty-icon {
+  font-size: 140rpx;
+  margin-bottom: 20rpx;
+}
+
+.care-mode .empty-text {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #aaaaaa;
 }
 </style>

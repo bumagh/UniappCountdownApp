@@ -254,7 +254,7 @@ export default defineComponent(
         }
       }
       await this.loadData();
-
+      this.careMode = !!uni.getStorageSync('careMode');
     },
 
     methods: {
