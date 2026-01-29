@@ -12,20 +12,12 @@
       </view>
       <view class="title-date-wrap" v-if="countdown.is_pinned">
         <view class="countdown-title pinned-title">
-          <template v-if="displayTitle.age !== undefined">
-            <text>{{ displayTitle.age }}岁奇妙日 + </text>
-            <text class="remaining-days-highlight">{{ displayTitle.remainingDays }}天</text>
-          </template>
-          <text v-else>{{ displayTitle.text }}{{ titleSuffix }}</text>
+          <text>{{ displayTitle.text }}{{ titleSuffix }}</text>
         </view>
         <text class="pinned-date">{{ countdown.displayDate }}</text>
       </view>
       <view v-else class="countdown-title">
-        <template v-if="displayTitle.age !== undefined">
-          <text>{{ displayTitle.age }}岁奇妙日 + </text>
-          <text class="remaining-days-highlight">{{ displayTitle.remainingDays }}天</text>
-        </template>
-        <text v-else>{{ displayTitle.text }}{{ titleSuffix }}</text>
+        <text>{{ displayTitle.text }}{{ titleSuffix }}</text>
       </view>
     </view>
 
@@ -51,11 +43,7 @@
 
       <view class="grid-body">
         <view class="grid-title">
-          <template v-if="displayTitle.age !== undefined">
-            <text class="grid-age">{{ displayTitle.age }}岁奇妙日</text>
-            <text class="grid-remaining">+{{ displayTitle.remainingDays }}天</text>
-          </template>
-          <text v-else class="grid-text">{{ displayTitle.text }}</text>
+          <text class="grid-text">{{ displayTitle.text }}</text>
         </view>
 
         <view class="grid-footer">
@@ -71,7 +59,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, computed, ref } from 'vue';
+import { defineComponent, PropType, computed } from 'vue';
 import { Category, Countdown } from 'types';
 import { calculateDays, getAbsoluteDays } from '@/utils/countdownUtils';
 
@@ -95,40 +83,13 @@ export default defineComponent( {
     const days = computed( () => calculateDays( props.countdown.displayDate ) );
     const absDays = computed( () => getAbsoluteDays( props.countdown.displayDate ) );
 
-    // 获取登录天数 - 使用响应式引用
-    const loginDaysRef = ref(uni.getStorageSync('loginDays') || 0);
-    const loginDays = computed(() => loginDaysRef.value);
-
-    // 强制刷新登录天数的方法
-    const refreshLoginDays = () => {
-      loginDaysRef.value = uni.getStorageSync('loginDays') || 0;
-    };
-
-    // 检查是否是120岁奇妙日
-    const is120Birthday = computed( () => {
-      return props.countdown.title.includes( '120岁奇妙日' );
-    } );
-
     // 计算显示标题
     const displayTitle = computed( () => {
-      if ( is120Birthday.value ) {
-        const baseAge = 120;
-        const additionalYears = Math.floor( loginDays.value / 365 );
-        const age = baseAge + additionalYears;
-        const remainingDays = loginDays.value % 365;
-        return {
-          age: age,
-          remainingDays: remainingDays
-        };
-      }
       return { text: props.countdown.title };
     } );
 
     // 计算显示天数
     const displayDays = computed( () => {
-      if ( is120Birthday.value ) {
-        return absDays.value;
-      }
       return absDays.value;
     } );
 
@@ -188,7 +149,6 @@ export default defineComponent( {
       unitClass,
       handleClick,
       titleSuffix,
-      refreshLoginDays,
       isGridLayout
     };
   }
