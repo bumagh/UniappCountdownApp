@@ -33,13 +33,16 @@
           <text class="section-title">置顶</text>
           <text class="section-count">{{ pinnedCountdowns.length }}个</text>
         </view>
-        <view v-if="currentLayout === 'grid'" class="grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx;">
+        <view v-if="currentLayout === 'grid'" class="grid-container"
+          style="display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx;">
           <CountdownCard v-for="countdown in pinnedCountdowns" :key="countdown.id" ref="countdownCard"
-            :countdown="countdown" :categories="categories" :compact="true" layout="grid" :careMode="careMode" @click="handleCountdownClick" />
+            :countdown="countdown" :categories="categories" :compact="true" layout="grid" :careMode="careMode"
+            @click="handleCountdownClick" />
         </view>
         <view v-else>
           <CountdownCard v-for="countdown in pinnedCountdowns" :key="countdown.id" ref="countdownCard"
-            :countdown="countdown" :categories="categories" :compact="true" :careMode="careMode" @click="handleCountdownClick" />
+            :countdown="countdown" :categories="categories" :compact="true" :careMode="careMode"
+            @click="handleCountdownClick" />
         </view>
       </view>
 
@@ -49,13 +52,16 @@
           <text class="section-title">未来</text>
           <text class="section-count">{{ futureCountdowns.length }}个</text>
         </view>
-        <view v-if="currentLayout === 'grid'" class="grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx;">
+        <view v-if="currentLayout === 'grid'" class="grid-container"
+          style="display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx;">
           <CountdownCard v-for="countdown in futureCountdowns" :key="countdown.id" ref="countdownCard"
-            :countdown="countdown" :categories="categories" :compact="true" layout="grid" :careMode="careMode" @click="handleCountdownClick" />
+            :countdown="countdown" :categories="categories" :compact="true" layout="grid" :careMode="careMode"
+            @click="handleCountdownClick" />
         </view>
         <view v-else>
           <CountdownCard v-for="countdown in futureCountdowns" :key="countdown.id" ref="countdownCard"
-            :countdown="countdown" :categories="categories" :compact="true" :careMode="careMode" @click="handleCountdownClick" />
+            :countdown="countdown" :categories="categories" :compact="true" :careMode="careMode"
+            @click="handleCountdownClick" />
         </view>
       </view>
 
@@ -65,13 +71,16 @@
           <text class="section-title">已经</text>
           <text class="section-count">{{ pastCountdowns.length }}个</text>
         </view>
-        <view v-if="currentLayout === 'grid'" class="grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx;">
+        <view v-if="currentLayout === 'grid'" class="grid-container"
+          style="display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx;">
           <CountdownCard v-for="countdown in pastCountdowns" :key="countdown.id" ref="countdownCard"
-            :countdown="countdown" :categories="categories" :compact="true" layout="grid" :careMode="careMode" @click="handleCountdownClick" />
+            :countdown="countdown" :categories="categories" :compact="true" layout="grid" :careMode="careMode"
+            @click="handleCountdownClick" />
         </view>
         <view v-else>
           <CountdownCard v-for="countdown in pastCountdowns" :key="countdown.id" ref="countdownCard"
-            :countdown="countdown" :categories="categories" :compact="true" :careMode="careMode" @click="handleCountdownClick" />
+            :countdown="countdown" :categories="categories" :compact="true" :careMode="careMode"
+            @click="handleCountdownClick" />
         </view>
       </view>
 
@@ -129,6 +138,8 @@ import { calculateDays, getAbsoluteDays, formatDate, getRepeatText } from '@/uti
 import { Category, Countdown } from 'types';
 import FloatWechatLogin from '@/components/FloatWechatLogin.vue';
 import CountdownCard from '@/components/CountdownCard.vue';
+import wechatJSSDK from '@/utils/wechat';
+
 // 扩展 Countdown 接口，添加 displayDate 字段
 interface CountdownWithDisplayDate extends Countdown {
   displayDate: string;
@@ -255,6 +266,7 @@ export default defineComponent(
       }
       await this.loadData();
       this.careMode = !!uni.getStorageSync('careMode');
+      await this.initWechatShare();
     },
 
     methods: {
@@ -530,6 +542,32 @@ export default defineComponent(
             title: '操作失败',
             icon: 'none'
           });
+        }
+      },
+      // 初始化微信JSSDK分享
+      async initWechatShare() {
+
+        if (!wechatJSSDK.isInWx()) {
+          console.log('当前不在微信环境中，跳过微信JSSDK初始化');
+          return;
+        }
+
+        try {
+          // 构建分享配置
+          const shareConfig = {
+            title: `长寿奇妙日`,
+            desc: `快来使用长寿奇妙日，记录生活中的重要时刻！`,
+            link: window.location.href,
+            imgUrl: 'static/qr.png'
+          };
+
+          // 初始化并设置分享
+          await wechatJSSDK.initAndSetShare(shareConfig);
+          console.log('微信JSSDK分享初始化成功');
+        } catch (error) {
+          console.error('微信JSSDK分享初始化失败:', error);
+          // 不显示错误提示给用户，静默失败
+          // 在非微信环境或微信JSSDK加载失败时，不应该影响正常功能
         }
       }
     }
