@@ -139,6 +139,7 @@ import { Category, Countdown } from 'types';
 import FloatWechatLogin from '@/components/FloatWechatLogin.vue';
 import CountdownCard from '@/components/CountdownCard.vue';
 import wechatJSSDK from '@/utils/wechat';
+import { getDataUrl } from '@/utils/common';
 
 // 扩展 Countdown 接口，添加 displayDate 字段
 interface CountdownWithDisplayDate extends Countdown {
@@ -558,7 +559,7 @@ export default defineComponent(
             title: `长寿奇妙日`,
             desc: `快来使用长寿奇妙日，记录生活中的重要时刻！`,
             link: window.location.href,
-            imgUrl: 'static/qr.png'
+            imgUrl: await getDataUrl('logo','jpg')
           };
 
           // 初始化并设置分享

@@ -373,7 +373,7 @@ export default defineComponent({
     this.careModeEnabled = uni.getStorageSync('careMode') || false;
     // 初始化微信JSSDK分享
     this.initWechatShare();
-    
+
   },
   methods: {
     // 出生日期变化
@@ -470,7 +470,7 @@ export default defineComponent({
 
       this.calculateStatsCountdowns(countdowns);
     },
-     calculateStatsCountdowns(countdowns:Countdown[]) {
+    calculateStatsCountdowns(countdowns: Countdown[]) {
       this.countdownStats.total = countdowns.length;
 
       const today = new Date();
@@ -505,7 +505,7 @@ export default defineComponent({
         // 计算天数差
         const timeDiff = targetDate.getTime() - today.getTime();
         const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-      
+
         if (daysDiff >= 0) {
           future++;
         } else {
@@ -976,7 +976,8 @@ export default defineComponent({
           title: `${this.user.nickname}的奇妙本 - 记录了${this.countdownStats.total}个重要日子，还有${this.countdownStats.future}个即将到来`,
           desc: `快来使用奇妙日，记录生活中的重要时刻！我已经记录了${this.countdownStats.total}个重要日子。`,
           link: window.location.href,
-          imgUrl: 'static/qr.png'
+          imgUrl: await getDataUrl('logo', 'jpg')
+
         };
 
         // 初始化并设置分享
@@ -1507,7 +1508,8 @@ export default defineComponent({
 .care-mode .menu-item {
   border-bottom-color: #ffe0e6;
   transition: all 0.3s ease;
-  padding: 36rpx 30rpx; /* 增加内边距 */
+  padding: 36rpx 30rpx;
+  /* 增加内边距 */
 }
 
 .care-mode .menu-item:hover {
@@ -1555,10 +1557,12 @@ export default defineComponent({
     transform: scale(1);
     box-shadow: 0 2rpx 8rpx rgba(255, 107, 157, 0.2);
   }
+
   50% {
     transform: scale(1.05);
     box-shadow: 0 4rpx 16rpx rgba(255, 107, 157, 0.4);
   }
+
   100% {
     transform: scale(1);
     box-shadow: 0 2rpx 8rpx rgba(255, 107, 157, 0.2);
