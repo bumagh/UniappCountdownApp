@@ -56,15 +56,15 @@ export class ThemeManager {
 
   // 应用主题到页面
   private applyTheme(): void {
-    try {
-      // 移除所有主题类
-      document.body.classList.remove('theme-light', 'theme-dark');
+    // try {
+    //   // 移除所有主题类
+    //   document.body.classList.remove('theme-light', 'theme-dark');
       
-      // 添加当前主题类
-      document.body.classList.add(`theme-${this.currentTheme}`);
-    } catch (error) {
-      console.error('应用主题失败:', error);
-    }
+    //   // 添加当前主题类
+    //   document.body.classList.add(`theme-${this.currentTheme}`);
+    // } catch (error) {
+    //   console.error('应用主题失败:', error);
+    // }
   }
 
   // 获取所有主题
