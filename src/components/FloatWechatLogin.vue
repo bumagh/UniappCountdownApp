@@ -1,4 +1,19 @@
 <template>
+  <!-- #ifdef MP-WEIXIN -->
+  <button
+    v-if="show"
+    class="login-fab"
+    :class="{ 'login-fab--disabled': disabled || loading }"
+    :style="fabStyle"
+    open-type="getUserInfo"
+    :disabled="disabled || loading"
+     @getuserinfo="onGetUserInfo"
+  >
+    <text>{{ loading ? loadingText : text }}</text>
+  </button>
+  <!-- #endif -->
+  
+  <!-- #ifdef H5 -->
   <view
     v-if="show"
     class="login-fab"
@@ -8,12 +23,14 @@
   >
     <text>{{ loading ? loadingText : text }}</text>
   </view>
+  <!-- #endif -->
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import apiService from '@/services/apiService';
 import wxauth from '@/utils/wxauth';
+
 
 type ZIndex = number | string;
 
@@ -87,6 +104,18 @@ export default defineComponent( {
       loading: false as boolean
     };
   },
+  mounted () {
+    // #ifdef MP-WEIXIN
+    // 监听微信小程序登录成功事件
+    uni.$on('miniprogramLoginSuccess', this.handleMiniProgramLoginSuccess);
+    // #endif
+  },
+  beforeUnmount () {
+    // #ifdef MP-WEIXIN
+    // 移除事件监听
+    uni.$off('miniprogramLoginSuccess', this.handleMiniProgramLoginSuccess);
+    // #endif
+  },
   watch: {
     // show 从 false -> true 时也检查一次（适配条件渲染）
     show: {
@@ -107,18 +136,86 @@ export default defineComponent( {
     }
   },
   methods: {
+     /**
+     * 获取用户信息回调
+     */
+    async onGetUserInfo(e: any): Promise<void> {
+      if (e.detail.errMsg === 'getUserInfo:ok') {
+        // const userInfo = e.detail.userInfo;
+        // const { encryptedData, iv } = e.detail;
+        
+        this.loading = true;
+        
+        // try {
+        //   // 1. 获取code
+        //   const loginRes = await new Promise<UniApp.LoginSuccess>((resolve, reject) => {
+        //     uni.login({
+        //       provider: 'weixin',
+        //       success: resolve,
+        //       fail: reject
+        //     });
+        //   });
+          
+        //   if (loginRes.code) {
+        //     // 2. 携带加密数据登录
+        //     const result: LoginResponse = await LoginUtil.loginToServer(
+        //       loginRes.code, 
+        //       encryptedData, 
+        //       iv
+        //     );
+            
+        //     console.log('完整登录成功', result);
+            
+        //     // 显示成功提示
+        //     this.showSuccessToast();
+            
+        //     // 跳转到首页
+        //     this.navigateToHome();
+        //   }
+        // } catch (error: any) {
+        //   console.error('获取用户信息失败', error);
+        //   this.errorMessage = error.message || '授权失败';
+          
+        //   uni.showToast({
+        //     title: this.errorMessage,
+        //     icon: 'none',
+        //     duration: 2000
+        //   });
+        // } finally {
+        //   this.loading = false;
+        // }
+      } else {
+        uni.showToast({
+          title: '您拒绝了授权',
+          icon: 'none',
+          duration: 2000
+        });
+      }
+    },
     async autoCheckCodeAndLogin (): Promise<void> {
       if ( this.loading ) return;
 
       // 仅在微信环境下尝试自动处理回调
       if ( !wxauth.isInWechat() ) return;
 
+      // #ifdef H5
       const code = wxauth.handleAuthCallback();
       uni.setStorageSync( 'wx_code', code );
       if ( !code ) return;
 
       await this.processWechatLogin( code );
       wxauth.clearAuthParamsFromUrl();
+      // #endif
+      
+      // #ifdef MP-WEIXIN
+      // 微信小程序环境，检查是否有保存的code
+      const savedCode = uni.getStorageSync('code');
+      if (savedCode) {
+        await this.processWechatLogin(savedCode);
+        // 清除已使用的code
+        uni.removeStorageSync('code');
+      }
+      // #endif
     },
 
     async onClick (): Promise<void> {
@@ -129,7 +226,7 @@ export default defineComponent( {
     async startWechatLogin (): Promise<void> {
       // 1) 必须在微信环境
       if ( !wxauth.isInWechat() ) {
-    
+        // #ifdef H5
         //输出当前url域名,如果是localhost,则跳转到账号密码登录
         // console.log('当前url域名:',window.location.hostname);
         if(window.location.hostname==='localhost'){
@@ -143,9 +240,16 @@ export default defineComponent( {
           showCancel: false
         } );
         }
+        // #endif
+        
+        // #ifdef MP-WEIXIN
+        // 微信小程序环境，直接进行登录
+        await this.startMiniProgramLogin();
+        // #endif
         return;
       }
 
+      // #ifdef H5
       // 2) 尝试从URL获取 code
       const code = wxauth.handleAuthCallback();
       if ( code ) {
@@ -156,17 +260,56 @@ export default defineComponent( {
 
       // 3) 没有code则发起授权跳转（会跳走当前页面）
       wxauth.authorize();
+      // #endif
+      
+      // #ifdef MP-WEIXIN
+      // 微信小程序环境，直接进行登录
+      await this.startMiniProgramLogin();
+      // #endif
+    },
+
+    // 微信小程序登录方法
+    async startMiniProgramLogin(): Promise<void> {
+      if (this.loading) return;
+      
+      this.loading = true;
+      uni.showLoading({
+        title: '微信登录中...',
+        mask: true
+      });
+
+      try {
+        // 调用微信小程序登录
+        wxauth.authorize();
+      } catch (error: any) {
+        console.error('微信小程序登录失败:', error);
+        uni.hideLoading();
+        this.loading = false;
+        
+        uni.showToast({
+          title: '微信登录失败，请重试',
+          icon: 'none',
+          duration: 3000
+        });
+        
+        this.$emit('error', error);
+      }
+    },
+
+    // 处理微信小程序登录成功事件
+    async handleMiniProgramLoginSuccess(code: string): Promise<void> {
+      console.log("handleMiniProgramLoginSuccess");
+      await this.processWechatLogin(code);
     },
 
     async processWechatLogin ( code: string ): Promise<void> {
-      if ( this.loading ) return;
+      console.log("processWechatLogin");
 
       this.loading = true;
       uni.showLoading( {
         title: '微信登录中...',
         mask: true
       } );
-
       try {
         const loginRes = await apiService.loginByWeixin( { code } );
 

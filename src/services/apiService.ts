@@ -23,8 +23,31 @@ class ApiService
   // 微信登录
   async loginByWeixin ( data: { code: string } ): Promise<{ token: string; userInfo: any }>
   {
+    // #ifdef H5
     const res = await request.post( API.user.loginByWeixin, data );
     return res.data;
+    // #endif
+    
+    // #ifdef MP-WEIXIN
+    // 微信小程序环境，可能需要额外的用户信息获取逻辑
+    try {
+      // 先通过code获取token
+      const res = await request.post( API.user.loginByWeixin, data );
+      
+      // 获取用户信息
+      const userInfoRes = await uni.getUserInfo({
+        withCredentials: true
+      });
+      
+      return {
+        token: res.data.token,
+        userInfo: userInfoRes.userInfo
+      };
+    } catch (error) {
+      console.error('微信小程序登录失败:', error);
+      throw error;
+    }
+    // #endif
   }
 
   // 获取用户信息（通过openid，需要token）

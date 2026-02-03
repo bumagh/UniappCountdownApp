@@ -24,17 +24,25 @@ export async function getDataUrl(name: string, extension: string = 'png'): Promi
     // 对于SVG文件，优先使用直接路径
     if (extension === 'svg') {
         try {
+            // #ifdef H5
             // 检查是否在浏览器环境
             if (typeof window !== 'undefined' && window.location) {
                 const baseUrl = window.location.origin;
                 return Promise.resolve(`${baseUrl}/static/${sanitizedName}.${extension}`);
             }
+            // #endif
+            
+            // #ifdef MP-WEIXIN
+            // 微信小程序环境，使用相对路径
+            return Promise.resolve(`/static/${sanitizedName}.${extension}`);
+            // #endif
         } catch (error) {
             console.warn('[getDataUrl] 获取SVG base URL失败:', error);
         }
     }
 
     try {
+        // #ifdef H5
         // 优先使用 Vite 的 import.meta.url 解析
         // @ts-ignore - import.meta.url 可能在某些环境中不可用
         if (typeof import.meta !== 'undefined' && import.meta.url) {
@@ -45,28 +53,42 @@ export async function getDataUrl(name: string, extension: string = 'png'): Promi
                 return Promise.resolve(url.href);
             }
         }
+        // #endif
     } catch (error) {
+        // #ifdef H5
         console.warn('[getDataUrl] 使用 import.meta.url 解析失败:', error);
+        // #endif
     }
 
     // 回退方案1: 尝试使用动态导入
     try {
+        // #ifdef H5
         // @ts-ignore - 动态导入可能失败
         const module = await import(relativePath);
         if (module) {
             return Promise.resolve(`/static/${sanitizedName}.${extension}`);
         }
+        // #endif
     } catch (error) {
+        // #ifdef H5
         console.warn('[getDataUrl] 动态导入失败:', error);
+        // #endif
     }
 
     // 回退方案2: 使用相对路径
     try {
+        // #ifdef H5
         // 检查是否在浏览器环境
         if (typeof window !== 'undefined' && window.location) {
             const baseUrl = window.location.origin;
             return Promise.resolve(`${baseUrl}/static/${sanitizedName}.${extension}`);
         }
+        // #endif
+        
+        // #ifdef MP-WEIXIN
+        // 微信小程序环境，直接使用相对路径
+        return Promise.resolve(`/static/${sanitizedName}.${extension}`);
+        // #endif
     } catch (error) {
         console.warn('[getDataUrl] 获取base URL失败:', error);
     }

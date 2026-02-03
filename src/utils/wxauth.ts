@@ -137,6 +137,11 @@ class WxAuth
                 console.log('微信小程序登录成功，code:', loginRes.code);
                 // 在小程序中，登录成功后可以直接使用loginRes.code
                 // 不需要跳转到网页授权
+                //执行回调
+                //保存到本地
+                uni.setStorageSync('code', loginRes.code);
+                // 触发自定义事件，通知登录组件处理code
+                uni.$emit('miniprogramLoginSuccess', loginRes.code);
             },
             fail: (error) => {
                 console.error('微信小程序登录失败:', error);

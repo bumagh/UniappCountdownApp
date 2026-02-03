@@ -31,7 +31,11 @@ class Request
         {
             const authHeader = options.skipAuth ? {} : this.getAuthHeader();
 
-            uni.request( {
+            let requestConfig: any;
+
+            // #ifdef H5
+            // H5环境可能需要处理跨域等特殊情况
+            requestConfig = {
                 url: url,
                 method: method,
                 data: data,
@@ -40,6 +44,7 @@ class Request
                     ...authHeader,
                     ...options.header
                 },
+                timeout: 10000,
                 success: ( res: any ) =>
                 {
                     if ( res.statusCode === 200 )
@@ -60,7 +65,47 @@ class Request
                 {
                     reject( new Error( '网络请求失败' ) );
                 }
-            } );
+            };
+            // #endif
+
+            // #ifdef MP-WEIXIN
+            // 微信小程序环境的请求配置
+            requestConfig = {
+                url: url,
+                method: method,
+                data: data,
+                header: {
+                    'Content-Type': 'application/json',
+                    ...authHeader,
+                    ...options.header
+                },
+                timeout: 10000,
+                success: ( res: any ) =>
+                {
+                    if ( res.statusCode === 200 )
+                    {
+                        if ( res.data.code === 200 )
+                        {
+                            resolve( res.data );
+                        } else
+                        {
+                            reject( new Error( res.data.msg || '请求失败' ) );
+                        }
+                    } else
+                    {
+                        reject( new Error( `网络错误: ${ res.statusCode }` ) );
+                    }
+                },
+                fail: ( err: any ) =>
+                {
+                    // 微信小程序网络错误处理
+                    console.warn('微信小程序请求失败:', err);
+                    reject( new Error( '网络请求失败' ) );
+                }
+            };
+            // #endif
+
+            uni.request( requestConfig );
         } );
     }
 

@@ -59,11 +59,7 @@
             }
         },
         "usingComponents" : true,
-        "permission" : {
-            "scope.userLocation" : {
-                "desc" : "用于设置基于位置的提醒功能"
-            }
-        },
+        "permission" : {},
         "requiredPrivateInfos" : []
     },
     "mp-alipay" : {
