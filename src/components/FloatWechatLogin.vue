@@ -5,9 +5,8 @@
     class="login-fab"
     :class="{ 'login-fab--disabled': disabled || loading }"
     :style="fabStyle"
-    open-type="getUserInfo"
     :disabled="disabled || loading"
-     @getuserinfo="onGetUserInfo"
+    @click="handleWechatLogin"
   >
     <text>{{ loading ? loadingText : text }}</text>
   </button>
@@ -38,6 +37,12 @@ type LoginSuccessPayload = {
   token: string;
   userInfo: any;
 };
+
+// uni.login 成功回调类型
+interface UniLoginSuccess {
+  code: string;
+  errMsg: string;
+}
 
 export default defineComponent( {
   name: 'FloatWechatLogin',
@@ -137,58 +142,234 @@ export default defineComponent( {
   },
   methods: {
      /**
+     * 处理微信小程序登录
+     */
+    async handleWechatLogin(): Promise<void> {
+      if (this.disabled || this.loading) return;
+      
+      this.loading = true;
+      
+      try {
+        // 1. 使用uni.authorize主动发起用户信息授权
+        const authRes = await new Promise<any>((resolve, reject) => {
+          uni.authorize({
+            scope: 'scope.userInfo',
+            success: resolve,
+            fail: reject
+          });
+        });
+        
+        console.log('用户授权成功:', authRes);
+        
+        // 2. 获取用户信息
+        const userInfo = await new Promise<any>((resolve, reject) => {
+          uni.getUserInfo({
+            success: resolve,
+            fail: reject
+          });
+        });
+        
+        console.log('获取用户信息:', userInfo);
+        
+        // 3. 使用uni.login获取code
+        const loginRes = await new Promise<UniLoginSuccess>((resolve, reject) => {
+          uni.login({
+            provider: 'weixin',
+            success: resolve,
+            fail: reject
+          });
+        });
+        
+        if (loginRes.code) {
+          console.log('获取到微信登录code:', loginRes.code);
+          
+          // 4. 保存头像和昵称到storage
+          uni.setStorageSync('userAvatar', userInfo.avatarUrl || '');
+          uni.setStorageSync('userNickname', userInfo.nickName || '');
+          uni.setStorageSync('userGender', userInfo.gender || 2);
+          
+          // 5. 携带code和用户信息登录到服务器
+          // const result = await apiService.wechatMiniProgramLogin({
+          //   code: loginRes.code,
+          //   userInfo: userInfo,
+          //   encryptedData: userInfo.encryptedData,
+          //   iv: userInfo.iv
+          // });
+          
+          // 临时：模拟登录成功
+          const mockResult = {
+            token: 'mock_token_' + Date.now(),
+            userInfo: userInfo
+          };
+          
+          console.log('登录成功:', mockResult);
+          
+          // 6. 触发成功事件
+          this.$emit('success', mockResult);
+          
+          // 7. 显示成功提示
+          uni.showToast({
+            title: '登录成功',
+            icon: 'success',
+            duration: 2000
+          });
+          
+          // 8. 跳转到首页
+          if (this.autoRedirect) {
+            setTimeout(() => {
+              this.navigateToHome();
+            }, 1500);
+          }
+        } else {
+          throw new Error('获取微信登录code失败');
+        }
+        
+      } catch (error: any) {
+        console.error('微信登录失败:', error);
+        
+        // 检查是否是授权拒绝
+        if (error.errMsg && error.errMsg.includes('auth deny')) {
+          // 用户拒绝授权，显示授权提示弹窗
+          uni.showModal({
+            title: '授权提示',
+            content: '为了提供更好的服务，请授权获取您的用户信息',
+            confirmText: '重新授权',
+            cancelText: '取消',
+            success: (res) => {
+              if (res.confirm) {
+                // 用户点击重新授权，再次尝试
+                setTimeout(() => {
+                  this.handleWechatLogin();
+                }, 500);
+              }
+            }
+          });
+        } else {
+          // 其他错误
+          uni.showModal({
+            title: '登录失败',
+            content: error.message || '微信登录失败，请重试',
+            showCancel: false,
+            confirmText: '确定'
+          });
+        }
+        
+        this.$emit('error', error);
+      } finally {
+        this.loading = false;
+      }
+    },
+     /**
      * 获取用户信息回调
      */
     async onGetUserInfo(e: any): Promise<void> {
+      console.log('获取用户信息回调', e);
+      
+      // 检查是否需要授权
+      if (e.detail.errMsg === 'getUserInfo:fail auth deny') {
+        // 用户拒绝授权，显示授权提示弹窗
+        uni.showModal({
+          title: '授权提示',
+          content: '为了提供更好的服务，请授权获取您的用户信息',
+          confirmText: '重新授权',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) {
+              // 用户点击重新授权，可以再次触发授权
+              console.log('用户选择重新授权');
+            }
+          }
+        });
+        return;
+      }
+      
       if (e.detail.errMsg === 'getUserInfo:ok') {
-        // const userInfo = e.detail.userInfo;
-        // const { encryptedData, iv } = e.detail;
+        const userInfo = e.detail.userInfo;
+        const { encryptedData, iv } = e.detail;
         
         this.loading = true;
         
-        // try {
-        //   // 1. 获取code
-        //   const loginRes = await new Promise<UniApp.LoginSuccess>((resolve, reject) => {
-        //     uni.login({
-        //       provider: 'weixin',
-        //       success: resolve,
-        //       fail: reject
-        //     });
-        //   });
+        try {
+          // 1. 使用uni.login获取code
+          const loginRes = await new Promise<UniLoginSuccess>((resolve, reject) => {
+            uni.login({
+              provider: 'weixin',
+              success: resolve,
+              fail: reject
+            });
+          });
           
-        //   if (loginRes.code) {
-        //     // 2. 携带加密数据登录
-        //     const result: LoginResponse = await LoginUtil.loginToServer(
-        //       loginRes.code, 
-        //       encryptedData, 
-        //       iv
-        //     );
+          if (loginRes.code) {
+            console.log('获取到微信登录code:', loginRes.code);
+            console.log('用户信息:', userInfo);
+            console.log('加密数据:', { encryptedData, iv });
             
-        //     console.log('完整登录成功', result);
+            // 2. 保存头像和昵称到storage
+            uni.setStorageSync('userAvatar', userInfo.avatarUrl || '');
+            uni.setStorageSync('userNickname', userInfo.nickName || '');
+            uni.setStorageSync('userGender', userInfo.gender || 2);
             
-        //     // 显示成功提示
-        //     this.showSuccessToast();
+            // 3. 携带code和用户信息登录到服务器
+            // const result = await apiService.wechatMiniProgramLogin({
+            //   code: loginRes.code,
+            //   userInfo: userInfo,
+            //   encryptedData: encryptedData,
+            //   iv: iv
+            // });
             
-        //     // 跳转到首页
-        //     this.navigateToHome();
-        //   }
-        // } catch (error: any) {
-        //   console.error('获取用户信息失败', error);
-        //   this.errorMessage = error.message || '授权失败';
+            // 临时：模拟登录成功
+            const mockResult = {
+              token: 'mock_token_' + Date.now(),
+              userInfo: userInfo
+            };
+            
+            console.log('登录成功:', mockResult);
+            
+            // 4. 触发成功事件
+            this.$emit('success', mockResult);
+            
+            // 5. 显示成功提示
+            uni.showToast({
+              title: '登录成功',
+              icon: 'success',
+              duration: 2000
+            });
+            
+            // 6. 跳转到首页
+            if (this.autoRedirect) {
+              setTimeout(() => {
+                this.navigateToHome();
+              }, 1500);
+            }
+          } else {
+            throw new Error('获取微信登录code失败');
+          }
+        } catch (error: any) {
+          console.error('微信登录失败:', error);
+          this.$emit('error', error);
           
-        //   uni.showToast({
-        //     title: this.errorMessage,
-        //     icon: 'none',
-        //     duration: 2000
-        //   });
-        // } finally {
-        //   this.loading = false;
-        // }
+          // 显示授权失败弹窗
+          uni.showModal({
+            title: '登录失败',
+            content: error.message || '微信登录失败，请重试',
+            showCancel: false,
+            confirmText: '确定'
+          });
+        } finally {
+          this.loading = false;
+        }
       } else {
-        uni.showToast({
-          title: '您拒绝了授权',
-          icon: 'none',
-          duration: 2000
+        // 其他错误情况
+        uni.showModal({
+          title: '授权提示',
+          content: '您拒绝了授权，无法使用微信登录功能',
+          confirmText: '重新授权',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) {
+              console.log('用户选择重新授权');
+            }
+          }
         });
       }
     },
@@ -319,6 +500,13 @@ export default defineComponent( {
         if ( loginRes.userInfo?.id != null ) {
           uni.setStorageSync( 'userid', loginRes.userInfo.id );
         }
+        
+        // 保存头像和昵称到storage
+        if (loginRes.userInfo) {
+          uni.setStorageSync('userAvatar', loginRes.userInfo.avatarUrl || '');
+          uni.setStorageSync('userNickname', loginRes.userInfo.nickName || '');
+          uni.setStorageSync('userGender', loginRes.userInfo.gender || 2);
+        }
 
         uni.showToast( {
           title: '微信登录成功',
@@ -380,20 +568,41 @@ export default defineComponent( {
         } else if ( error?.response?.status === 401 ) {
           errorMessage = '登录验证失败';
         }
-
-        uni.showToast( {
-          title: errorMessage,
-          icon: 'none',
-          duration: 3000
-        } );
+        
+        // 显示登录失败弹窗
+        uni.showModal({
+          title: '登录失败',
+          content: errorMessage,
+          showCancel: false,
+          confirmText: '确定'
+        });
 
         uni.removeStorageSync( 'token' );
         uni.removeStorageSync( 'userInfo' );
+        // 清除用户信息
+        uni.removeStorageSync('userAvatar');
+        uni.removeStorageSync('userNickname');
+        uni.removeStorageSync('userGender');
 
         this.$emit( 'error', error );
       } finally {
         uni.hideLoading();
         this.loading = false;
+      }
+    },
+    // 跳转到首页
+    navigateToHome(): void {
+      switch (this.successNavType) {
+        case 'navigateTo':
+          uni.navigateTo({ url: this.successUrl });
+          break;
+        case 'redirectTo':
+          uni.redirectTo({ url: this.successUrl });
+          break;
+        case 'switchTab':
+        default:
+          uni.switchTab({ url: this.successUrl });
+          break;
       }
     }
   }

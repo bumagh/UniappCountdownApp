@@ -64,7 +64,11 @@
             }
         },
         "usingComponents" : true,
-        "permission" : {},
+        "permission" : {
+            "scope.userInfo" : {
+                "desc" : "用于获取用户基本信息，包括头像、昵称等，提供个性化服务"
+            }
+        },
         "requiredPrivateInfos" : []
     },
     "mp-alipay" : {
