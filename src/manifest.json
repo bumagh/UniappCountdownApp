@@ -18,6 +18,11 @@
             "autoclose" : true,
             "delay" : 0
         },
+        "safearea" : {
+            "bottom" : {
+                "offset" : "none"
+            }
+        },
         "modules" : {},
         "distribute" : {
             "android" : {
