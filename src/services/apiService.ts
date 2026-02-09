@@ -1,186 +1,145 @@
 import request from '@/utils/request';
 import API from '@/config/api';
-import
-{
-  User,
-  Category,
-  Countdown,
-  CountdownQueryParams,
-  CommonResponse,
-  ApiResponse
+import {
+User,
+Category,
+Countdown,
+CountdownQueryParams,
+CommonResponse,
+ApiResponse
 } from 'types';
 import { Version } from 'types';
 
 
-class ApiService
-{
+class ApiService {
   // 用户相关
-  async getCurrentUser ( id: string ): Promise<User>
-  {
-    const res = await request.request<User>( API.user.current, 'GET',{ id });
+  async getCurrentUser(id: string): Promise<User> {
+    const res = await request.request<User>(API.user.current, 'GET', { id });
     return res.data;
   }
   // 微信登录
-  async loginByWeixin ( data: { code: string } ): Promise<{ token: string; userInfo: any }>
-  {
+  async loginByWeixin(data: { code: string }): Promise<{ token: string; userInfo: any }> {
     // #ifdef H5
-    const res = await request.post( API.user.loginByWeixin, data );
+    const res = await request.post(API.user.loginByWeixin, data);
     return res.data;
     // #endif
-    
+
     // #ifdef MP-WEIXIN
     // 微信小程序环境，可能需要额外的用户信息获取逻辑
-    try {
-      // 先通过code获取token
-      const res = await request.post( API.user.loginByWeixin, data );
-      
-      // 获取用户信息
-      const userInfoRes = await uni.getUserInfo({
-        withCredentials: true
-      });
-      
-      return {
-        token: res.data.token,
-        userInfo: userInfoRes.userInfo
-      };
-    } catch (error) {
-      console.error('微信小程序登录失败:', error);
-      throw error;
-    }
+    // 先通过code获取token
+    const miniRes = await request.post(API.user.loginByMiniProgram, data);
+    return miniRes.data;
     // #endif
   }
 
   // 获取用户信息（通过openid，需要token）
-  async getUserInfo ( data: { openid: string } ): Promise<{ userInfo: any }>
-  {
-    const res = await request.post( '/wechat/userInfo', data );
+  async getUserInfo(data: { openid: string }): Promise<{ userInfo: any }> {
+    const res = await request.post('/wechat/userInfo', data);
     return res.data;
   }
-  async loginUser ( data: Partial<User> ): Promise<CommonResponse>
-  {
-    const res = await request.post<User>( API.user.login, data );
+  async loginUser(data: Partial<User>): Promise<CommonResponse> {
+    const res = await request.post<User>(API.user.login, data);
     return res;
   }
-    async loginPwd ( data: Partial<User> ): Promise<CommonResponse>
-  {
-    const res = await request.request<User>( API.user.pwdLogin,'POST',  data );
+  async loginPwd(data: Partial<User>): Promise<CommonResponse> {
+    const res = await request.request<User>(API.user.pwdLogin, 'POST', data);
     return res;
   }
-async incrementLoginDays(): Promise<{ login_days: number; message: string }> {
-    const res = await request.request<{ login_days: number; message: string }>( API.user.incrementLoginDays, 'POST');
+  async incrementLoginDays(): Promise<{ login_days: number; message: string }> {
+    const res = await request.request<{ login_days: number; message: string }>(API.user.incrementLoginDays, 'POST');
     return res.data;
-}
-      async getJsConfig ( url: string ): Promise<CommonResponse>
-  {
-    const res = await request.request<User>( API.wechat.jsconfig,'POST',  { url } );
+  }
+  async getJsConfig(url: string): Promise<CommonResponse> {
+    const res = await request.request<User>(API.wechat.jsconfig, 'POST', { url });
     return res;
   }
-  async registerUser ( data: Partial<User> ): Promise<CommonResponse>
-  {
-    const res = await request.post<User>( API.user.register, data );
+  async registerUser(data: Partial<User>): Promise<CommonResponse> {
+    const res = await request.post<User>(API.user.register, data);
     return res;
   }
-  async updateUser ( data: Partial<User> ): Promise<CommonResponse>
-  {
-    const res = await request.post<User>( API.user.update, data );
+  async updateUser(data: Partial<User>): Promise<CommonResponse> {
+    const res = await request.post<User>(API.user.update, data);
     return res;
   }
-  async initInfo ( data: Partial<User> ): Promise<User>
-  {
-    const res = await request.post<User>( API.user.initInfo, data );
+  async initInfo(data: Partial<User>): Promise<User> {
+    const res = await request.post<User>(API.user.initInfo, data);
     return res.data;
   }
 
   // 分类相关
-  async getCategories ( userid: string ): Promise<Category[]>
-  {
-    const res = await request.get<Category[]>( API.category.list, { userid } );
+  async getCategories(userid: string): Promise<Category[]> {
+    const res = await request.get<Category[]>(API.category.list, { userid });
     return res.data;
   }
-  async getCategory ( id: string ): Promise<Category>
-  {
-    const res = await request.get<Category>( API.category.read, { id } );
+  async getCategory(id: string): Promise<Category> {
+    const res = await request.get<Category>(API.category.read, { id });
     return res.data;
   }
-  async createCategory ( data: Omit<Category, 'id' | 'created_at' | 'updated_at'> ): Promise<Category>
-  {
-    const res = await request.post<Category>( API.category.create, data );
+  async createCategory(data: Omit<Category, 'id' | 'created_at' | 'updated_at'>): Promise<Category> {
+    const res = await request.post<Category>(API.category.create, data);
     return res.data;
   }
 
-  async updateCategory ( data: Partial<Category> ): Promise<Category>
-  {
-    const res = await request.post<Category>( `${ API.category.update }`, { ...data } );
+  async updateCategory(data: Partial<Category>): Promise<Category> {
+    const res = await request.post<Category>(`${API.category.update}`, { ...data });
     return res.data;
   }
 
-  async deleteCategory ( id: number ): Promise<void>
-  {
-    await request.delete( `${ API.category.delete }`, { id } );
+  async deleteCategory(id: number): Promise<void> {
+    await request.delete(`${API.category.delete}`, { id });
   }
 
   // 倒数日相关
-  async getCountdowns ( params: CountdownQueryParams ): Promise<Countdown[]>
-  {
-    const res = await request.get<Countdown[]>( API.countdown.list, params );
+  async getCountdowns(params: CountdownQueryParams): Promise<Countdown[]> {
+    const res = await request.get<Countdown[]>(API.countdown.list, params);
     return res.data;
   }
 
-  async getArchivedCountdowns ( userid: string ): Promise<Countdown[]>
-  {
-    const res = await request.get<Countdown[]>( API.countdown.archived, { userid } );
+  async getArchivedCountdowns(userid: string): Promise<Countdown[]> {
+    const res = await request.get<Countdown[]>(API.countdown.archived, { userid });
     return res.data;
   }
 
-  async getCountdown ( id: number ): Promise<Countdown>
-  {
-    const res = await request.get<Countdown>( `${ API.countdown.detail }`, { id } );
+  async getCountdown(id: number): Promise<Countdown> {
+    const res = await request.get<Countdown>(`${API.countdown.detail}`, { id });
     return res.data;
   }
 
-  async createCountdown ( data: Countdown ): Promise<Countdown>
-  {
-    const res = await request.post<Countdown>( API.countdown.create, data );
+  async createCountdown(data: Countdown): Promise<Countdown> {
+    const res = await request.post<Countdown>(API.countdown.create, data);
     return res.data;
   }
 
-  async updateCountdown ( id: number, data: Partial<Countdown> ): Promise<Countdown>
-  {
-    const res = await request.post<Countdown>( `${ API.countdown.update }`, { id, data } );
+  async updateCountdown(id: number, data: Partial<Countdown>): Promise<Countdown> {
+    const res = await request.post<Countdown>(`${API.countdown.update}`, { id, data });
     return res.data;
   }
 
-  async deleteCountdown ( id: number ): Promise<ApiResponse<void>>
-  {
-    return await request.delete( `${ API.countdown.delete }`, { id } );
+  async deleteCountdown(id: number): Promise<ApiResponse<void>> {
+    return await request.delete(`${API.countdown.delete}`, { id });
   }
 
-  async archiveCountdown ( id: number ): Promise<Countdown>
-  {
-    const res = await request.post<Countdown>( `${ API.countdown.archive }/archive`, { id } );
+  async archiveCountdown(id: number): Promise<Countdown> {
+    const res = await request.post<Countdown>(`${API.countdown.archive}/archive`, { id });
     return res.data;
   }
 
-  async unarchiveCountdown ( id: number ): Promise<Countdown>
-  {
-    const res = await request.post<Countdown>( `${ API.countdown.unarchive }/unarchive`, { id } );
+  async unarchiveCountdown(id: number): Promise<Countdown> {
+    const res = await request.post<Countdown>(`${API.countdown.unarchive}/unarchive`, { id });
     return res.data;
   }
 
-  async togglePinCountdown ( id: number ): Promise<Countdown>
-  {
-    const res = await request.post<Countdown>( `${ API.countdown.togglePin }/${ id }/toggle-pin` );
+  async togglePinCountdown(id: number): Promise<Countdown> {
+    const res = await request.post<Countdown>(`${API.countdown.togglePin}/${id}/toggle-pin`);
     return res.data;
   }
 
-  async getCountdownsByDate ( date: string ): Promise<Countdown[]>
-  {
-    const res = await request.get<Countdown[]>( `${ API.countdown.byDate }/${ date }` );
+  async getCountdownsByDate(date: string): Promise<Countdown[]> {
+    const res = await request.get<Countdown[]>(`${API.countdown.byDate}/${date}`);
     return res.data;
   }
-  async getLatestVersion (): Promise<Version>
-  {
-    const res = await request.get<Version>( API.version.getLatestVersion );
+  async getLatestVersion(): Promise<Version> {
+    const res = await request.get<Version>(API.version.getLatestVersion);
     return res.data;
   }
 }

@@ -1,7 +1,7 @@
 <template>
   <!-- #ifdef MP-WEIXIN -->
   <button
-    v-if="show"
+    v-if="show && !showAvatarModal"
     class="login-fab"
     :class="{ 'login-fab--disabled': disabled || loading }"
     :style="fabStyle"
@@ -14,7 +14,7 @@
   
   <!-- #ifdef H5 -->
   <view
-    v-if="show"
+    v-if="show && !showAvatarModal"
     class="login-fab"
     :class="{ 'login-fab--disabled': disabled || loading }"
     :style="fabStyle"
@@ -23,6 +23,53 @@
     <text>{{ loading ? loadingText : text }}</text>
   </view>
   <!-- #endif -->
+
+  <!-- 头像和昵称设置弹窗 -->
+  <view v-if="showAvatarModal" class="avatar-modal-mask" @click="closeAvatarModal">
+    <view class="avatar-modal-content" @click.stop>
+      <view class="avatar-modal-header">
+        <text class="avatar-modal-title">完善个人信息</text>
+        <view class="avatar-modal-close" @click="closeAvatarModal">
+          <text>×</text>
+        </view>
+      </view>
+      
+      <view class="avatar-modal-body">
+        <!-- 头像选择 -->
+        <view class="avatar-section">
+          <text class="section-title">头像</text>
+          <button class="avatar-wrapper" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
+            <image class="avatar" :src="tempAvatarUrl"></image>
+            <view class="avatar-edit-hint">点击选择头像</view>
+          </button>
+        </view>
+        
+        <!-- 昵称输入 -->
+        <view class="nickname-section">
+          <text class="section-title">昵称</text>
+          <input 
+            type="nickname" 
+            class="nickname-input" 
+            placeholder="请输入昵称"
+            v-model="tempNickname"
+            @blur="onNicknameBlur"
+          />
+        </view>
+      </view>
+      
+      <view class="avatar-modal-footer">
+        <button class="cancel-btn" @click="closeAvatarModal">取消</button>
+        <button 
+          class="confirm-btn" 
+          :class="{ 'confirm-btn--disabled': !canConfirm }"
+          :disabled="!canConfirm"
+          @click="confirmUserInfo"
+        >
+          确认登录
+        </button>
+      </view>
+    </view>
+  </view>
 </template>
 
 <script lang="ts">
@@ -30,6 +77,8 @@ import { defineComponent, PropType } from 'vue';
 import apiService from '@/services/apiService';
 import wxauth from '@/utils/wxauth';
 
+// 声明wx全局变量
+declare const wx: any;
 
 type ZIndex = number | string;
 
@@ -106,7 +155,12 @@ export default defineComponent( {
   },
   data () {
     return {
-      loading: false as boolean
+      loading: false as boolean,
+      // 弹窗相关数据
+      showAvatarModal: false as boolean,
+      tempAvatarUrl: 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0' as string,
+      tempNickname: '' as string,
+      loginCode: '' as string // 保存登录用的code
     };
   },
   mounted () {
@@ -138,10 +192,139 @@ export default defineComponent( {
         bottom: this.bottom,
         zIndex: this.zIndex as any
       };
+    },
+    // 检查是否可以确认登录
+    canConfirm (): boolean {
+      return this.tempNickname.trim().length > 0 && this.tempAvatarUrl !== '';
     }
   },
   methods: {
-     /**
+    // 关闭头像昵称设置弹窗
+    closeAvatarModal(): void {
+      this.showAvatarModal = false;
+      this.loading = false;
+    },
+
+    // 选择头像回调
+    onChooseAvatar(e: any): void {
+      const { avatarUrl } = e.detail;
+      if (avatarUrl) {
+        this.tempAvatarUrl = avatarUrl;
+        console.log('选择头像:', avatarUrl);
+      }
+    },
+
+    // 昵称输入框失焦
+    onNicknameBlur(e: any): void {
+      // 可以在这里进行昵称验证
+      const nickname = e.detail.value;
+      console.log('昵称输入:', nickname);
+    },
+
+    // 确认用户信息并登录
+    async confirmUserInfo(): Promise<void> {
+      if (!this.canConfirm) return;
+
+      this.loading = true;
+      uni.showLoading({
+        title: '登录中...',
+        mask: true
+      });
+
+      try {
+        // 使用保存的code进行登录
+        if (this.loginCode) {
+          // 调用后端API登录
+          const loginRes = await apiService.loginByWeixin({
+            code: this.loginCode
+          });
+
+          // 存储登录态
+          uni.setStorageSync('token', loginRes.token);
+          uni.setStorageSync('userInfo', JSON.stringify(loginRes.userInfo));
+          if (loginRes.userInfo?.id != null) {
+            uni.setStorageSync('userid', loginRes.userInfo.id);
+          }
+          
+          // 保存头像和昵称到storage
+          uni.setStorageSync('userAvatar', this.tempAvatarUrl);
+          uni.setStorageSync('userNickname', this.tempNickname);
+          uni.setStorageSync('userGender', 2);
+
+          uni.showToast({
+            title: '登录成功',
+            icon: 'success',
+            duration: 1500
+          });
+
+          this.$emit('success', loginRes as LoginSuccessPayload);
+          this.closeAvatarModal();
+
+          // 处理跳转逻辑
+          if (this.autoRedirect) {
+            setTimeout(() => {
+              // 首次登录处理
+              const isFirst = loginRes.userInfo?.isfirst === 'yes';
+              if (isFirst && this.firstLoginUrlBuilder != null) {
+                const url = `/subpackages/register/reginfo?id=${loginRes.userInfo.id}&nickname=${loginRes.userInfo.nickname}&gender=${loginRes.userInfo.gender}`;
+                uni.navigateTo({ url });
+                return;
+              }
+
+              // 普通成功跳转
+              switch (this.successNavType) {
+                case 'back':
+                  uni.navigateBack();
+                  break;
+                case 'navigateTo':
+                  uni.navigateTo({ url: this.successUrl });
+                  break;
+                case 'redirectTo':
+                  uni.redirectTo({ url: this.successUrl });
+                  break;
+                case 'switchTab':
+                default:
+                  uni.switchTab({ url: this.successUrl });
+                  break;
+              }
+            }, 1500);
+          }
+        } else {
+          throw new Error('登录code已失效，请重新登录');
+        }
+      } catch (error: any) {
+        console.error('登录失败:', error);
+        
+        let errorMessage = '登录失败，请重试';
+        if (error?.code) {
+          switch (error.code) {
+            case 40029:
+              errorMessage = '授权码无效或已过期';
+              break;
+            case 40163:
+              errorMessage = '授权码已被使用，请重新授权';
+              break;
+            case 41008:
+              errorMessage = '缺少授权码';
+              break;
+          }
+        }
+        
+        uni.showModal({
+          title: '登录失败',
+          content: errorMessage,
+          showCancel: false,
+          confirmText: '确定'
+        });
+
+        this.$emit('error', error);
+      } finally {
+        uni.hideLoading();
+        this.loading = false;
+      }
+    },
+
+    /**
      * 处理微信小程序登录
      */
     async handleWechatLogin(): Promise<void> {
@@ -150,76 +333,24 @@ export default defineComponent( {
       this.loading = true;
       
       try {
-        // 1. 使用uni.authorize主动发起用户信息授权
-        const authRes = await new Promise<any>((resolve, reject) => {
-          uni.authorize({
-            scope: 'scope.userInfo',
-            success: resolve,
-            fail: reject
-          });
-        });
-        
-        console.log('用户授权成功:', authRes);
-        
-        // 2. 获取用户信息
-        const userInfo = await new Promise<any>((resolve, reject) => {
-          uni.getUserInfo({
-            success: resolve,
-            fail: reject
-          });
-        });
-        
-        console.log('获取用户信息:', userInfo);
-        
-        // 3. 使用uni.login获取code
+        // 1. 使用wx.login获取code
         const loginRes = await new Promise<UniLoginSuccess>((resolve, reject) => {
-          uni.login({
-            provider: 'weixin',
+          // #ifdef MP-WEIXIN
+          wx.login({
             success: resolve,
             fail: reject
           });
+          // #endif
+        
         });
         
         if (loginRes.code) {
           console.log('获取到微信登录code:', loginRes.code);
           
-          // 4. 保存头像和昵称到storage
-          uni.setStorageSync('userAvatar', userInfo.avatarUrl || '');
-          uni.setStorageSync('userNickname', userInfo.nickName || '');
-          uni.setStorageSync('userGender', userInfo.gender || 2);
-          
-          // 5. 携带code和用户信息登录到服务器
-          // const result = await apiService.wechatMiniProgramLogin({
-          //   code: loginRes.code,
-          //   userInfo: userInfo,
-          //   encryptedData: userInfo.encryptedData,
-          //   iv: userInfo.iv
-          // });
-          
-          // 临时：模拟登录成功
-          const mockResult = {
-            token: 'mock_token_' + Date.now(),
-            userInfo: userInfo
-          };
-          
-          console.log('登录成功:', mockResult);
-          
-          // 6. 触发成功事件
-          this.$emit('success', mockResult);
-          
-          // 7. 显示成功提示
-          uni.showToast({
-            title: '登录成功',
-            icon: 'success',
-            duration: 2000
-          });
-          
-          // 8. 跳转到首页
-          if (this.autoRedirect) {
-            setTimeout(() => {
-              this.navigateToHome();
-            }, 1500);
-          }
+          // 2. 保存code，显示头像昵称设置弹窗
+          this.loginCode = loginRes.code;
+          this.showAvatarModal = true;
+          this.loading = false;
         } else {
           throw new Error('获取微信登录code失败');
         }
@@ -255,11 +386,11 @@ export default defineComponent( {
         }
         
         this.$emit('error', error);
-      } finally {
         this.loading = false;
       }
     },
-     /**
+
+    /**
      * 获取用户信息回调
      */
     async onGetUserInfo(e: any): Promise<void> {
@@ -373,6 +504,7 @@ export default defineComponent( {
         });
       }
     },
+
     async autoCheckCodeAndLogin (): Promise<void> {
       if ( this.loading ) return;
 
@@ -590,6 +722,7 @@ export default defineComponent( {
         this.loading = false;
       }
     },
+
     // 跳转到首页
     navigateToHome(): void {
       switch (this.successNavType) {
@@ -627,5 +760,132 @@ export default defineComponent( {
 
 .login-fab--disabled {
   opacity: 0.6;
+}
+
+/* 头像昵称设置弹窗样式 */
+.avatar-modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.avatar-modal-content {
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  width: 600rpx;
+  max-width: 90%;
+  max-height: 80%;
+  overflow: hidden;
+}
+
+.avatar-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.avatar-modal-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.avatar-modal-close {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: #999999;
+  cursor: pointer;
+}
+
+.avatar-modal-body {
+  padding: 30rpx;
+}
+
+.avatar-section, .nickname-section {
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  color: #333333;
+  margin-bottom: 15rpx;
+  display: block;
+}
+
+.avatar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  border: 2rpx solid #e0e0e0;
+  margin-bottom: 10rpx;
+}
+
+.avatar-edit-hint {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.nickname-input {
+  width: 100%;
+  height: 80rpx;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 10rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  color: #333333;
+  background-color: #f8f8f8;
+}
+
+.avatar-modal-footer {
+  display: flex;
+  padding: 30rpx;
+  border-top: 1rpx solid #f0f0f0;
+  gap: 20rpx;
+}
+
+.cancel-btn, .confirm-btn {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  border: none;
+}
+
+.cancel-btn {
+  background-color: #f5f5f5;
+  color: #666666;
+}
+
+.confirm-btn {
+  background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%);
+  color: #ffffff;
+}
+
+.confirm-btn--disabled {
+  background: #cccccc;
+  color: #999999;
 }
 </style>

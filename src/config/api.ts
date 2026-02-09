@@ -18,6 +18,7 @@ export const API = {
         update: `${ API_BASE_URL }account/profileDirect`,
         initInfo: `${ API_BASE_URL }account/initInfo`,
         loginByWeixin: `${ API_BASE_URL }wechat/loginByWeixin`,
+        loginByMiniProgram: `${ API_BASE_URL }wechat/loginMiniProgram`,
         pwdLogin: `${ API_BASE_URL }user/pwdLogin`,
         incrementLoginDays: `${ API_BASE_URL }account/incrementLoginDays`,
     },
