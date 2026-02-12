@@ -364,7 +364,7 @@ export default defineComponent({
     };
   },
   async onShow() {
-    console.log(getDataUrl('qr'));
+    // console.log(getDataUrl('qr'));
     await this.loadUserData();
     await this.loadCategories();
     await this.calculateStats();
