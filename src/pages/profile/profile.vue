@@ -38,6 +38,11 @@
               <text class="stat-number">{{ countdownStats.past }}</text>
               <text class="stat-label">已经</text>
             </view>
+            <view class="stat-divider"></view>
+            <view class="stat-item">
+              <text class="stat-number login-days-number">{{ loginDays }}</text>
+              <text class="stat-label">累计登录</text>
+            </view>
           </view>
         </view>
       </view>
@@ -101,6 +106,48 @@
               <switch :checked="reminderEnabled" @change="handleReminderToggle" color="#1890ff" />
             </view>
           </view>
+
+          <view class="menu-item">
+            <view class="menu-item-left">
+              <view class="menu-icon" style="background-color: #ff6b9d;">
+                <text>💝</text>
+              </view>
+              <text class="menu-label">关怀模式</text>
+            </view>
+            <view class="menu-item-right">
+              <switch :checked="careModeEnabled" @change="handleCareModeToggle" color="#ff6b9d" />
+            </view>
+          </view>
+
+          <view class="menu-item" @click="handleAbout">
+            <view class="menu-item-left">
+              <view class="menu-icon" style="background-color: #8799a3;">
+                <text>ℹ️</text>
+              </view>
+              <text class="menu-label">关于我们</text>
+            </view>
+            <view class="menu-item-right">
+              <text class="menu-arrow">›</text>
+            </view>
+          </view>
+
+          <view class="menu-item" @click="handleLogout">
+            <view class="menu-item-left">
+              <view class="menu-icon" style="background-color: #8799a3;">
+                <svg t="1765798759622" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                  xmlns="http://www.w3.org/2000/svg" p-id="5673" width="200" height="200">
+                  <path
+                    d="M874.666667 855.744a19.093333 19.093333 0 0 1-19.136 18.922667H168.469333A19.2 19.2 0 0 1 149.333333 855.530667V168.469333A19.2 19.2 0 0 1 168.469333 149.333333h687.061334c10.581333 0 19.136 8.533333 19.136 18.922667V320h42.666666V168.256A61.717333 61.717333 0 0 0 855.530667 106.666667H168.469333A61.866667 61.866667 0 0 0 106.666667 168.469333v687.061334A61.866667 61.866667 0 0 0 168.469333 917.333333h687.061334A61.76 61.76 0 0 0 917.333333 855.744V704h-42.666666v151.744zM851.84 533.333333l-131.797333 131.754667a21.141333 21.141333 0 0 0 0.213333 29.973333 21.141333 21.141333 0 0 0 29.973333 0.192l165.589334-165.589333a20.821333 20.821333 0 0 0 6.122666-14.976 21.44 21.44 0 0 0-6.314666-14.997333l-168.533334-168.533334a21.141333 21.141333 0 0 0-29.952-0.213333 21.141333 21.141333 0 0 0 0.213334 29.973333L847.296 490.666667H469.333333v42.666666h382.506667z"
+                    fill="#3D3D3D" p-id="5674"></path>
+                </svg>
+
+              </view>
+              <text class="menu-label">退出登录</text>
+            </view>
+            <view class="menu-item-right">
+              <text class="menu-arrow">›</text>
+            </view>
+          </view>
         </view>
       </view>
 
@@ -152,18 +199,6 @@
             <view class="menu-item-right">
               <text class="menu-value">{{ themeManager.getThemeName() }}</text>
               <text class="menu-arrow">›</text>
-            </view>
-          </view>
-
-          <view class="menu-item">
-            <view class="menu-item-left">
-              <view class="menu-icon" style="background-color: #ff6b9d;">
-                <text>💝</text>
-              </view>
-              <text class="menu-label">关怀模式</text>
-            </view>
-            <view class="menu-item-right">
-              <switch :checked="careModeEnabled" @change="handleCareModeToggle" color="#ff6b9d" />
             </view>
           </view>
 
@@ -303,6 +338,7 @@ import { Category, Countdown } from 'types';
 import wechatJSSDK from '@/utils/wechat';
 import { getDataUrl } from '@/utils/common';
 import { themeManager } from '@/utils/theme';
+
 interface ProfilePageData {
   user: {
     id: number;
@@ -316,6 +352,7 @@ interface ProfilePageData {
     past: number;
   };
   today: string;
+  loginDays: number;
 
   reminderEnabled: boolean;
   careModeEnabled: boolean;
@@ -329,6 +366,7 @@ interface ProfilePageData {
   // 分类数量缓存（key=categoryId）
   categoryCounts: Record<number, number>;
 }
+
 export default defineComponent({
   name: 'Profile',
   data(): ProfilePageData {
@@ -346,6 +384,7 @@ export default defineComponent({
         past: 0
       },
 
+      loginDays: 0,
       reminderEnabled: true,
       careModeEnabled: false,
       drawerVisible: false,
@@ -371,9 +410,11 @@ export default defineComponent({
     await this.loadArchivedCountdowns();
     // 加载关怀模式状态
     this.careModeEnabled = uni.getStorageSync('careMode') || false;
+    // 累计登录天数
+    this.loginDays = uni.getStorageSync('loginDays') || 0;
     // 初始化微信JSSDK分享
     this.initWechatShare();
-
+    
   },
   methods: {
     // 出生日期变化
@@ -922,14 +963,14 @@ export default defineComponent({
         });
       }
     },
+   
     handleAbout() {
       uni.showModal({
         title: '关于时光奇妙',
         content: '时光奇妙 v1.0.0\n一款简洁优雅的奇妙日管理工具\n\n© 2024 奇妙本团队',
         showCancel: false
       });
-    }
-    ,
+    },
     handleLogout() {
       uni.showModal({
         title: '退出登录',
@@ -1758,5 +1799,14 @@ export default defineComponent({
   font-size: 32rpx;
   font-weight: 700;
   color: #aaaaaa;
+}
+
+/* 累计登录天数高亮 */
+.login-days-number {
+  color: #fa8c16 !important;
+}
+
+.care-mode .login-days-number {
+  color: #ff6b9d !important;
 }
 </style>
