@@ -2,8 +2,8 @@
     "name" : "奇妙日",
     "appid" : "__UNI__3D1D71A",
     "description" : "一款简洁优雅的奇妙日管理工具",
-    "versionName" : "0.0.1",
-    "versionCode" : "100",
+    "versionName" : "0.0.3",
+    "versionCode" : "103",
     "transformPx" : false,
     "optimization" : {
         "subPackages" : true

@@ -43,14 +43,15 @@
 
       <view class="grid-body">
         <view class="grid-title">
-          <text class="grid-text">{{ displayTitle.text }}</text>
+          <text class="grid-text">{{ gridTitle }}</text>
         </view>
 
         <view class="grid-footer">
           <text class="grid-date">{{ countdown.displayDate }}</text>
           <view class="grid-days" :class="[ daysClass ]">
-            <text class="grid-days-number">{{ displayDays }}</text>
-            <text class="grid-days-unit">天</text>
+            <text class="grid-days-suffix">{{ titleSuffix }}</text>
+            <text v-if="displayDays !== 0" class="grid-days-number">{{ displayDays }}</text>
+            <text v-if="displayDays !== 0" class="grid-days-unit">天</text>
           </view>
         </view>
       </view>
@@ -126,6 +127,11 @@ export default defineComponent( {
       'care-mode': !!props.careMode
     } ) );
 
+    const gridTitle = computed( () => {
+      const text = props.countdown.title;
+      return text.length > 7 ? text.slice( 0, 7 ) + '.' : text;
+    } );
+
     const titleSuffix = computed( () => {
       if ( days.value > 0 ) return '还有';
       if ( days.value < 0 ) return '已经';
@@ -149,7 +155,8 @@ export default defineComponent( {
       unitClass,
       handleClick,
       titleSuffix,
-      isGridLayout
+      isGridLayout,
+      gridTitle
     };
   }
 } );
@@ -578,6 +585,17 @@ export default defineComponent( {
 
 .care-mode .grid-days-number {
   font-size: 56rpx;
+}
+
+.grid-days-suffix {
+  font-size: 26rpx;
+  color: #ffffff;
+  line-height: 1;
+  margin-right: 4rpx;
+}
+
+.care-mode .grid-days-suffix {
+  font-size: 34rpx;
 }
 
 .grid-days-unit {
