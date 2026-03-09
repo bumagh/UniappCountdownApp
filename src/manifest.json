@@ -51,7 +51,7 @@
     "quickapp" : {},
     "mp-weixin" : {
         "appid" : "wx288592e5392b07af",
-        "lazyCodeLoading": "requiredComponents",
+        "lazyCodeLoading" : "requiredComponents",
         "setting" : {
             "urlCheck" : false,
             "es6" : true,
