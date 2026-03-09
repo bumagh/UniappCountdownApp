@@ -1,0 +1,62 @@
+@startuml 奇妙日核心业务流程图
+skinparam shadowing false
+skinparam linetype ortho
+
+title 奇妙日核心业务流程图
+
+start
+:用户打开应用;
+:App.vue 初始化;
+:检查服务端最新版本;
+if (版本是否变化?) then (是)
+  :清理本地缓存与登录信息;
+  :提示用户重新登录;
+  :跳转登录页;
+else (否)
+  :读取系统信息;
+  :进入首页;
+endif
+
+:首页 onShow;
+:读取 token 判断登录态;
+if (已登录?) then (是)
+  :调用 incrementLoginDays;
+  :缓存 loginDays 到 uni storage;
+  :加载当前用户信息;
+  :加载分类列表;
+  :加载倒数日列表;
+  :根据重复规则计算 displayDate;
+  :按置顶/未来/已经分类展示;
+else (否)
+  :显示未登录状态;
+  :展示微信登录悬浮按钮;
+endif
+
+if (用户点击新增倒数日?) then (是)
+  if (已登录?) then (是)
+    :进入编辑页;
+    :填写标题/日期/分类/重复规则;
+    :提交创建;
+    :返回首页刷新;
+  else (否)
+    :跳转登录页;
+  endif
+endif
+
+if (用户点击倒数日卡片?) then (是)
+  if (已登录?) then (是)
+    :进入详情页;
+    :查看详情/分享/置顶/归档;
+  else (否)
+    :提示请先登录;
+  endif
+endif
+
+if (用户进入个人中心?) then (是)
+  :加载用户信息、统计、归档数据;
+  :从 storage 读取 careMode;
+  :从 storage 读取 loginDays;
+endif
+
+stop
+@enduml

@@ -1,0 +1,100 @@
+@startuml 奇妙日系统架构图
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+
+title 奇妙日系统架构图
+
+package "客户端应用（UniApp）" {
+  [App.vue\n应用启动/版本检查] as App
+  [pages/index\n首页] as Index
+  [pages/categories\n分类页] as Categories
+  [pages/calendar\n日历页] as Calendar
+  [pages/profile\n个人中心] as Profile
+
+  package "业务分包页面" {
+    [login] as Login
+    [register/reginfo] as RegInfo
+    [edit] as Edit
+    [detail/sharedetail] as Detail
+  }
+
+  package "组件层" {
+    [CountdownCard] as CountdownCard
+    [FloatWechatLogin] as FloatWechatLogin
+    [RepeatSelector] as RepeatSelector
+    [ShareCountdown] as ShareCountdown
+  }
+
+  package "服务层" {
+    [apiService] as ApiService
+    [wechatService] as WechatService
+  }
+
+  package "基础设施层" {
+    [request.ts] as Request
+    [config/api.ts] as ApiConfig
+    [axios.ts] as AxiosEnv
+    [countdownUtils.ts] as CountdownUtils
+    [db.js] as DbUtil
+    [theme.ts] as Theme
+    [common.ts] as Common
+  }
+
+  package "本地存储" {
+    database "uni storage\n(token, userid, careMode, loginDays...)" as Storage
+  }
+}
+
+cloud "后端服务" {
+  [用户接口] as UserApi
+  [分类接口] as CategoryApi
+  [倒数日接口] as CountdownApi
+  [版本接口] as VersionApi
+  [微信配置接口] as WechatApi
+}
+
+cloud "微信生态" {
+  [微信小程序登录能力] as MiniProgramAuth
+  [微信 JS-SDK] as JSSDK
+}
+
+App --> ApiService
+App --> Storage
+App --> VersionApi
+
+Index --> CountdownCard
+Index --> FloatWechatLogin
+Index --> ApiService
+Index --> CountdownUtils
+Index --> Storage
+Index --> WechatService
+
+Profile --> ApiService
+Profile --> Storage
+Profile --> DbUtil
+Profile --> Theme
+
+Categories --> ApiService
+Calendar --> ApiService
+Login --> FloatWechatLogin
+Edit --> RepeatSelector
+Detail --> ShareCountdown
+
+ApiService --> Request
+ApiService --> ApiConfig
+ApiConfig --> AxiosEnv
+Request --> Storage
+
+Request --> UserApi
+Request --> CategoryApi
+Request --> CountdownApi
+Request --> VersionApi
+Request --> WechatApi
+
+FloatWechatLogin --> MiniProgramAuth
+WechatService --> JSSDK
+Index --> JSSDK
+Profile --> JSSDK
+
+@enduml
