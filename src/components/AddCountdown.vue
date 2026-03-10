@@ -26,6 +26,17 @@
         </view>
 
         <view class="form-item">
+          <text class="form-label">选择时间</text>
+          <picker mode="time" :value=" formData.time " @change=" onTimeChange ">
+            <view class="picker-input">
+              <text v-if=" formData.time " class="picker-text">{{ formData.time }}</text>
+              <text v-else class="picker-placeholder">请选择时间</text>
+              <text class="picker-icon">⏰</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-item">
           <text class="form-label">选择分类</text>
           <view class="category-list">
             <view v-for=" category in categories " :key=" category.id " class="category-item"
@@ -114,6 +125,7 @@ interface AddCountdownPageData
   formData: {
     title: string;
     date: string;
+    time: string;
     categoryId: number | null;
     isPinned: boolean;
     repeatCycle: number;
@@ -158,6 +170,7 @@ export default defineComponent( {
       formData: {
         title: '',
         date: this.getCurrentDate(),
+        time: this.getCurrentTime(),
         categoryId: this.defaultCategoryId || null,
         isPinned: false,
         repeatCycle: 0,
@@ -197,6 +210,7 @@ export default defineComponent( {
           this.formData = {
             title: this.countdownData.title,
             date: this.countdownData.date,
+            time: this.countdownData.time || '06:00',
             categoryId: this.countdownData.categoryId,
             isPinned: this.countdownData.isPinned || false,
             repeatCycle: this.countdownData.repeatCycle || 0,
@@ -230,6 +244,13 @@ export default defineComponent( {
       const day = String( date.getDate() ).padStart( 2, '0' );
       return `${ year }-${ month }-${ day }`;
     },
+    getCurrentTime ()
+    {
+      const date = new Date();
+      const hours = String( date.getHours() ).padStart( 2, '0' );
+      const minutes = String( date.getMinutes() ).padStart( 2, '0' );
+      return `${ hours }:${ minutes }`;
+    },
     async loadCategories ()
     {
       const userid = uni.getStorageSync( 'userid' );
@@ -250,6 +271,10 @@ export default defineComponent( {
     onDateChange ( e: any )
     {
       this.formData.date = e.detail.value;
+    },
+    onTimeChange ( e: any )
+    {
+      this.formData.time = e.detail.value;
     },
     selectCategory ( categoryId: number )
     {
@@ -411,6 +436,15 @@ export default defineComponent( {
         return;
       }
 
+      if ( !this.formData.time )
+      {
+        uni.showToast( {
+          title: '请选择时间',
+          icon: 'none'
+        } );
+        return;
+      }
+
       if ( !this.formData.categoryId )
       {
         uni.showToast( {
@@ -437,6 +471,7 @@ export default defineComponent( {
           await apiService.updateCountdown( this.countdownData.id, {
             title: this.formData.title,
             date: this.formData.date,
+            time: this.formData.time,
             category_id: this.formData.categoryId,
             is_pinned: this.formData.isPinned,
             repeat_cycle: this.formData.repeatCycle,
@@ -452,6 +487,7 @@ export default defineComponent( {
             user_id: user.id,
             title: this.formData.title,
             date: this.formData.date,
+            time: this.formData.time,
             category_id: this.formData.categoryId,
             is_pinned: this.formData.isPinned,
             repeat_cycle: this.formData.repeatCycle,
@@ -478,6 +514,7 @@ export default defineComponent( {
       this.formData = {
         title: '',
         date: this.getCurrentDate(),
+        time: this.getCurrentTime(),
         categoryId: this.defaultCategoryId || null,
         isPinned: false,
         repeatCycle: 0,

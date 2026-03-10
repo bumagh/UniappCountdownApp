@@ -78,11 +78,11 @@
                 <view class="countdown-info">
                   <text class="countdown-title">{{ countdown.title }}</text>
                   <text class="countdown-category">{{ getCategoryName( countdown.category_id ) }}</text>
+                  <text class="countdown-category">{{ formatCountdownDate( countdown.date, countdown.time ) }}</text>
                 </view>
               </view>
               <view class="countdown-right">
-                <text class="countdown-days">{{ calculateDays( countdown.date ) }}</text>
-                <text class="countdown-unit">天</text>
+                <text class="countdown-days">{{ getCountdownStatusText( countdown.date, countdown.time ) }}</text>
               </view>
             </view>
           </view>
@@ -171,6 +171,7 @@
 export interface CalendarDay
 {
   day: number;
+
   dateStr: string;
   isCurrentMonth: boolean;
   isToday: boolean;
@@ -179,9 +180,9 @@ export interface CalendarDay
   colors: string[];
 }
 import { defineComponent } from 'vue';
-import db from '../../utils/db.js';
 import { Category, Countdown, User } from 'types';
 import apiService from '@/services/apiService';
+import { formatDate, getCountdownStatusText } from '@/utils/countdownUtils';
 
 export default defineComponent( {
   name: 'Calendar',
@@ -440,8 +441,7 @@ export default defineComponent( {
      */
     hasCountdownOnDate ( dateStr: string ): boolean
     {
-      // return this.countdowns.some( ( cd: Countdown ) => cd.date === dateStr );
-      return true;
+      return this.countdowns.some( ( cd: Countdown ) => cd.date === dateStr );
     },
 
     /**
@@ -586,23 +586,14 @@ export default defineComponent( {
       this.generateCalendar();
     },
 
-    /**
-     * 计算奇妙日天数
-     */
-    calculateDays ( targetDate: string ): string
+    formatCountdownDate ( dateStr: string, timeStr?: string ): string
     {
-      const days = db.calculateDays( targetDate );
+      return formatDate( dateStr, timeStr );
+    },
 
-      if ( days > 0 )
-      {
-        return `还有 ${ days } 天`;
-      } else if ( days < 0 )
-      {
-        return `已过 ${ Math.abs( days ) } 天`;
-      } else
-      {
-        return '今天';
-      }
+    getCountdownStatusText ( dateStr: string, timeStr?: string ): string
+    {
+      return getCountdownStatusText( dateStr, timeStr );
     },
 
     /**

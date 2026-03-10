@@ -131,11 +131,11 @@
             <view v-for=" countdown in futureCountdowns " :key=" countdown.id " class="countdown-card shadow"
               @click="handleCountdownClick( countdown )">
               <view class="countdown-number">
-                <text>{{ calculateDaysNumber( countdown.date ) }}</text>
+                <text>{{ getCountdownStatusText( countdown.date, countdown.time ) }}</text>
               </view>
               <view class="countdown-info">
                 <text class="countdown-title">{{ countdown.title }}</text>
-                <text class="countdown-date">{{ formatDate( countdown.date ) }}</text>
+                <text class="countdown-date">{{ formatDate( countdown.date, countdown.time ) }}</text>
               </view>
             </view>
           </view>
@@ -148,11 +148,11 @@
             <view v-for=" countdown in pastCountdowns " :key=" countdown.id " class="countdown-card shadow past-card"
               @click="handleCountdownClick( countdown )">
               <view class="countdown-number past-number">
-                <text>{{ calculateDaysNumber( countdown.date ) }}</text>
+                <text>{{ getCountdownStatusText( countdown.date, countdown.time ) }}</text>
               </view>
               <view class="countdown-info">
                 <text class="countdown-title">{{ countdown.title }}</text>
-                <text class="countdown-date">{{ formatDate( countdown.date ) }}</text>
+                <text class="countdown-date">{{ formatDate( countdown.date, countdown.time ) }}</text>
               </view>
             </view>
           </view>
@@ -173,18 +173,20 @@
     </view>
 
     <!-- 添加奇妙日弹窗 -->
-    <AddCountdown :visible=" addCountdownVisible " :countdownData!=" editingCountdown "
+    <AddCountdown :visible=" addCountdownVisible " :countdownData=" editingCountdown || undefined "
       :defaultCategoryId=" selectedCategory?.id " @close=" closeAddCountdown " @success=" handleCountdownSuccess " />
   </view>
+
 </template>
 
 <script lang="ts">
-import db from '@/utils/db.js';
 import { User, Category, Countdown } from 'types';
+import { calculateTimeDiff, formatDate, getCountdownStatusText } from '@/utils/countdownUtils';
 
 import AddCountdown from '@/components/AddCountdown.vue';
 import { defineComponent } from 'vue';
 import apiService from '@/services/apiService';
+
 interface CategoryPageData
 {
   user: User,
@@ -198,6 +200,7 @@ interface CategoryPageData
   detailCountdowns: Countdown[] | null,
   categoryIdFromQuery: number
 }
+
 export default defineComponent( {
   name: 'Categories',
   components: {
@@ -231,33 +234,35 @@ export default defineComponent( {
     futureCountdowns ()
     {
       return this.detailCountdowns
-        ?.filter( cd => db.calculateDays( cd.date ) >= 0 )
-        .sort( ( a, b ) => db.calculateDays( a.date ) - db.calculateDays( b.date ) );
+        ?.filter( cd => calculateTimeDiff( cd.date, cd.time ) > 0 )
+        .sort( ( a, b ) => calculateTimeDiff( a.date, a.time ) - calculateTimeDiff( b.date, b.time ) );
     },
     pastCountdowns ()
     {
       return this.detailCountdowns
-        ?.filter( cd => db.calculateDays( cd.date ) < 0 )
-        .sort( ( a, b ) => db.calculateDays( b.date ) - db.calculateDays( a.date ) );
+        ?.filter( cd => calculateTimeDiff( cd.date, cd.time ) <= 0 )
+        .sort( ( a, b ) => calculateTimeDiff( b.date, b.time ) - calculateTimeDiff( a.date, a.time ) );
     }
   },
+
   onLoad ( options: any )
   {
     if ( options.categoryId )
     {
       this.categoryIdFromQuery = parseInt( options.categoryId );
     }
- 
   },
+
   onShow ()
   {
-     if ( !uni.getStorageSync( 'userid' ) )
-        {
-          uni.navigateTo( {
-            url: '/subpackages/login/login'
-          } );
-          return;
-        }
+    if ( !uni.getStorageSync( 'userid' ) )
+    {
+      uni.navigateTo( {
+        url: '/subpackages/login/login'
+      } );
+      return;
+    }
+
     this.loadUserData();
     this.loadCategories();
     this.loadCountdowns();
@@ -272,13 +277,13 @@ export default defineComponent( {
       this.categoryIdFromQuery = 0;
     }
   },
+
   methods: {
     async loadUserData ()
     {
       const userid = uni.getStorageSync( 'userid' );
       const currentUser = await apiService.getCurrentUser( userid );
       this.user = currentUser;
-
     },
     async loadCategories ()
     {
@@ -407,14 +412,13 @@ export default defineComponent( {
         this.detailCountdowns = this.countdowns;
       }
     },
-    calculateDaysNumber ( targetDate: any )
+    formatDate ( dateStr: string, timeStr?: string )
     {
-      const days = db.calculateDays( targetDate );
-      return Math.abs( days );
+      return formatDate( dateStr, timeStr );
     },
-    formatDate ( dateStr: string )
+    getCountdownStatusText ( dateStr: string, timeStr?: string )
     {
-      return db.formatDate( dateStr );
+      return getCountdownStatusText( dateStr, timeStr );
     }
   }
 } );

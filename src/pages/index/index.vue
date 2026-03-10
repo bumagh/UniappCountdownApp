@@ -100,7 +100,7 @@
     <FloatWechatLogin :show="!isLoggedIn" :firstLoginUrlBuilder="buildFirstLoginUrl" @success="onWechatLoginSuccess" />
     <!-- 侧边抽屉 -->
     <view v-if="drawerVisible" class="drawer-mask" @click="toggleDrawer"></view>
-    <view class="drawer" :class="{ 'drawer-open': drawerVisible }">
+    <view v-if="drawerVisible" class="drawer" :class="{ 'drawer-open': drawerVisible }">
       <view class="drawer-header">
         <text class="drawer-title">奇妙本</text>
         <view class="drawer-close" @click="toggleDrawer">
@@ -127,29 +127,27 @@
         </view>
       </scroll-view>
     </view>
-
   </view>
 </template>
 <script lang="ts">
 
 import { defineComponent } from 'vue';
 import apiService from '@/services/apiService';
-import { calculateDays, getAbsoluteDays, formatDate, getRepeatText } from '@/utils/countdownUtils';
+import { calculateDays, calculateTimeDiff, getAbsoluteDays, formatDate, getRepeatText } from '@/utils/countdownUtils';
 import { Category, Countdown } from 'types';
 import FloatWechatLogin from '@/components/FloatWechatLogin.vue';
 import CountdownCard from '@/components/CountdownCard.vue';
 import wechatJSSDK from '@/utils/wechat';
 import { getDataUrl } from '@/utils/common';
 
-// 扩展 Countdown 接口，添加 displayDate 字段
 interface CountdownWithDisplayDate extends Countdown {
   displayDate: string;
 }
 
 interface IndexPageData {
   user: any;
-  isLoggedIn: boolean;
   isLoadingData: boolean;
+  isLoggedIn: boolean;
   allCountdowns: Countdown[];
   categories: Category[];
   drawerVisible: boolean;
@@ -157,9 +155,8 @@ interface IndexPageData {
   careMode: boolean;
 }
 
-export default defineComponent(
-  {
-    name: 'Index',
+export default defineComponent({
+  name: 'Index',
 
     components: {
       FloatWechatLogin,
@@ -238,15 +235,15 @@ export default defineComponent(
       // 未来奇妙日（不包含置顶的）- 按日期排序
       futureCountdowns(): CountdownWithDisplayDate[] {
         const future = this.countdownsWithDisplayDate
-          .filter(cd => !cd.is_pinned && calculateDays(cd.displayDate) >= 0);
-        return future.sort((a, b) => calculateDays(a.displayDate) - calculateDays(b.displayDate));
+          .filter(cd => !cd.is_pinned && calculateTimeDiff(cd.displayDate, cd.time) > 0);
+        return future.sort((a, b) => calculateTimeDiff(a.displayDate, a.time) - calculateTimeDiff(b.displayDate, b.time));
       },
 
       // 已经奇妙日（不包含置顶的）- 按日期排序
       pastCountdowns(): CountdownWithDisplayDate[] {
         const past = this.countdownsWithDisplayDate
-          .filter(cd => !cd.is_pinned && calculateDays(cd.displayDate) < 0);
-        return past.sort((a, b) => calculateDays(b.displayDate) - calculateDays(a.displayDate));
+          .filter(cd => !cd.is_pinned && calculateTimeDiff(cd.displayDate, cd.time) <= 0);
+        return past.sort((a, b) => calculateTimeDiff(b.displayDate, b.time) - calculateTimeDiff(a.displayDate, a.time));
       }
     },
 

@@ -36,6 +36,19 @@
         </view>
 
         <view class="form-item">
+          <text class="form-label">选择时间</text>
+          <view class="date-picker-container">
+            <picker mode="time" :value=" formData.time || '06:00' " @change=" onTimeChange " class="date-picker">
+              <view class="date-input">
+                <text v-if=" formData.time " class="date-text">{{ formData.time }}</text>
+                <text v-else class="date-placeholder">请选择时间</text>
+                <text class="date-icon">⏰</text>
+              </view>
+            </picker>
+          </view>
+        </view>
+
+        <view class="form-item">
           <text class="form-label">选择分类</text>
           <view class="category-list">
             <view v-for=" category in categories " :key=" category.id " class="category-item"
@@ -97,7 +110,7 @@
 import { defineComponent } from 'vue';
 import apiService from '@/services/apiService';
 import { formatDate, getRepeatText } from '@/utils/countdownUtils';
-import { Category, Countdown, CountdownForm } from 'types';
+import { Category, CountdownForm } from 'types';
 import RepeatSelector, { type RepeatData } from '@/components/RepeatSelector.vue';
 
 interface EditPageData
@@ -127,6 +140,7 @@ export default defineComponent( {
       formData: {
         title: '',
         date: this.getCurrentDate(),
+        time: '06:00',
         category_id: 0,
         is_pinned: false,
         repeat_cycle: 0,
@@ -252,6 +266,14 @@ export default defineComponent( {
       return `${ year }-${ month }-${ day }`;
     },
 
+    getCurrentTime (): string
+    {
+      const date = new Date();
+      const hours = String( date.getHours() ).padStart( 2, '0' );
+      const minutes = String( date.getMinutes() ).padStart( 2, '0' );
+      return `${ hours }:${ minutes }`;
+    },
+
     async loadCountdownData (): Promise<void>
     {
       if ( !this.countdownId ) return;
@@ -264,6 +286,7 @@ export default defineComponent( {
           this.formData = {
             title: countdown.title,
             date: countdown.date,
+            time: countdown.time || '06:00',
             category_id: countdown.category_id,
             is_pinned: countdown.is_pinned || false,
             repeat_cycle: countdown.repeat_cycle || 0,
@@ -323,6 +346,11 @@ export default defineComponent( {
     onDateChange ( e: any ): void
     {
       this.formData.date = e.detail.value;
+    },
+
+    onTimeChange ( e: any ): void
+    {
+      this.formData.time = e.detail.value;
     },
 
     selectCategory ( category_id: number ): void
@@ -517,6 +545,15 @@ export default defineComponent( {
         return;
       }
 
+      if ( !this.formData.time )
+      {
+        uni.showToast( {
+          title: '请选择时间',
+          icon: 'none'
+        } );
+        return;
+      }
+
       if ( !this.formData.category_id )
       {
         uni.showToast( {
@@ -533,6 +570,7 @@ export default defineComponent( {
           await apiService.updateCountdown( this.countdownId, {
             title: this.formData.title,
             date: this.formData.date,
+            time: this.formData.time,
             category_id: this.formData.category_id,
             is_pinned: this.formData.is_pinned,
             repeat_cycle: this.formData.repeat_cycle,
@@ -550,6 +588,7 @@ export default defineComponent( {
             is_pinned: this.formData.is_pinned,
             title: this.formData.title,
             date: this.formData.date,
+            time: this.formData.time,
             category_id: this.formData.category_id,
             repeat_cycle: this.formData.repeat_cycle,
             repeat_frequency: this.formData.repeat_frequency

@@ -899,14 +899,13 @@ export default defineComponent({
                     }
                   }
 
-                  // 导入倒计时
-                  const categories = await apiService.getCategories(userid);
                   for (const item of data.countdowns) {
                     try {
                       await apiService.createCountdown({
                         user_id: parseInt(userid),
                         title: item.title,
                         date: item.date,
+                        time: item.time,
                         category_id: item.category_id,
                         is_pinned: item.is_pinned,
                         is_archived: item.is_archived,
@@ -1063,8 +1062,8 @@ export default defineComponent({
           return;
         }
 
-        const startTime = Date.now() + 5 * 60 * 1000;
-        const endTime = startTime + 30 * 60 * 1000;
+        const startTime = Math.floor(Date.now() / 1000) + 30;
+        const endTime = startTime + 30 * 60;
 
         this.addPhoneCalendarEvent({
           title: '奇妙日闹钟提醒测试',

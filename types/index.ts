@@ -33,6 +33,7 @@ export interface Countdown
   id?: number;
   title: string;
   date: string;
+  time?: string;
   category_id: number;
   user_id: number;
   is_pinned: boolean;
@@ -60,6 +61,7 @@ export interface CountdownForm
   is_pinned: boolean;
   title: string;
   date: string;
+  time?: string;
   category_id: number;
   repeat_cycle: number;
   repeat_frequency: '不重复' | '天重复' | '周重复' | '月重复' | '年重复';

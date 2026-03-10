@@ -10,20 +10,18 @@
         <view class="category-dot" :style=" { backgroundColor: categoryColor } "></view>
         <text class="category-name">{{ categoryName }}</text>
       </view>
-      <view class="title-date-wrap" v-if="countdown.is_pinned">
-        <view class="countdown-title pinned-title">
-          <text>{{ displayTitle.text }}{{ titleSuffix }}</text>
+      <view class="title-date-wrap" :class="{ 'title-date-wrap-default': !countdown.is_pinned }">
+        <view class="countdown-title" :class="{ 'pinned-title': countdown.is_pinned }">
+          <text>{{ displayTitle.text }}</text>
         </view>
-        <text class="pinned-date">{{ countdown.displayDate }}</text>
-      </view>
-      <view v-else class="countdown-title">
-        <text>{{ displayTitle.text }}{{ titleSuffix }}</text>
+        <text class="countdown-date-text" :class="{ 'pinned-date': countdown.is_pinned }">{{ displayDateText }}</text>
       </view>
     </view>
 
-    <view class="countdown-right" :class="[ mainClass, { 'pinned-right': countdown.is_pinned } ]">
-      <text class="countdown-number" :class="[ daysClass, { 'pinned-number': countdown.is_pinned } ]">{{ displayDays }}</text>
-      <text class="countdown-unit" :class="[ daysClass, { 'pinned-unit': countdown.is_pinned } ]">天</text>
+    <view class="countdown-right" :class="{ 'pinned-right': countdown.is_pinned }">
+      <view class="countdown-status-pill" :class="[ daysClass, mainClass ]">
+        <text class="countdown-status-text" :class="{ 'pinned-number': countdown.is_pinned }">{{ statusText }}</text>
+      </view>
     </view>
   </view>
 
@@ -47,11 +45,9 @@
         </view>
 
         <view class="grid-footer">
-          <text class="grid-date">{{ countdown.displayDate }}</text>
+          <text class="grid-date">{{ displayDateText }}</text>
           <view class="grid-days" :class="[ daysClass ]">
-            <text class="grid-days-suffix">{{ titleSuffix }}</text>
-            <text v-if="displayDays !== 0" class="grid-days-number">{{ displayDays }}</text>
-            <text v-if="displayDays !== 0" class="grid-days-unit">天</text>
+            <text class="grid-days-suffix">{{ statusText }}</text>
           </view>
         </view>
       </view>
@@ -62,7 +58,7 @@
 <script lang="ts">
 import { defineComponent, PropType, computed } from 'vue';
 import { Category, Countdown } from 'types';
-import { calculateDays, getAbsoluteDays } from '@/utils/countdownUtils';
+import { calculateDays, formatDate, getCountdownStatusText } from '@/utils/countdownUtils';
 
 interface CountdownWithDisplayDate extends Countdown
 {
@@ -82,17 +78,15 @@ export default defineComponent( {
   setup ( props, { emit } )
   {
     const days = computed( () => calculateDays( props.countdown.displayDate ) );
-    const absDays = computed( () => getAbsoluteDays( props.countdown.displayDate ) );
 
     // 计算显示标题
     const displayTitle = computed( () => {
       return { text: props.countdown.title };
     } );
 
-    // 计算显示天数
-    const displayDays = computed( () => {
-      return absDays.value;
-    } );
+    const displayDateText = computed( () => formatDate( props.countdown.displayDate, props.countdown.time || '06:00' ) );
+
+    const statusText = computed( () => getCountdownStatusText( props.countdown.displayDate, props.countdown.time ) );
 
     const category = computed( () => props.categories.find( c => c.id === props.countdown.category_id ) );
     const categoryColor = computed( () => category.value ? category.value.color : '#1890ff' );
@@ -108,12 +102,6 @@ export default defineComponent( {
       'days-future': days.value > 0,
       'days-today': days.value === 0,
       'days-past': days.value < 0
-    } ) );
-
-    const unitClass = computed( () => ( {
-      'unit-future': days.value > 0,
-      'unit-today': days.value === 0,
-      'unit-past': days.value < 0
     } ) );
 
     // 布局相关的计算属性
@@ -132,29 +120,21 @@ export default defineComponent( {
       return text.length > 7 ? text.slice( 0, 7 ) + '.' : text;
     } );
 
-    const titleSuffix = computed( () => {
-      if ( days.value > 0 ) return '还有';
-      if ( days.value < 0 ) return '已经';
-      return '就在今天';
-    } );
-
     const handleClick = () =>
     {
       emit( 'click', props.countdown );
     };
 
     return {
-      absDays,
-      displayDays,
       displayTitle,
+      displayDateText,
+      statusText,
       categoryColor,
       categoryName,
       cardClass,
       mainClass,
       daysClass,
-      unitClass,
       handleClick,
-      titleSuffix,
       isGridLayout,
       gridTitle
     };
@@ -215,7 +195,7 @@ export default defineComponent( {
   min-width: 0;
   display: flex;
   flex-direction: row;
-  align-items: center; /* 分类/标题垂直居中 */
+  align-items: flex-start;
   justify-content: flex-start;
   gap: 12rpx;
 }
@@ -262,9 +242,7 @@ export default defineComponent( {
   flex: 1;
   min-width: 0;
   line-height: 1.2;
-  padding-bottom: 13rpx;
   align-items: flex-start;
-
 }
 
 .pinned-left {
@@ -278,6 +256,13 @@ export default defineComponent( {
   flex-direction: column;
   align-items: flex-start;
   margin-left: 0;
+  min-width: 0;
+  flex: 1;
+  gap: 6rpx;
+}
+
+.title-date-wrap-default {
+  padding-top: 4rpx;
 }
 
 .pinned-title {
@@ -295,24 +280,23 @@ export default defineComponent( {
   padding: 0;
 }
 
+.countdown-date-text {
+  font-size: 20rpx;
+  color: #8c8c8c;
+  line-height: 1.3;
+}
+
 .compact-card .countdown-title {
   font-size: 26rpx;
 }
 
 .countdown-right {
   display: flex;
-  flex-direction: row;
-  align-items: stretch; /* 子元素撑满高度 */
+  flex-direction: column;
+  align-items: flex-end;
   justify-content: center;
-  gap: 6rpx;
   flex: 0 0 auto;
-
-  /* 固定可容纳 5 位数（含一些余量）的宽度，防止列表跳动 */
-  width: 230rpx;
-  min-width: 230rpx;
-
-  padding: 0 14rpx; /* 让高度完全由卡片决定 */
-  border-radius: 14rpx;
+  max-width: 260rpx;
 }
 
 .days-future {
@@ -327,19 +311,15 @@ export default defineComponent( {
   background-color: #fa8c16;
 }
 
-.countdown-number {
-  font-size: 64rpx;
-  font-weight: bold;
-  color: #ffffff;
-  line-height: 1;
-
-  /* 让数字块与右侧容器同高，并居中 */
-  flex: 1;
+.countdown-status-pill {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: auto;
-  padding: 0;
+  min-height: 72rpx;
+  padding: 12rpx 18rpx;
+  border-radius: 18rpx;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .pinned-right {
@@ -347,69 +327,22 @@ export default defineComponent( {
   min-width: 270rpx !important;
 }
 
+.countdown-status-text {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.35;
+  text-align: center;
+  word-break: break-all;
+}
+
 .pinned-number {
-  font-size: 64rpx !important;
+  font-size: 26rpx !important;
   font-weight: 900;
 }
 
-.compact-card .countdown-number {
-  font-size: 58rpx;
-}
-
-/* “天”字：与数字同高，胶囊背景使用与 days 同色系的更深色（通过叠加黑色遮罩加深） */
-.countdown-unit {
-  font-size: 20rpx;
-  color: rgba( 255, 255, 255, 1 );
-  line-height: 1;
-
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0 12rpx;
-  border-radius: 0;
-
-  /* days-future/today/past 提供“底色”，这里再叠一层更深效果 */
-  position: relative;
-  overflow: hidden;
-}
-
-.countdown-unit {
-  /* 确保文字在遮罩之上 */
-  z-index: 0;
-}
-
-/* .countdown-unit > * {
-  z-index: 1;
-} */
-
-.countdown-unit > div,
-.countdown-unit > span,
-.countdown-unit > p,
-.countdown-unit > section {
-  z-index: 1;
-}/* 直接给 text 用时，没有子节点，用伪元素遮罩即可；这里显式抬升文字层级 */
-.countdown-unit {
-  color: rgba( 255, 255, 255, 0.92 );
-}
-
-/* 根据状态微调加深程度（仍保持同色系：底色=days，叠加=黑色透明度） */
-.countdown-unit.days-future::after {
-  background-color: rgba( 0, 0, 0, 0.16 );
-}
-
-.countdown-unit.days-today::after {
-  background-color: rgba( 0, 0, 0, 0.20 );
-}
-
-.countdown-unit.days-past::after {
-  background-color: rgba( 0, 0, 0, 0.14 );
-}
-
 .compact-card .countdown-right {
-  width: 220rpx;
-  min-width: 220rpx;
+  max-width: 220rpx;
 }
 
 .care-mode .category-name {
@@ -420,19 +353,8 @@ export default defineComponent( {
   font-size: 38rpx;
 }
 
-.care-mode .countdown-number {
-  font-size: 86rpx;
-}
-
-.care-mode .countdown-unit {
-  font-size: 36rpx;
-}
-
-/* 剩余天数高亮样式 */
-.remaining-days-highlight {
-  color: #ff6b6b !important;
-  font-weight: bold !important;
-  font-size: 110% !important;
+.care-mode .countdown-status-text {
+  font-size: 32rpx;
 }
 
 /* 格子布局样式 */
@@ -516,27 +438,6 @@ export default defineComponent( {
   gap: 4rpx;
 }
 
-.grid-age {
-  font-size: 44rpx;
-  font-weight: bold;
-  color: #333333;
-  line-height: 1.2;
-}
-
-.care-mode .grid-age {
-  font-size: 54rpx;
-}
-
-.grid-remaining {
-  font-size: 38rpx;
-  color: #ff6b6b;
-  font-weight: 600;
-}
-
-.care-mode .grid-remaining {
-  font-size: 48rpx;
-}
-
 .grid-text {
   font-size: 44rpx;
   font-weight: bold;
@@ -571,40 +472,20 @@ export default defineComponent( {
   gap: 4rpx;
   padding: 10rpx 20rpx;
   border-radius: 14rpx;
-  min-width: 90rpx;
+  max-width: 100%;
   justify-content: center;
-  align-self: flex-end;
-}
-
-.grid-days-number {
-  font-size: 42rpx;
-  font-weight: bold;
-  color: #ffffff;
-  line-height: 1;
-}
-
-.care-mode .grid-days-number {
-  font-size: 56rpx;
+  align-self: flex-start;
 }
 
 .grid-days-suffix {
   font-size: 26rpx;
   color: #ffffff;
-  line-height: 1;
-  margin-right: 4rpx;
+  line-height: 1.35;
+  text-align: center;
+  word-break: break-all;
 }
 
 .care-mode .grid-days-suffix {
-  font-size: 34rpx;
-}
-
-.grid-days-unit {
-  font-size: 26rpx;
-  color: #ffffff;
-  line-height: 1;
-}
-
-.care-mode .grid-days-unit {
   font-size: 34rpx;
 }
 
