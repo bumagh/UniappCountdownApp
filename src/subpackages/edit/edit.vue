@@ -658,11 +658,22 @@ export default defineComponent({
 }
 
 .page-content {
+  height: 100%;
   box-sizing: border-box;
 }
 
+.page-content :deep(.uni-scroll-view) {
+  height: 100%;
+}
+
+.page-content :deep(.uni-scroll-view-content) {
+  min-height: 100%;
+}
+
 .form-container {
+  width: 100%;
   padding: 30rpx;
+  box-sizing: border-box;
 }
 
 .form-item {

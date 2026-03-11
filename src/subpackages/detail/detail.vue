@@ -46,7 +46,7 @@
           </view>
 
           <view class="countdown-date-section">
-            <text class="date-text">{{ formatFullDate( countdown.date ) }}</text>
+            <text class="date-text">{{ formatFullDate( countdown.date, countdown.time ) }}</text>
           </view>
         </view>
 
@@ -62,7 +62,7 @@
                 <text class="info-icon">📅</text>
                 <text>目标日期</text>
               </view>
-              <text class="info-item-value">{{ countdown.date }}</text>
+              <text class="info-item-value">{{ formatFullDate( countdown.date, countdown.time ) }}</text>
             </view>
 
             <view class="info-item">
@@ -125,7 +125,7 @@
     <ShareCountdown v-model=" shareVisible " :shareUrl=" shareUrl "
       :title=" countdown?.title ? `分享：${ countdown.title }` : '分享一个奇妙日' "
       :description=" countdown?.title ? `我分享了一个奇妙日：${ countdown.title }` : '我分享了一个奇妙日' "
-      :dateText=" countdown ? formatFullDate( countdown.date ) : '' "
+      :dateText=" countdown ? formatFullDate( countdown.date, countdown.time ) : '' "
       :daysText=" countdown ? `${ daysLabel } ${ Math.abs( daysCount ) } 天` : '' " :categoryName=" categoryName "
       :categoryColor=" categoryColor " :categoryIcon=" categoryIcon " :qrText=" shareUrl " :qrSize=" 360 " />
   </view>
@@ -134,6 +134,7 @@
 <script lang="ts">
 import apiService from '@/services/apiService';
 import { defineComponent } from 'vue';
+import { formatDate } from '@/utils/countdownUtils';
 import db from '../../utils/db.js';
 import { Category, Countdown } from 'types';
 import ShareCountdown from '@/components/ShareCountdown.vue';
@@ -289,9 +290,9 @@ export default defineComponent( {
       this.shareVisible = true;
     },
 
-    formatFullDate ( dateStr: any )
+    formatFullDate ( dateStr: string, timeStr?: string )
     {
-      return db.formatDate( dateStr );
+      return formatDate( dateStr, timeStr );
     },
     formatCreateTime ( isoString: any )
     {
