@@ -332,6 +332,8 @@ export default defineComponent( {
             hasToken: !!loginRes.token
           });
 
+          this.syncUserStorage(loginRes.userInfo, loginRes.token);
+
           const completedUserInfo = await this.completeUserProfile(loginRes);
           loginRes.userInfo = completedUserInfo;
 
