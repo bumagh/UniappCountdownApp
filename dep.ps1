@@ -3,7 +3,7 @@
 
 param(
     [string]$RemoteDir = "/www/wwwroot/app.tutlab.tech/public/countdown/",
-    [string]$Server = "root@tutlab.tech",
+    [string]$Server = "root@101.43.115.124",
     [string]$LocalDirPub = ".\dist\build\",
     [switch]$BuildOnly = $false,
     [switch]$SkipBuild = $false,

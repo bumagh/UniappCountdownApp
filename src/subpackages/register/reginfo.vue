@@ -115,7 +115,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import apiService from '@/services/apiService';
-import { validateUsername, validatePassword } from '@/utils/validate';
+import { validateUsername } from '@/utils/validate';
 import { showToast } from '@/utils/uniUtils';
 
 interface RegInfoForm
@@ -303,15 +303,48 @@ export default defineComponent( {
 
       try
       {
+        const savedAvatar = uni.getStorageSync( 'userAvatar' ) || uni.getStorageSync( 'user_avatar' ) || '';
         // 3. 调用注册接口
-        const retReg = await apiService.initInfo( {
+        const userInfo = await apiService.initInfo( {
           id: this.userid,
           username: this.form.username,
           name: this.form.name,
           gender: this.form.gender=='male'?'0':'1',
           birthday: this.form.birthday,
-          password: this.form.password
+          password: this.form.password,
+          avatar: savedAvatar
         } );
+
+        const existingUserInfo = uni.getStorageSync( 'userInfo' );
+        let parsedUserInfo: Record<string, any> = {};
+        if ( existingUserInfo ) {
+          try {
+            parsedUserInfo = typeof existingUserInfo === 'string' ? JSON.parse( existingUserInfo ) : existingUserInfo;
+          } catch ( e ) {
+            parsedUserInfo = {};
+          }
+        }
+
+        const mergedUserInfo = {
+          ...parsedUserInfo,
+          ...userInfo,
+          id: userInfo?.id ?? this.userid,
+          username: this.form.username,
+          nickname: this.form.name,
+          avatar: userInfo?.avatar || savedAvatar,
+          gender: this.form.gender=='male'?'0':'1',
+          birthday: this.form.birthday,
+          isfirst: 'no'
+        };
+
+        uni.setStorageSync( 'userInfo', JSON.stringify( mergedUserInfo ) );
+        uni.setStorageSync( 'userid', mergedUserInfo.id );
+        uni.setStorageSync( 'userNickname', mergedUserInfo.nickname );
+        if ( mergedUserInfo.avatar ) {
+          uni.setStorageSync( 'userAvatar', mergedUserInfo.avatar );
+          uni.setStorageSync( 'user_avatar', mergedUserInfo.avatar );
+        }
+        uni.setStorageSync( 'userGender', mergedUserInfo.gender );
 
         // 4. 注册成功处理
         uni.hideLoading();

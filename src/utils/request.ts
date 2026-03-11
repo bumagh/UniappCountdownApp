@@ -3,6 +3,7 @@ import { ApiResponse } from 'types/index';
 interface RequestOptions
 {
     header?: Record<string, string>;
+
     // 是否跳过自动注入token
     skipAuth?: boolean;
 }
@@ -10,6 +11,22 @@ interface RequestOptions
 // 请求封装
 class Request
 {
+    private createBusinessError ( responseData: any ): Error
+    {
+        const message = responseData?.msg || responseData?.message || '请求失败';
+        const error = new Error( message ) as Error & {
+            code?: number | string;
+            response?: any;
+            data?: any;
+        };
+
+        error.code = responseData?.code;
+        error.response = responseData;
+        error.data = responseData?.data;
+
+        return error;
+    }
+
     private getAuthHeader (): Record<string, string>
     {
         const token = uni.getStorageSync( 'token' );
@@ -54,7 +71,7 @@ class Request
                             resolve( res.data );
                         } else
                         {
-                            reject( new Error( res.data.msg || '请求失败' ) );
+                            reject( this.createBusinessError( res.data ) );
                         }
                     } else
                     {
@@ -89,7 +106,7 @@ class Request
                             resolve( res.data );
                         } else
                         {
-                            reject( new Error( res.data.msg || '请求失败' ) );
+                            reject( this.createBusinessError( res.data ) );
                         }
                     } else
                     {
@@ -98,8 +115,7 @@ class Request
                 },
                 fail: ( err: any ) =>
                 {
-                    // 微信小程序网络错误处理
-                    console.warn('微信小程序请求失败:', err);
+                    console.warn( '微信小程序请求失败:', err );
                     reject( new Error( '网络请求失败' ) );
                 }
             };

@@ -316,8 +316,26 @@ export default defineComponent({
           const userid = uni.getStorageSync('userid');
           const currentUser = await apiService.getCurrentUser(userid || '1');
           if (currentUser != null) {
-            this.user = currentUser;
-            if (currentUser.birthday == "" || currentUser.birthday == null || currentUser.birthday == undefined) {
+            const cachedUserInfo = uni.getStorageSync('userInfo');
+            let localUserInfo: Record<string, any> = {};
+            if (cachedUserInfo) {
+              try {
+                localUserInfo = typeof cachedUserInfo === 'string' ? JSON.parse(cachedUserInfo) : cachedUserInfo;
+              } catch (e) {
+                localUserInfo = {};
+              }
+            }
+
+            const mergedUser = {
+              ...currentUser,
+              ...localUserInfo,
+              birthday: localUserInfo?.birthday || currentUser.birthday,
+              nickname: localUserInfo?.nickname || currentUser.nickname,
+              avatar: localUserInfo?.avatar || currentUser.avatar
+            };
+
+            this.user = mergedUser;
+            if (mergedUser.birthday == "" || mergedUser.birthday == null || mergedUser.birthday == undefined) {
               //先弹窗询问是否要补全信息
               uni.showModal({
                 title: '提示',
@@ -326,11 +344,11 @@ export default defineComponent({
                 cancelText: '稍后再说',
                 success: (res) => {
                   if (res.confirm) {
-                    uni.setStorageSync('gender', currentUser.gender);
-                    uni.setStorageSync('loginDays', currentUser.login_days);
-                    console.log('currentUser.gender:', currentUser.gender);
+                    uni.setStorageSync('gender', mergedUser.gender);
+                    uni.setStorageSync('loginDays', mergedUser.login_days);
+                    console.log('currentUser.gender:', mergedUser.gender);
                     uni.navigateTo({
-                      url: `/subpackages/register/reginfo?id=${currentUser.id}&nickname=${currentUser.nickname}&gender=${currentUser.gender}`
+                      url: `/subpackages/register/reginfo?id=${mergedUser.id}&nickname=${mergedUser.nickname}&gender=${mergedUser.gender}`
                     });
                   }
                 }

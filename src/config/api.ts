@@ -49,6 +49,9 @@ export const API = {
     },
     wechat: {
         jsconfig: `${ API_BASE_URL }wechat/getJsConfig`,
+    },
+    ajax: {
+        upload: `${ API_BASE_URL }ajax/upload`,
     }
 } as const;
 

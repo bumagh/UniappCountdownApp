@@ -6,10 +6,9 @@ Category,
 Countdown,
 CountdownQueryParams,
 CommonResponse,
-ApiResponse
+ApiResponse,
 } from 'types';
 import { Version } from 'types';
-
 
 class ApiService {
   // 用户相关
@@ -17,6 +16,43 @@ class ApiService {
     const res = await request.request<User>(API.user.current, 'GET', { id });
     return res.data;
   }
+
+  async uploadFile(filePath: string, topic: string = 'avatar', token?: string): Promise<string> {
+    return await new Promise((resolve, reject) => {
+      uni.uploadFile({
+        url: API.ajax.upload,
+        filePath,
+        name: 'file',
+        formData: {
+          driver: 'local',
+          topic
+        },
+        header: token || uni.getStorageSync('token') ? {
+          'ba-user-token': token || uni.getStorageSync('token')
+        } : {},
+        success: (uploadRes) => {
+          try {
+            const payload = JSON.parse(uploadRes.data || '{}');
+            const successCode = payload?.code;
+            const fileUrl = payload?.data?.file?.url || payload?.data?.url;
+
+            if ((successCode === 1 || successCode === 200) && fileUrl) {
+              resolve(fileUrl);
+              return;
+            }
+
+            reject(new Error(payload?.msg || payload?.message || '文件上传失败'));
+          } catch (error) {
+            reject(new Error('文件上传响应解析失败'));
+          }
+        },
+        fail: (error) => {
+          reject(new Error(error?.errMsg || '文件上传失败'));
+        }
+      });
+    });
+  }
+
   // 微信登录
   async loginByWeixin(data: { code: string }): Promise<{ token: string; userInfo: any }> {
     // #ifdef H5
