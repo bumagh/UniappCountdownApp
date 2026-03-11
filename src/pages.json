@@ -17,7 +17,6 @@
       "path": "pages/categories/categories",
       "style": {
         "navigationBarTitleText": "奇妙本",
-        "navigationStyle": "custom",
         "enablePullDownRefresh": false
       }
     },
@@ -25,7 +24,6 @@
       "path": "pages/calendar/calendar",
       "style": {
         "navigationBarTitleText": "日历",
-        "navigationStyle": "custom",
         "enablePullDownRefresh": false
       }
     },
@@ -33,7 +31,6 @@
       "path": "pages/profile/profile",
       "style": {
         "navigationBarTitleText": "我的",
-        "navigationStyle": "custom",
         "enablePullDownRefresh": false
       }
     }
@@ -46,7 +43,6 @@
           "path": "book-edit",
           "style": {
             "navigationBarTitleText": "编辑奇妙本",
-            "navigationStyle": "custom",
             "enablePullDownRefresh": false
           }
         }
@@ -59,7 +55,6 @@
           "path": "detail",
           "style": {
             "navigationBarTitleText": "奇妙日详情",
-            "navigationStyle": "custom",
             "enablePullDownRefresh": false
           }
         },
@@ -67,7 +62,6 @@
           "path": "sharedetail",
           "style": {
             "navigationBarTitleText": "奇妙日分享",
-            "navigationStyle": "custom",
             "enablePullDownRefresh": false
           }
         }
@@ -80,7 +74,6 @@
           "path": "edit",
           "style": {
             "navigationBarTitleText": "编辑奇妙日",
-            "navigationStyle": "custom",
             "enablePullDownRefresh": false
           }
         }
@@ -93,7 +86,6 @@
           "path": "login",
           "style": {
             "navigationBarTitleText": "登录",
-            "navigationStyle": "custom",
             "enablePullDownRefresh": false
           }
         },
@@ -101,7 +93,6 @@
           "path": "pwdlogin",
           "style": {
             "navigationBarTitleText": "登录",
-            "navigationStyle": "custom",
             "enablePullDownRefresh": false
           }
         }
@@ -114,7 +105,6 @@
           "path": "register",
           "style": {
             "navigationBarTitleText": "注册",
-            "navigationStyle": "custom",
             "enablePullDownRefresh": false
           }
         },
@@ -122,7 +112,6 @@
           "path": "reginfo",
           "style": {
             "navigationBarTitleText": "填写信息开启奇妙日",
-            "navigationStyle": "custom",
             "enablePullDownRefresh": false
           }
         }
@@ -135,7 +124,6 @@
           "path": "event-edit",
           "style": {
             "navigationBarTitleText": "注册",
-            "navigationStyle": "custom",
             "enablePullDownRefresh": false
           }
         }

@@ -547,7 +547,7 @@ export default defineComponent( {
   width: 640rpx;
   max-height: 90vh;
   background-color: #ffffff;
-  border-radius: 20rpx;
+  border-radius: 24rpx;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -558,14 +558,16 @@ export default defineComponent( {
   align-items: center;
   justify-content: space-between;
   padding: 30rpx;
-  border-bottom: 2rpx solid #e8f4ff;
+  padding-top: calc(30rpx + env(safe-area-inset-top));
+  padding-top: calc(30rpx + constant(safe-area-inset-top));
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
   flex-shrink: 0;
 }
 
 .modal-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333333;
+  color: #ffffff;
 }
 
 .modal-close {
@@ -578,12 +580,13 @@ export default defineComponent( {
 
 .close-icon {
   font-size: 40rpx;
-  color: #666666;
+  color: #ffffff;
 }
 
 .modal-body {
   flex: 1;
   padding: 30rpx;
+  padding-top: 24rpx;
   overflow-y: auto;
 }
 

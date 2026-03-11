@@ -133,11 +133,12 @@
 
 import { defineComponent } from 'vue';
 import apiService from '@/services/apiService';
-import { calculateDays, calculateTimeDiff, getAbsoluteDays, formatDate, getRepeatText } from '@/utils/countdownUtils';
+import { calculateTimeDiff } from '@/utils/countdownUtils';
 import { Category, Countdown } from 'types';
 import FloatWechatLogin from '@/components/FloatWechatLogin.vue';
 import CountdownCard from '@/components/CountdownCard.vue';
 import wechatJSSDK from '@/utils/wechat';
+
 import { getDataUrl } from '@/utils/common';
 
 interface CountdownWithDisplayDate extends Countdown {
@@ -350,8 +351,9 @@ export default defineComponent({
             title: '加载失败' + error,
             icon: 'none'
           });
+        } finally {
+          this.isLoadingData = false;
         }
-        this.isLoadingData = false;
       },
 
       async onWechatLoginSuccess(params: any): Promise<void> {
@@ -373,18 +375,6 @@ export default defineComponent({
         }
         await this.loadData();
 
-      },
-
-      calculateDays(targetDate: string): number {
-        return calculateDays(targetDate);
-      },
-
-      getAbsoluteDays(targetDate: string): number {
-        return getAbsoluteDays(targetDate);
-      },
-
-      formatDate(dateStr: string): string {
-        return formatDate(dateStr);
       },
 
       getCategoryColor(category_id: number): string {
@@ -427,7 +417,6 @@ export default defineComponent({
       },
 
       handleCountdownClick(countdown: CountdownWithDisplayDate): void {
-        //需要判断是否登录
         if (!this.isLoggedIn) {
           uni.showToast({
             title: '请先登录',
@@ -451,7 +440,6 @@ export default defineComponent({
         });
       },
 
-      // 获取重复日程的未来最近日期
       getNextRepeatDate(
         originalDate: string,
         repeatCycle: number,
@@ -498,12 +486,6 @@ export default defineComponent({
         return `${year}-${month}-${day}`;
       },
 
-      // 获取重复文本
-      getRepeatText(repeatCycle: number, repeatFrequency: string): string {
-        return getRepeatText(repeatCycle, repeatFrequency as any);
-      },
-
-      // 刷新所有CountdownCard组件的loginDays
       refreshAllCountdownCards(): void {
         // 使用$refs获取所有CountdownCard组件并调用refreshLoginDays
         this.$nextTick(() => {

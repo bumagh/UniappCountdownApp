@@ -7,6 +7,15 @@ export default defineConfig( ( { mode } ) => {
   console.log( 'Vite 运行模式:', mode );
   const env = loadEnv( mode, process.cwd(), '' );
 
+  const cleanupDirectories = ( directories: string[], label: string ) => {
+    directories.forEach( ( directory ) => {
+      if ( existsSync( directory ) ) {
+        console.log( `清理 ${label}: ${directory}` );
+        rmSync( directory, { recursive: true, force: true } );
+      }
+    } );
+  };
+
   // 自定义插件：复制 static 文件到 static 目录并清理 h5/static
   const copyStaticPlugin = {
     name: 'copy-static-files',
@@ -31,20 +40,22 @@ export default defineConfig( ( { mode } ) => {
     writeBundle() {
       // 清理 h5/static 目录 - 在所有文件写入后执行
       const h5StaticDir = join(process.cwd(), 'dist/build/h5/static');
-      if (existsSync(h5StaticDir)) {
-        console.log('清理 h5/static 目录...');
-        rmSync(h5StaticDir, { recursive: true, force: true });
-        console.log('h5/static 目录已清理');
-      }
+      cleanupDirectories( [
+        h5StaticDir,
+        join( process.cwd(), 'dist/build/mp-weixin/static/pic1.png' ),
+        join( process.cwd(), 'dist/build/mp-weixin/static/pic2.png' ),
+        join( process.cwd(), 'dist/build/mp-weixin/static/qr_search.png' )
+      ], '构建产物目录' );
     },
     closeBundle() {
       // 最终清理 - 确保在构建完全结束后执行
       const h5StaticDir = join(process.cwd(), 'dist/build/h5/');
-      if (existsSync(h5StaticDir)) {
-        console.log('最终清理 h5/static 目录...');
-        rmSync(h5StaticDir, { recursive: true, force: true });
-        console.log('h5/static 目录已完全清理');
-      }
+      cleanupDirectories( [
+        h5StaticDir,
+        join( process.cwd(), 'dist/build/mp-weixin/static/pic1.png' ),
+        join( process.cwd(), 'dist/build/mp-weixin/static/pic2.png' ),
+        join( process.cwd(), 'dist/build/mp-weixin/static/qr_search.png' )
+      ], '最终产物目录' );
     }
   };
 
