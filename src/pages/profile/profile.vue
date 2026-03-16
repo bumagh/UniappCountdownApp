@@ -180,18 +180,6 @@
               <text class="menu-arrow">›</text>
             </view>
           </view>
-          <view class="menu-item test-menu-item" @click="handleCalendarReminderTest">
-            <view class="menu-item-left">
-              <view class="menu-icon" style="background-color: #ff9f43;">
-                <text>⏰</text>
-              </view>
-              <text class="menu-label">测试日历提醒</text>
-            </view>
-            <view class="menu-item-right">
-              <text class="menu-value">小程序</text>
-              <text class="menu-arrow">›</text>
-            </view>
-          </view>
         </view>
       </view>
 
@@ -351,8 +339,6 @@ import wechatJSSDK from '@/utils/wechat';
 import { getDataUrl } from '@/utils/common';
 import { themeManager } from '@/utils/theme';
 
-declare const wx: any;
-
 interface ProfilePageData {
   user: {
     id: number;
@@ -428,7 +414,6 @@ export default defineComponent({
     this.loginDays = uni.getStorageSync('loginDays') || 0;
     // 初始化微信JSSDK分享
     this.initWechatShare();
-    
   },
   methods: {
     // 出生日期变化
@@ -976,7 +961,6 @@ export default defineComponent({
         });
       }
     },
-   
     handleAbout() {
       uni.showModal({
         title: '关于时光奇妙',
@@ -1040,237 +1024,6 @@ export default defineComponent({
       } catch (error) {
         console.error('微信JSSDK分享初始化失败:', error);
       }
-    },
-    async handleCalendarReminderTest() {
-      // #ifndef MP-WEIXIN
-      uni.showToast({
-        title: '仅支持微信小程序测试',
-        icon: 'none'
-      });
-      return;
-      // #endif
-
-      // #ifdef MP-WEIXIN
-      try {
-        const canUseCalendar = this.checkPhoneCalendarSupport();
-        if (!canUseCalendar) {
-          uni.showModal({
-            title: '当前版本不支持',
-            content: '当前微信基础库版本过低，请升级微信后再试。',
-            showCancel: false
-          });
-          return;
-        }
-
-        const startTime = Math.floor(Date.now() / 1000) + 30;
-        const endTime = startTime + 30 * 60;
-
-        this.addPhoneCalendarEvent({
-          title: '奇妙日闹钟提醒测试',
-          startTime,
-          endTime,
-          allDay: false,
-          description: '这是奇妙日小程序发起的系统日历提醒测试事件',
-          location: '奇妙日小程序',
-          alarm: true,
-          alarmOffset: 0
-        }).then(() => {
-          uni.showToast({
-            title: '已添加到系统日历',
-            icon: 'success'
-          });
-        }).catch((error: any) => {
-          console.error('添加系统日历事件失败：', error);
-          this.handlePhoneCalendarError(error);
-        });
-      } catch (error: any) {
-        console.error('添加系统日历事件失败：', error);
-        this.handlePhoneCalendarError(error);
-      }
-      // #endif
-    },
-    checkPhoneCalendarSupport(): boolean {
-      // #ifdef MP-WEIXIN
-      const wxAny = wx as any;
-      if (!wxAny || typeof wxAny.addPhoneCalendar !== 'function') {
-        return false;
-      }
-
-      const compareVersion = (v1: string, v2: string) => {
-        const arr1 = v1.split('.').map((item) => Number(item));
-        const arr2 = v2.split('.').map((item) => Number(item));
-        const length = Math.max(arr1.length, arr2.length);
-
-        while (arr1.length < length) arr1.push(0);
-        while (arr2.length < length) arr2.push(0);
-
-        for (let i = 0; i < length; i++) {
-          if (arr1[i] > arr2[i]) return 1;
-          if (arr1[i] < arr2[i]) return -1;
-        }
-
-        return 0;
-      };
-
-      try {
-        if (typeof wxAny.getAppBaseInfo === 'function') {
-          const baseInfo = wxAny.getAppBaseInfo();
-          return compareVersion(baseInfo?.SDKVersion || '0.0.0', '2.15.0') >= 0;
-        }
-      } catch (error) {
-        console.error('读取基础库版本失败：', error);
-      }
-
-      return true;
-      // #endif
-
-      // #ifndef MP-WEIXIN
-      return false;
-      // #endif
-    },
-    ensurePhoneCalendarAuth(): Promise<boolean> {
-      return new Promise((resolve) => {
-        // #ifdef MP-WEIXIN
-        uni.getSetting({
-          success: (settingRes) => {
-            const authSetting = ((settingRes.authSetting || {}) as unknown) as Record<string, boolean>;
-            if (authSetting['scope.addPhoneCalendar'] === true) {
-              resolve(true);
-              return;
-            }
-
-            uni.authorize({
-              scope: 'scope.addPhoneCalendar' as any,
-              success: () => resolve(true),
-              fail: () => {
-                uni.showModal({
-                  title: '需要授权',
-                  content: '测试系统日历提醒需要获得“添加到系统日历”权限，是否前往设置开启？',
-                  success: (modalRes) => {
-                    if (modalRes.confirm) {
-                      uni.openSetting({
-                        success: (openRes) => {
-                          const openAuth = ((openRes.authSetting || {}) as unknown) as Record<string, boolean>;
-                          resolve(openAuth['scope.addPhoneCalendar'] === true);
-                        },
-                        fail: () => resolve(false)
-                      });
-                    } else {
-                      resolve(false);
-                    }
-                  },
-                  fail: () => resolve(false)
-                });
-              }
-            });
-          },
-          fail: () => resolve(false)
-        });
-        // #endif
-
-        // #ifndef MP-WEIXIN
-        resolve(false);
-        // #endif
-      });
-    },
-    handlePhoneCalendarError(error: any) {
-      const errMsg = error?.errMsg || error?.message || '';
-
-      if (errMsg.includes('auth deny') || errMsg.includes('authorize:fail auth deny')) {
-        this.ensurePhoneCalendarAuth().then((granted) => {
-          if (granted) {
-            uni.showModal({
-              title: '授权成功',
-              content: '请再次点击“测试日历提醒”以添加系统日历事件。',
-              showCancel: false
-            });
-            return;
-          }
-
-          uni.showModal({
-            title: '未获得授权',
-            content: '请在小程序设置中允许“添加到系统日历”权限后再试。',
-            showCancel: false
-          });
-        });
-        return;
-      }
-
-      if (errMsg.includes('can only be invoked by user TAP gesture')) {
-        uni.showModal({
-          title: '调用受限',
-          content: '系统日历能力必须由用户再次点击触发。若刚完成授权，请再点一次“测试日历提醒”。',
-          showCancel: false
-        });
-        return;
-      }
-
-      if (errMsg.includes('no supporting apps')) {
-        uni.showModal({
-          title: '当前环境不支持',
-          content: '当前运行环境没有可用的系统日历应用，建议在已安装系统日历的真机微信中测试。Windows 开发者工具通常无法完成此能力验证。',
-          showCancel: false
-        });
-        return;
-      }
-
-      if (errMsg.includes('cancel')) {
-        uni.showToast({
-          title: '你已取消添加',
-          icon: 'none'
-        });
-        return;
-      }
-
-      uni.showToast({
-        title: '添加失败，请稍后再试',
-        icon: 'none'
-      });
-    },
-    addPhoneCalendarEvent(options: {
-      title: string;
-      startTime: number;
-      endTime: number;
-      allDay?: boolean;
-      description?: string;
-      location?: string;
-      alarm?: boolean;
-      alarmOffset?: number;
-    }): Promise<void> {
-      return new Promise((resolve, reject) => {
-        // #ifdef MP-WEIXIN
-        const wxAny = wx as any;
-        if (!wxAny || typeof wxAny.addPhoneCalendar !== 'function') {
-          reject(new Error('当前环境不支持 addPhoneCalendar'));
-          return;
-        }
-
-        const payload = {
-          title: options.title,
-          startTime: options.startTime,
-          endTime: options.endTime,
-          allDay: options.allDay ?? false,
-          description: options.description || '',
-          location: options.location || '',
-          alarm: options.alarm ?? true,
-          alarmOffset: options.alarmOffset ?? 0
-        };
-
-        const result = wxAny.addPhoneCalendar({
-          ...payload,
-          success: () => resolve(),
-          fail: (err: any) => reject(err)
-        });
-
-        if (result && typeof result.then === 'function') {
-          result.then(() => resolve()).catch((err: any) => reject(err));
-        }
-        // #endif
-
-        // #ifndef MP-WEIXIN
-        reject(new Error('当前环境不支持 addPhoneCalendar'));
-        // #endif
-      });
     },
   }
 });
@@ -1468,11 +1221,6 @@ export default defineComponent({
 .menu-arrow {
   font-size: 40rpx;
   color: #aaaaaa;
-}
-
-.test-menu-item .menu-value {
-  color: #ff9f43;
-  font-weight: 600;
 }
 
 .drawer-content {
