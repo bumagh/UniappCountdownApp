@@ -189,7 +189,17 @@ export default defineComponent( {
 
         uni.setStorageSync( 'token', loginRes.token );
         uni.setStorageSync( 'userInfo', JSON.stringify( loginRes.userInfo ) );
-        uni.setStorageSync( 'userid', loginRes.userInfo.id )
+        uni.setStorageSync( 'userid', loginRes.userInfo.id );
+        if ( loginRes.userInfo?.avatar ) {
+          uni.setStorageSync( 'userAvatar', loginRes.userInfo.avatar );
+          uni.setStorageSync( 'user_avatar', loginRes.userInfo.avatar );
+        }
+        if ( loginRes.userInfo?.nickname ) {
+          uni.setStorageSync( 'userNickname', loginRes.userInfo.nickname );
+        }
+        if ( loginRes.userInfo?.gender != null || loginRes.userInfo?.sex != null ) {
+          uni.setStorageSync( 'userGender', loginRes.userInfo.gender ?? loginRes.userInfo.sex );
+        }
 
         // 更新登录天数
         try {
@@ -208,8 +218,9 @@ export default defineComponent( {
         if ( loginRes.userInfo.isfirst == 'yes' )
           setTimeout( () =>
           {
-            console.log(loginRes.userInfo.sex);
-            uni.navigateTo( { url: `/subpackages/register/reginfo?id=${ loginRes.userInfo.id }&nickname=${ loginRes.userInfo.nickname }&gender=${ loginRes.userInfo.sex }` } );
+            const gender = loginRes.userInfo.gender ?? loginRes.userInfo.sex ?? '';
+            console.log(gender);
+            uni.navigateTo( { url: `/subpackages/register/reginfo?id=${ loginRes.userInfo.id }&nickname=${ loginRes.userInfo.nickname }&gender=${ gender }` } );
           }, 1500 );
         else
           setTimeout( () =>

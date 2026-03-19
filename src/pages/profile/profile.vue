@@ -335,13 +335,13 @@ import apiService from '@/services/apiService';
 import db from '../../utils/db.js';
 import { defineComponent } from 'vue';
 import { Category, Countdown } from 'types';
-import wechatJSSDK from '@/utils/wechat';
 import { getDataUrl } from '@/utils/common';
 import { themeManager } from '@/utils/theme';
 
 interface ProfilePageData {
   user: {
     id: number;
+
     nickname: string;
     avatar: string;
     birthday: string;
@@ -847,70 +847,245 @@ export default defineComponent({
         }
       });
     },
+    normalizeBackupText(value: unknown): string {
+      return typeof value === 'string' ? value.trim() : '';
+    },
+    parseBackupPayload(raw: string): any {
+      return JSON.parse(raw);
+    },
+    buildBackupCategoryKey(category: { name: string; icon: string; color: string }): string {
+      return [
+        this.normalizeBackupText(category.name),
+        this.normalizeBackupText(category.icon),
+        this.normalizeBackupText(category.color)
+      ].join('__');
+    },
+    buildBackupCountdownKey(item: { title: string; date: string; time?: string; repeat_cycle: number; repeat_frequency: string }, categoryName: string): string {
+      return [
+        this.normalizeBackupText(item.title),
+        this.normalizeBackupText(item.date),
+        this.normalizeBackupText(item.time || ''),
+        this.normalizeBackupText(categoryName),
+        item.repeat_cycle.toString(),
+        this.normalizeBackupText(item.repeat_frequency)
+      ].join('__');
+    },
+    normalizeBackupCategories(categories: Category[]): Array<{ name: string; icon: string; color: string }> {
+      return categories
+        .filter(category => this.normalizeBackupText(category?.name) !== '')
+        .map(category => ({
+          name: this.normalizeBackupText(category.name),
+          icon: this.normalizeBackupText(category.icon) || '📁',
+          color: this.normalizeBackupText(category.color) || '#1890ff'
+        }));
+    },
+    normalizeBackupCountdowns(params: { countdowns: Countdown[]; categories: Category[] }): Array<any> {
+      const categoryNameMap = new Map<number, string>();
+      params.categories.forEach(category => {
+        if (category?.id != null) {
+          categoryNameMap.set(category.id, this.normalizeBackupText(category.name));
+        }
+      });
+
+      return params.countdowns
+        .filter(item => this.normalizeBackupText(item?.title) !== '' && this.normalizeBackupText(item?.date) !== '')
+        .map(item => ({
+          title: this.normalizeBackupText(item.title),
+          date: this.normalizeBackupText(item.date),
+          time: this.normalizeBackupText(item.time || ''),
+          is_pinned: !!item.is_pinned,
+          repeat_cycle: item.repeat_cycle || 0,
+          repeat_frequency: item.repeat_frequency || '不重复',
+          is_archived: !!item.is_archived,
+          categoryName: categoryNameMap.get(item.category_id) || ''
+        }))
+        .filter(item => item.categoryName !== '');
+    },
+    buildExistingCategoryMaps(categories: Category[]): { byKey: Map<string, Category>; byName: Map<string, Category> } {
+      const byKey = new Map<string, Category>();
+      const byName = new Map<string, Category>();
+      categories.forEach(category => {
+        byKey.set(this.buildBackupCategoryKey(category), category);
+        byName.set(this.normalizeBackupText(category.name), category);
+      });
+      return { byKey, byName };
+    },
+    buildExistingCountdownKeySet(params: { countdowns: Countdown[]; categories: Category[] }): Set<string> {
+      const categoryNameMap = new Map<number, string>();
+      params.categories.forEach(category => {
+        if (category.id != null) {
+          categoryNameMap.set(category.id, this.normalizeBackupText(category.name));
+        }
+      });
+
+      const result = new Set<string>();
+      params.countdowns.forEach(item => {
+        const categoryName = categoryNameMap.get(item.category_id) || '';
+        if (!categoryName) {
+          return;
+        }
+        result.add(this.buildBackupCountdownKey({
+          title: item.title,
+          date: item.date,
+          time: item.time,
+          repeat_cycle: item.repeat_cycle,
+          repeat_frequency: item.repeat_frequency
+        }, categoryName));
+      });
+      return result;
+    },
+    createBackupPayload(params: { user: { id: number; nickname: string }; categories: Category[]; countdowns: Countdown[] }): any {
+      return {
+        version: '1.0.0',
+        exportedAt: new Date().toISOString(),
+        app: '奇妙日',
+        user: {
+          id: params.user.id,
+          nickname: params.user.nickname
+        },
+        categories: params.categories,
+        countdowns: params.countdowns
+      };
+    },
+    stringifyBackupPayload(payload: any): string {
+      return JSON.stringify(payload, null, 2);
+    },
+    validateBackupPayload(payload: any): { valid: boolean; message: string } {
+      if (!payload || !payload.version || !payload.exportedAt || !payload.app) {
+        return { valid: false, message: '备份数据格式不正确' };
+      }
+      if (payload.version !== '1.0.0') {
+        return { valid: false, message: '备份数据版本不兼容' };
+      }
+      if (!payload.user || !payload.user.id || !payload.user.nickname) {
+        return { valid: false, message: '备份数据中缺少用户信息' };
+      }
+      if (!payload.categories || !payload.countdowns) {
+        return { valid: false, message: '备份数据中缺少分类或倒数日信息' };
+      }
+      return { valid: true, message: '' };
+    },
     // 简单导入
     async simpleImport() {
       uni.getClipboardData({
         success: async (res) => {
           try {
-            const data = JSON.parse(res.data) as {
-              countdowns: Countdown[];
-              categories: Category[];
-            };
+            const data = this.parseBackupPayload(res.data);
+            const validation = this.validateBackupPayload(data);
             const userid = this.user.id.toString();
 
-            if (!data.countdowns || !data.categories) {
-              uni.showToast({ title: '数据格式错误', icon: 'none' });
+            if (!validation.valid) {
+              uni.showToast({ title: validation.message, icon: 'none' });
               return;
             }
 
             uni.showModal({
               title: '导入确认',
-              content: `发现 ${data.countdowns.length} 个倒计时，是否导入？`,
+              content: `备份版本 ${data.version}，发现 ${data.categories.length} 个分类、${data.countdowns.length} 个倒数日，是否导入？`,
               success: async (modalRes) => {
                 if (modalRes.confirm) {
                   uni.showLoading({ title: '导入中...' });
 
-                  // 导入分类
-                  for (const cat of data.categories) {
+                  const existingCategories = await apiService.getCategories(userid);
+                  const existingCountdowns = await apiService.getCountdowns({ userid });
+                  const existingCategoryMaps = this.buildExistingCategoryMaps(existingCategories);
+                  const existingCountdownKeys = this.buildExistingCountdownKeySet({
+                    countdowns: existingCountdowns,
+                    categories: existingCategories
+                  });
+
+                  const normalizedCategories = this.normalizeBackupCategories(data.categories);
+                  const normalizedCountdowns = this.normalizeBackupCountdowns({
+                    countdowns: data.countdowns,
+                    categories: data.categories
+                  });
+
+                  const categoryIdByName = new Map<string, number>();
+                  existingCategories.forEach((category) => {
+                    categoryIdByName.set(category.name, category.id);
+                  });
+
+                  const summary = {
+                    categoriesCreated: 0,
+                    categoriesReused: 0,
+                    countdownsCreated: 0,
+                    countdownsSkipped: 0,
+                    countdownsFailed: 0
+                  };
+
+                  for (const cat of normalizedCategories) {
+                    const categoryKey = this.buildBackupCategoryKey(cat);
+                    const existingCategory = existingCategoryMaps.byKey.get(categoryKey) || existingCategoryMaps.byName.get(cat.name);
+
+                    if (existingCategory) {
+                      categoryIdByName.set(cat.name, existingCategory.id);
+                      summary.categoriesReused += 1;
+                      continue;
+                    }
+
                     try {
-                      await apiService.createCategory({
+                      const createdCategory = await apiService.createCategory({
                         user_id: parseInt(userid),
                         name: cat.name,
                         icon: cat.icon,
                         color: cat.color
                       });
+                      existingCategoryMaps.byKey.set(categoryKey, createdCategory);
+                      existingCategoryMaps.byName.set(cat.name, createdCategory);
+                      categoryIdByName.set(cat.name, createdCategory.id);
+                      summary.categoriesCreated += 1;
                     } catch (e) {
-                      // 分类可能已存在，忽略
+                      const fallbackCategory = existingCategoryMaps.byName.get(cat.name);
+                      if (fallbackCategory) {
+                        categoryIdByName.set(cat.name, fallbackCategory.id);
+                        summary.categoriesReused += 1;
+                      }
                     }
                   }
 
-                  for (const item of data.countdowns) {
+                  for (const item of normalizedCountdowns) {
+                    const mappedCategoryId = categoryIdByName.get(item.categoryName);
+                    if (!mappedCategoryId) {
+                      summary.countdownsFailed += 1;
+                      continue;
+                    }
+
+                    const duplicateKey = this.buildBackupCountdownKey(item, item.categoryName);
+                    if (existingCountdownKeys.has(duplicateKey)) {
+                      summary.countdownsSkipped += 1;
+                      continue;
+                    }
+
                     try {
                       await apiService.createCountdown({
                         user_id: parseInt(userid),
                         title: item.title,
                         date: item.date,
                         time: item.time,
-                        category_id: item.category_id,
+                        category_id: mappedCategoryId,
                         is_pinned: item.is_pinned,
                         is_archived: item.is_archived,
                         repeat_cycle: item.repeat_cycle,
                         repeat_frequency: item.repeat_frequency
                       });
+                      existingCountdownKeys.add(duplicateKey);
+                      summary.countdownsCreated += 1;
                     } catch (e) {
-                      // 跳过重复项
+                      summary.countdownsFailed += 1;
                     }
                   }
 
                   uni.hideLoading();
-                  uni.showToast({
-                    title: '导入成功',
-                    icon: 'success'
+                  uni.showModal({
+                    title: '导入完成',
+                    content: `分类新增 ${summary.categoriesCreated} 个，复用 ${summary.categoriesReused} 个；倒数日新增 ${summary.countdownsCreated} 个，跳过 ${summary.countdownsSkipped} 个，失败 ${summary.countdownsFailed} 个。`,
+                    showCancel: false
                   });
 
                   // 刷新页面
-                  this.loadCategories();
-                  this.calculateStats();
+                  await this.loadCategories();
+                  await this.calculateStats();
+                  await this.loadArchivedCountdowns();
                 }
               }
             });
@@ -938,18 +1113,23 @@ export default defineComponent({
         const countdowns = await apiService.getCountdowns({ userid });
         const categories = await apiService.getCategories(userid);
 
-        const data = {
-          countdowns: countdowns,
-          categories: categories
-        };
+        const data = this.createBackupPayload({
+          user: {
+            id: this.user.id,
+            nickname: this.user.nickname
+          },
+          countdowns,
+          categories
+        });
 
         uni.setClipboardData({
-          data: JSON.stringify(data),
+          data: this.stringifyBackupPayload(data),
           success: () => {
             uni.hideLoading();
-            uni.showToast({
-              title: '已复制到剪贴板',
-              icon: 'success'
+            uni.showModal({
+              title: '导出成功',
+              content: `已复制备份数据到剪贴板。\n版本：${data.version}\n分类：${data.categories.length} 个\n倒数日：${data.countdowns.length} 个`,
+              showCancel: false
             });
           }
         });
@@ -1003,12 +1183,19 @@ export default defineComponent({
     },
     // 初始化微信JSSDK分享
     async initWechatShare() {
-      if (!wechatJSSDK.isInWx()) {
-        console.log('当前不在微信环境中，跳过微信JSSDK初始化');
-        return;
-      }
+      // #ifndef H5
+      return;
+      // #endif
 
       try {
+        // #ifdef H5
+        const wechatModule = require('@/utils/wechat');
+        const wechatJSSDK = wechatModule.default || wechatModule;
+        if (!wechatJSSDK.isInWx()) {
+          console.log('当前不在微信环境中，跳过微信JSSDK初始化');
+          return;
+        }
+
         // 构建分享配置
         const shareConfig = {
           title: `${this.user.nickname}的奇妙本 - 记录了${this.countdownStats.total}个重要日子，还有${this.countdownStats.future}个即将到来`,
@@ -1021,6 +1208,7 @@ export default defineComponent({
         // 初始化并设置分享
         await wechatJSSDK.initAndSetShare(shareConfig);
         console.log('微信JSSDK分享初始化成功');
+        // #endif
       } catch (error) {
         console.error('微信JSSDK分享初始化失败:', error);
       }

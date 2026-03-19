@@ -130,14 +130,13 @@
   </view>
 </template>
 <script lang="ts">
-
 import { defineComponent } from 'vue';
 import apiService from '@/services/apiService';
 import { calculateTimeDiff } from '@/utils/countdownUtils';
+
 import { Category, Countdown } from 'types';
 import FloatWechatLogin from '@/components/FloatWechatLogin.vue';
 import CountdownCard from '@/components/CountdownCard.vue';
-import wechatJSSDK from '@/utils/wechat';
 
 import { getDataUrl } from '@/utils/common';
 
@@ -150,6 +149,7 @@ interface IndexPageData {
   isLoadingData: boolean;
   isLoggedIn: boolean;
   allCountdowns: Countdown[];
+
   categories: Category[];
   drawerVisible: boolean;
   currentLayout: 'default' | 'grid';
@@ -159,417 +159,356 @@ interface IndexPageData {
 export default defineComponent({
   name: 'Index',
 
-    components: {
-      FloatWechatLogin,
-      CountdownCard
+  components: {
+    FloatWechatLogin,
+    CountdownCard
+  },
+
+  data(): IndexPageData {
+    return {
+      user: {
+        id: 1,
+        nickname: '未登录用户',
+        avatar: '',
+        created_at: '',
+        updated_at: ''
+      },
+      isLoggedIn: false,
+      isLoadingData: false,
+      allCountdowns: [],
+      categories: [],
+      drawerVisible: false,
+      currentLayout: 'default',
+      careMode: !!uni.getStorageSync('careMode')
+    };
+  },
+
+  computed: {
+    countdownsWithDisplayDate(): CountdownWithDisplayDate[] {
+      return this.allCountdowns.map(countdown => {
+        let displayDate = countdown.date;
+        if (countdown.repeat_cycle > 0 && countdown.repeat_frequency !== '不重复') {
+          displayDate = this.getNextRepeatDate(countdown.date, countdown.repeat_cycle, countdown.repeat_frequency);
+        }
+
+        return {
+          ...countdown,
+          displayDate
+        };
+      });
     },
 
-    data(): IndexPageData {
-      return {
-        user: {
+    pinnedCountdowns(): CountdownWithDisplayDate[] {
+      return this.countdownsWithDisplayDate
+        .filter(cd => cd.is_pinned)
+        .sort((a, b) => new Date(b.updated_at as string).getTime() - new Date(a.updated_at as string).getTime());
+    },
+
+    futureCountdowns(): CountdownWithDisplayDate[] {
+      const future = this.countdownsWithDisplayDate
+        .filter(cd => !cd.is_pinned && calculateTimeDiff(cd.displayDate, cd.time) > 0);
+      return future.sort((a, b) => calculateTimeDiff(a.displayDate, a.time) - calculateTimeDiff(b.displayDate, b.time));
+    },
+
+    pastCountdowns(): CountdownWithDisplayDate[] {
+      const past = this.countdownsWithDisplayDate
+        .filter(cd => !cd.is_pinned && calculateTimeDiff(cd.displayDate, cd.time) <= 0);
+      return past.sort((a, b) => calculateTimeDiff(b.displayDate, b.time) - calculateTimeDiff(a.displayDate, a.time));
+    }
+  },
+
+  async onShow(): Promise<void> {
+    const token = uni.getStorageSync('token');
+    this.isLoggedIn = !!token;
+    if (this.isLoggedIn && token) {
+      try {
+        const res = await apiService.incrementLoginDays();
+        uni.setStorageSync('loginDays', res.login_days);
+        this.refreshAllCountdownCards();
+      } catch (error) {
+        console.error('更新登录天数失败:', error);
+      }
+    }
+    await this.loadData();
+    this.careMode = !!uni.getStorageSync('careMode');
+    await this.initWechatShare();
+  },
+
+  methods: {
+    buildFirstLoginUrl(u: { id: any; nickname: any; sex?: any; gender?: any }): string {
+      const gender = u.gender ?? u.sex ?? '';
+      console.log('buildFirstLoginUrl' + gender);
+      return `/subpackages/register/reginfo?id=${u.id}&nickname=${u.nickname}&gender=${gender}`;
+    },
+
+    async loadData(): Promise<void> {
+      this.isLoadingData = true;
+      const token = uni.getStorageSync('token');
+      this.isLoggedIn = !!token;
+
+      if (!this.isLoggedIn) {
+        this.user = {
           id: 1,
           nickname: '未登录用户',
           avatar: '',
           created_at: '',
           updated_at: ''
-        },
-        isLoggedIn: false,
-        isLoadingData: false,
-        allCountdowns: [
-          {
-            id: 1,
-            title: 'Countdown 1',
-            date: '2023-10-01',
-            is_pinned: false,
-            repeat_cycle: 1,
-            repeat_frequency: '不重复',
-            created_at: '',
-            updated_at: '',
-            category_id: 0,
-            user_id: 0
-          },
-          {
-            id: 2,
-            title: 'Countdown 2',
-            date: '2023-10-02',
-            is_pinned: true,
-            repeat_cycle: 1,
-            repeat_frequency: '不重复',
-            created_at: '',
-            updated_at: '',
-            category_id: 0,
-            user_id: 0
-          }
-        ],
-        categories: [],
-        drawerVisible: false,
-        currentLayout: 'default',
-        careMode: !!uni.getStorageSync('careMode')
-      };
-    },
+        };
+        this.allCountdowns = [];
+        this.categories = [];
+        this.isLoadingData = false;
+        return;
+      }
 
-    computed: {
-      // 为每个奇妙日计算显示日期（考虑重复日程的未来最近日期）
-      countdownsWithDisplayDate(): CountdownWithDisplayDate[] {
-        return this.allCountdowns.map(countdown => {
-          let displayDate = countdown.date;
-
-          // 如果是重复日程，计算未来最近的日期
-          if (countdown.repeat_cycle > 0 && countdown.repeat_frequency !== '不重复') {
-            displayDate = this.getNextRepeatDate(countdown.date, countdown.repeat_cycle, countdown.repeat_frequency);
+      try {
+        const userid = uni.getStorageSync('userid');
+        const currentUser = await apiService.getCurrentUser(userid || '1');
+        if (currentUser != null) {
+          const cachedUserInfo = uni.getStorageSync('userInfo');
+          let localUserInfo: Record<string, any> = {};
+          if (cachedUserInfo) {
+            try {
+              localUserInfo = typeof cachedUserInfo === 'string' ? JSON.parse(cachedUserInfo) : cachedUserInfo;
+            } catch (e) {
+              localUserInfo = {};
+            }
           }
 
-          return {
-            ...countdown,
-            displayDate
+          const mergedUser = {
+            ...currentUser,
+            ...localUserInfo,
+            birthday: localUserInfo?.birthday || currentUser.birthday,
+            nickname: localUserInfo?.nickname || currentUser.nickname,
+            avatar: localUserInfo?.avatar || currentUser.avatar
           };
+
+          this.user = mergedUser;
+          if (mergedUser.birthday == '' || mergedUser.birthday == null || mergedUser.birthday == undefined) {
+            uni.showModal({
+              title: '提示',
+              content: '您的信息还不完整，是否现在去补全？（为了您更好的使用体验，请尽快补全个人信息）',
+              confirmText: '去补全',
+              cancelText: '稍后再说',
+              success: (res) => {
+                if (res.confirm) {
+                  uni.setStorageSync('gender', mergedUser.gender);
+                  uni.setStorageSync('loginDays', mergedUser.login_days);
+                  console.log('currentUser.gender:', mergedUser.gender);
+                  uni.navigateTo({
+                    url: this.buildFirstLoginUrl(mergedUser)
+                  });
+                }
+              }
+            });
+          }
+        }
+
+        const [countdownsRes, categoriesRes] = await Promise.all([
+          apiService.getCountdowns({ userid }),
+          apiService.getCategories(userid || '1')
+        ]);
+        this.allCountdowns = countdownsRes;
+        this.categories = categoriesRes;
+      } catch (error) {
+        console.error('加载数据失败:', error);
+        uni.showToast({
+          title: '加载失败' + error,
+          icon: 'none'
         });
-      },
-
-      // 置顶日程（独立的置顶容器）- 按编辑时间排序，最新编辑的在前
-      pinnedCountdowns(): CountdownWithDisplayDate[] {
-        return this.countdownsWithDisplayDate
-          .filter(cd => cd.is_pinned)
-          .sort((a, b) => new Date(b.updated_at as string).getTime() - new Date(a.updated_at as string).getTime());
-      },
-
-      // 未来奇妙日（不包含置顶的）- 按日期排序
-      futureCountdowns(): CountdownWithDisplayDate[] {
-        const future = this.countdownsWithDisplayDate
-          .filter(cd => !cd.is_pinned && calculateTimeDiff(cd.displayDate, cd.time) > 0);
-        return future.sort((a, b) => calculateTimeDiff(a.displayDate, a.time) - calculateTimeDiff(b.displayDate, b.time));
-      },
-
-      // 已经奇妙日（不包含置顶的）- 按日期排序
-      pastCountdowns(): CountdownWithDisplayDate[] {
-        const past = this.countdownsWithDisplayDate
-          .filter(cd => !cd.is_pinned && calculateTimeDiff(cd.displayDate, cd.time) <= 0);
-        return past.sort((a, b) => calculateTimeDiff(b.displayDate, b.time) - calculateTimeDiff(a.displayDate, a.time));
+      } finally {
+        this.isLoadingData = false;
       }
     },
 
-    async onShow(): Promise<void> {
-      // 简单以token判断登录态
+    async onWechatLoginSuccess(params: any): Promise<void> {
+      console.log('onWechatLoginSuccess', params);
+      this.isLoggedIn = true;
       const token = uni.getStorageSync('token');
       this.isLoggedIn = !!token;
+
       if (this.isLoggedIn && token) {
         try {
           const res = await apiService.incrementLoginDays();
           uni.setStorageSync('loginDays', res.login_days);
-          // 刷新所有CountdownCard组件的loginDays
           this.refreshAllCountdownCards();
         } catch (error) {
           console.error('更新登录天数失败:', error);
-          // 如果调用失败，保持原有的loginDays值，不覆盖
         }
       }
       await this.loadData();
-      this.careMode = !!uni.getStorageSync('careMode');
-      await this.initWechatShare();
     },
 
-    methods: {
-      buildFirstLoginUrl(u: { id: any; nickname: any; sex: any }): string {
-        console.log('buildFirstLoginUrl' + u.sex)
-        return `/subpackages/register/reginfo?id=${u.id}&nickname=${u.nickname}&gender=${u.sex}`;
-      },
+    getCategoryColor(category_id: number): string {
+      const category = this.categories.find(c => c.id === category_id);
+      return category ? category.color : '#1890ff';
+    },
 
-      async loadData(): Promise<void> {
+    getCategoryName(category_id: number): string {
+      const category = this.categories.find(c => c.id === category_id);
+      return category ? category.name : '未分类';
+    },
 
+    getCategoryCount(category_id: number): number {
+      return this.allCountdowns.filter(cd => cd.category_id === category_id).length;
+    },
 
-        // 未登录时：展示本地测试数据（用于空态预览）
-        if (this.isLoggedIn == false) {
-          const today = new Date();
-          const toYmd = (d: Date) => {
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}`;
-          };
-          this.categories = [
-            { id: 1, name: '健康', color: '#1890ff', icon: '💪', user_id: 0, created_at: '', updated_at: '' },
-            { id: 2, name: '计划', color: '#52c41a', icon: '🗓️', user_id: 0, created_at: '', updated_at: '' },
-            { id: 3, name: '纪念', color: '#fa8c16', icon: '🎉', user_id: 0, created_at: '', updated_at: '' }
-          ];
-          // 未来
-          const d1 = new Date(today); d1.setDate(d1.getDate() + 2);
+    toggleDrawer(): void {
+      this.drawerVisible = !this.drawerVisible;
+    },
 
-          this.allCountdowns = [
-            {
-              id: 1001,
-              title: '荷尔蒙注射(半月)',
-              date: toYmd(d1),
-              is_pinned: false,
-              repeat_cycle: 0,
-              repeat_frequency: '不重复',
-              created_at: '',
-              updated_at: new Date().toISOString(),
-              category_id: 1,
-              user_id: 0
-            }
-          ];
-          this.allCountdowns = [];
-          return;
-        }
-        try {
-          // 获取当前用户信息
-          const userid = uni.getStorageSync('userid');
-          const currentUser = await apiService.getCurrentUser(userid || '1');
-          if (currentUser != null) {
-            const cachedUserInfo = uni.getStorageSync('userInfo');
-            let localUserInfo: Record<string, any> = {};
-            if (cachedUserInfo) {
-              try {
-                localUserInfo = typeof cachedUserInfo === 'string' ? JSON.parse(cachedUserInfo) : cachedUserInfo;
-              } catch (e) {
-                localUserInfo = {};
-              }
-            }
+    toggleLayout(): void {
+      this.currentLayout = this.currentLayout === 'grid' ? 'default' : 'grid';
+    },
 
-            const mergedUser = {
-              ...currentUser,
-              ...localUserInfo,
-              birthday: localUserInfo?.birthday || currentUser.birthday,
-              nickname: localUserInfo?.nickname || currentUser.nickname,
-              avatar: localUserInfo?.avatar || currentUser.avatar
-            };
+    toggleCareMode(): void {
+      this.careMode = !this.careMode;
+      uni.setStorageSync('careMode', this.careMode);
+    },
 
-            this.user = mergedUser;
-            if (mergedUser.birthday == "" || mergedUser.birthday == null || mergedUser.birthday == undefined) {
-              //先弹窗询问是否要补全信息
-              uni.showModal({
-                title: '提示',
-                content: '您的信息还不完整，是否现在去补全？（为了您更好的使用体验，请尽快补全个人信息）',
-                confirmText: '去补全',
-                cancelText: '稍后再说',
-                success: (res) => {
-                  if (res.confirm) {
-                    uni.setStorageSync('gender', mergedUser.gender);
-                    uni.setStorageSync('loginDays', mergedUser.login_days);
-                    console.log('currentUser.gender:', mergedUser.gender);
-                    uni.navigateTo({
-                      url: `/subpackages/register/reginfo?id=${mergedUser.id}&nickname=${mergedUser.nickname}&gender=${mergedUser.gender}`
-                    });
-                  }
-                }
-              });
-            }
-          }
-
-          // 获取分类和奇妙日数据
-          const [countdownsRes, categoriesRes] = await Promise.all([
-            apiService.getCountdowns({ userid }),
-            apiService.getCategories(userid || '1')
-          ]);
-          this.allCountdowns = countdownsRes;
-          this.categories = categoriesRes;
-        } catch (error) {
-          console.error('加载数据失败:', error);
-          uni.showToast({
-            title: '加载失败' + error,
-            icon: 'none'
-          });
-        } finally {
-          this.isLoadingData = false;
-        }
-      },
-
-      async onWechatLoginSuccess(params: any): Promise<void> {
-        console.log('onWechatLoginSuccess', params);
-        this.isLoggedIn = true;
-        const token = uni.getStorageSync('token');
-        this.isLoggedIn = !!token;
-
-        if (this.isLoggedIn && token) {
-          try {
-            const res = await apiService.incrementLoginDays();
-            uni.setStorageSync('loginDays', res.login_days);
-            // 刷新所有CountdownCard组件的loginDays
-            this.refreshAllCountdownCards();
-          } catch (error) {
-            console.error('更新登录天数失败:', error);
-            // 如果调用失败，保持原有的loginDays值，不覆盖
-          }
-        }
-        await this.loadData();
-
-      },
-
-      getCategoryColor(category_id: number): string {
-        const category = this.categories.find(c => c.id === category_id);
-        return category ? category.color : '#1890ff';
-      },
-
-      getCategoryName(category_id: number): string {
-        const category = this.categories.find(c => c.id === category_id);
-        return category ? category.name : '未分类';
-      },
-
-      getCategoryCount(category_id: number): number {
-        return this.allCountdowns.filter(cd => cd.category_id === category_id).length;
-      },
-
-      toggleDrawer(): void {
-        this.drawerVisible = !this.drawerVisible;
-      },
-
-      toggleLayout(): void {
-        this.currentLayout = this.currentLayout === 'grid' ? 'default' : 'grid';
-      },
-
-      toggleCareMode(): void {
-        this.careMode = !this.careMode;
-        uni.setStorageSync('careMode', this.careMode);
-      },
-
-      showAddCountdown(): void {
-        if (!uni.getStorageSync('userid')) {
-          uni.navigateTo({
-            url: '/subpackages/login/login'
-          });
-          return;
-        }
+    showAddCountdown(): void {
+      if (!uni.getStorageSync('userid')) {
         uni.navigateTo({
-          url: '/subpackages/edit/edit'
+          url: '/subpackages/login/login'
         });
-      },
+        return;
+      }
+      uni.navigateTo({
+        url: '/subpackages/edit/edit'
+      });
+    },
 
-      handleCountdownClick(countdown: CountdownWithDisplayDate): void {
-        if (!this.isLoggedIn) {
-          uni.showToast({
-            title: '请先登录',
-            icon: 'none'
-          });
-          return;
-        }
-        uni.navigateTo({
-          url: `/subpackages/detail/detail?id=${countdown.id}`
+    handleCountdownClick(countdown: CountdownWithDisplayDate): void {
+      if (!this.isLoggedIn) {
+        uni.showToast({
+          title: '请先登录',
+          icon: 'none'
         });
-      },
+        return;
+      }
+      uni.navigateTo({
+        url: `/subpackages/detail/detail?id=${countdown.id}`
+      });
+    },
 
-      handleAllCategory(): void {
-        this.drawerVisible = false;
-      },
+    handleAllCategory(): void {
+      this.drawerVisible = false;
+    },
 
-      handleCategoryClick(category: Category): void {
-        this.drawerVisible = false;
-        uni.navigateTo({
-          url: `/subpackages/categories/categories?category_id=${category.id}`
-        });
-      },
+    handleCategoryClick(category: Category): void {
+      this.drawerVisible = false;
+      uni.navigateTo({
+        url: `/subpackages/categories/categories?category_id=${category.id}`
+      });
+    },
 
-      getNextRepeatDate(
-        originalDate: string,
-        repeatCycle: number,
-        repeatFrequency: '不重复' | '天重复' | '周重复' | '月重复' | '年重复'
-      ): string {
-        // 如果不是重复日程，返回原日期
-        if (repeatCycle === 0 || repeatFrequency === '不重复') {
-          return originalDate;
+    getNextRepeatDate(
+      originalDate: string,
+      repeatCycle: number,
+      repeatFrequency: '不重复' | '天重复' | '周重复' | '月重复' | '年重复'
+    ): string {
+      if (repeatCycle === 0 || repeatFrequency === '不重复') {
+        return originalDate;
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      let nextDate = new Date(originalDate);
+      nextDate.setHours(0, 0, 0, 0);
+
+      if (nextDate > today) {
+        return originalDate;
+      }
+
+      while (nextDate <= today) {
+        switch (repeatFrequency) {
+          case '天重复':
+            nextDate.setDate(nextDate.getDate() + repeatCycle);
+            break;
+          case '周重复':
+            nextDate.setDate(nextDate.getDate() + repeatCycle * 7);
+            break;
+          case '月重复':
+            nextDate.setMonth(nextDate.getMonth() + repeatCycle);
+            break;
+          case '年重复':
+            nextDate.setFullYear(nextDate.getFullYear() + repeatCycle);
+            break;
         }
+      }
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+      const year = nextDate.getFullYear();
+      const month = String(nextDate.getMonth() + 1).padStart(2, '0');
+      const day = String(nextDate.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    },
 
-        let nextDate = new Date(originalDate);
-        nextDate.setHours(0, 0, 0, 0);
-
-        // 如果起始日期在未来，直接返回
-        if (nextDate > today) {
-          return originalDate;
-        }
-
-        // 循环计算下一个未来日期
-        while (nextDate <= today) {
-          switch (repeatFrequency) {
-            case '天重复':
-              nextDate.setDate(nextDate.getDate() + repeatCycle);
-              break;
-            case '周重复':
-              nextDate.setDate(nextDate.getDate() + repeatCycle * 7);
-              break;
-            case '月重复':
-              nextDate.setMonth(nextDate.getMonth() + repeatCycle);
-              break;
-            case '年重复':
-              nextDate.setFullYear(nextDate.getFullYear() + repeatCycle);
-              break;
-          }
-        }
-
-        // 格式化为 YYYY-MM-DD
-        const year = nextDate.getFullYear();
-        const month = String(nextDate.getMonth() + 1).padStart(2, '0');
-        const day = String(nextDate.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      },
-
-      refreshAllCountdownCards(): void {
-        // 使用$refs获取所有CountdownCard组件并调用refreshLoginDays
-        this.$nextTick(() => {
-          const countdownCards = this.$refs.countdownCard as any[];
-          if (countdownCards && Array.isArray(countdownCards)) {
-            countdownCards.forEach((card: any) => {
-              if (card && card.refreshLoginDays) {
-                card.refreshLoginDays();
-              }
-            });
-          }
-        });
-      },
-
-      // 切换置顶状态
-      async handleTogglePin(countdown: CountdownWithDisplayDate): Promise<void> {
-        try {
-          await apiService.togglePinCountdown(countdown.id as number);
-
-          // 更新本地数据
-          const index = this.allCountdowns.findIndex(cd => cd.id === countdown.id);
-          if (index !== -1) {
-            this.allCountdowns[index].is_pinned = !this.allCountdowns[index].is_pinned;
-            this.allCountdowns[index].updated_at = new Date().toISOString();
-          }
-
-          uni.showToast({
-            title: countdown.is_pinned ? '已取消置顶' : '已置顶',
-            icon: 'success'
-          });
-        } catch (error) {
-          console.error('操作失败:', error);
-          uni.showToast({
-            title: '操作失败',
-            icon: 'none'
+    refreshAllCountdownCards(): void {
+      this.$nextTick(() => {
+        const countdownCards = this.$refs.countdownCard as any[];
+        if (countdownCards && Array.isArray(countdownCards)) {
+          countdownCards.forEach((card: any) => {
+            if (card && card.refreshLoginDays) {
+              card.refreshLoginDays();
+            }
           });
         }
-      },
-      // 初始化微信JSSDK分享
-      async initWechatShare() {
+      });
+    },
 
+    async handleTogglePin(countdown: CountdownWithDisplayDate): Promise<void> {
+      try {
+        await apiService.togglePinCountdown(countdown.id as number);
+
+        const index = this.allCountdowns.findIndex(cd => cd.id === countdown.id);
+        if (index !== -1) {
+          this.allCountdowns[index].is_pinned = !this.allCountdowns[index].is_pinned;
+          this.allCountdowns[index].updated_at = new Date().toISOString();
+        }
+
+        uni.showToast({
+          title: countdown.is_pinned ? '已取消置顶' : '已置顶',
+          icon: 'success'
+        });
+      } catch (error) {
+        console.error('操作失败:', error);
+        uni.showToast({
+          title: '操作失败',
+          icon: 'none'
+        });
+      }
+    },
+
+    async initWechatShare() {
+      // #ifndef H5
+      return;
+      // #endif
+
+      try {
+        // #ifdef H5
+        const wechatModule = require('@/utils/wechat');
+        const wechatJSSDK = wechatModule.default || wechatModule;
         if (!wechatJSSDK.isInWx()) {
           console.log('当前不在微信环境中，跳过微信JSSDK初始化');
           return;
         }
 
-        try {
-          // 构建分享配置
-          const shareConfig = {
-            title: `长寿奇妙日`,
-            desc: `快来使用长寿奇妙日，记录生活中的重要时刻！`,
-            link: window.location.href,
-            imgUrl: await getDataUrl('logo','jpg')
-          };
+        const shareConfig = {
+          title: '长寿奇妙日',
+          desc: '快来使用长寿奇妙日，记录生活中的重要时刻！',
+          link: window.location.href,
+          imgUrl: await getDataUrl('logo', 'jpg')
+        };
 
-          // 初始化并设置分享
-          await wechatJSSDK.initAndSetShare(shareConfig);
-          console.log('微信JSSDK分享初始化成功');
-        } catch (error) {
-          console.error('微信JSSDK分享初始化失败:', error);
-          // 不显示错误提示给用户，静默失败
-          // 在非微信环境或微信JSSDK加载失败时，不应该影响正常功能
-        }
+        await wechatJSSDK.initAndSetShare(shareConfig);
+        console.log('微信JSSDK分享初始化成功');
+        // #endif
+      } catch (error) {
+        console.error('微信JSSDK分享初始化失败:', error);
       }
     }
-  });
+  }
+});
 </script>
 
 <style scoped>

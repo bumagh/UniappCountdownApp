@@ -210,7 +210,7 @@ export default defineComponent( {
           this.formData = {
             title: this.countdownData.title,
             date: this.countdownData.date,
-            time: this.countdownData.time || '06:00',
+            time: this.countdownData.time || '',
             categoryId: this.countdownData.categoryId,
             isPinned: this.countdownData.isPinned || false,
             repeatCycle: this.countdownData.repeatCycle || 0,

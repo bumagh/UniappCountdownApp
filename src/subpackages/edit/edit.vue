@@ -39,7 +39,7 @@
         <view class="form-item">
           <text class="form-label">选择时间</text>
           <view class="date-picker-container">
-            <picker mode="time" :value="formData.time || '06:00'" @change="onTimeChange" class="date-picker">
+            <picker mode="time" :value="formData.time" @change="onTimeChange" class="date-picker">
               <view class="date-input">
                 <text v-if="formData.time" class="date-text">{{ formData.time }}</text>
                 <text v-else class="date-placeholder">请选择时间</text>
@@ -147,7 +147,7 @@ export default defineComponent({
       formData: {
         title: '',
         date: this.getCurrentDate(),
-        time: '06:00',
+        time: '',
         category_id: 0,
         is_pinned: false,
         repeat_cycle: 0,
@@ -258,7 +258,7 @@ export default defineComponent({
           this.formData = {
             title: countdown.title,
             date: countdown.date,
-            time: countdown.time || '06:00',
+            time: countdown.time || '',
             category_id: countdown.category_id,
             is_pinned: countdown.is_pinned || false,
             repeat_cycle: countdown.repeat_cycle || 0,

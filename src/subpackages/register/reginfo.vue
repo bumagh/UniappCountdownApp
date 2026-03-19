@@ -184,8 +184,10 @@ export default defineComponent( {
     // 页面加载时可以初始化一些数据
     if ( options.nickname )
     {
+      const rawGender = options.gender ?? options.sex ?? '';
+      const normalizedGender = rawGender === 'male' || rawGender === '0' || rawGender === 0 ? 'male' : rawGender === 'female' || rawGender === '1' || rawGender === 1 ? 'female' : 'male';
       this.form.username = options.nickname;
-      this.form.gender = parseInt(options.gender) == 0 ? 'male' : 'female';
+      this.form.gender = normalizedGender;
       this.form.name = options.nickname;
       this.form.birthday = '1985-06-15';
       this.userid = options.id;

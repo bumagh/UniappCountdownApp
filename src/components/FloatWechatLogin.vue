@@ -238,8 +238,8 @@ export default defineComponent( {
       if (userInfo?.nickname) {
         uni.setStorageSync('userNickname', userInfo.nickname);
       }
-      if (userInfo?.gender != null) {
-        uni.setStorageSync('userGender', userInfo.gender);
+      if (userInfo?.gender != null || userInfo?.sex != null) {
+        uni.setStorageSync('userGender', userInfo.gender ?? userInfo.sex);
       }
     },
 
@@ -355,7 +355,7 @@ export default defineComponent( {
               // 首次登录处理
               const isFirst = loginRes.userInfo?.isfirst === 'yes';
               if (isFirst && this.firstLoginUrlBuilder != null) {
-                const url = `/subpackages/register/reginfo?id=${loginRes.userInfo.id}&nickname=${loginRes.userInfo.nickname}&gender=${loginRes.userInfo.gender}`;
+                const url = this.firstLoginUrlBuilder(loginRes.userInfo);
                 uni.navigateTo({ url });
                 return;
               }
@@ -773,8 +773,7 @@ export default defineComponent( {
         const isFirst = loginRes.userInfo?.isfirst === 'yes';
 
         if ( isFirst && this.firstLoginUrlBuilder!=null ) {
-           const url =  `/subpackages/register/reginfo?id=${ loginRes.userInfo.id }&nickname=${ loginRes.userInfo.nickname }&gender=${ loginRes.userInfo.gender }`;
-          // const url = this.firstLoginUrlBuilder( loginRes.userInfo );
+          const url = this.firstLoginUrlBuilder( loginRes.userInfo );
           setTimeout( () => {
             uni.navigateTo( { url } );
           }, 1500 );

@@ -145,9 +145,6 @@ export default defineComponent( {
       {
         await this.processWechatLogin( code );
         wxauth.clearAuthParamsFromUrl();
-      } else
-      {
-        wxauth.authorize();
       }
     },
 
@@ -191,7 +188,17 @@ export default defineComponent( {
 
         uni.setStorageSync( 'token', loginRes.token );
         uni.setStorageSync( 'userInfo', JSON.stringify( loginRes.userInfo ) );
-        uni.setStorageSync( 'userid', loginRes.userInfo.id )
+        uni.setStorageSync( 'userid', loginRes.userInfo.id );
+        if ( loginRes.userInfo?.avatar ) {
+          uni.setStorageSync( 'userAvatar', loginRes.userInfo.avatar );
+          uni.setStorageSync( 'user_avatar', loginRes.userInfo.avatar );
+        }
+        if ( loginRes.userInfo?.nickname ) {
+          uni.setStorageSync( 'userNickname', loginRes.userInfo.nickname );
+        }
+        if ( loginRes.userInfo?.gender != null || loginRes.userInfo?.sex != null ) {
+          uni.setStorageSync( 'userGender', loginRes.userInfo.gender ?? loginRes.userInfo.sex );
+        }
         uni.showToast( {
           title: '微信登录成功',
           icon: 'success',
@@ -200,7 +207,8 @@ export default defineComponent( {
         if ( loginRes.userInfo.isfirst == 'yes' )
           setTimeout( () =>
           {
-            uni.navigateTo( { url: `/subpackages/register/reginfo?id=${ loginRes.userInfo.id }&nickname=${ loginRes.userInfo.nickname }&gender=${ loginRes.userInfo.sex }` } );
+            const gender = loginRes.userInfo.gender ?? loginRes.userInfo.sex ?? '';
+            uni.navigateTo( { url: `/subpackages/register/reginfo?id=${ loginRes.userInfo.id }&nickname=${ loginRes.userInfo.nickname }&gender=${ gender }` } );
           }, 1500 );
         else
           setTimeout( () =>

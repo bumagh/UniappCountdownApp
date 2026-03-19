@@ -247,10 +247,11 @@ export default defineComponent( {
     }
   },
   methods: {
-      buildFirstLoginUrl ( u: { id: any; nickname: any; sex: any } ): string
+      buildFirstLoginUrl ( u: { id: any; nickname: any; sex?: any; gender?: any } ): string
       {
-        console.log("u.sex="+u.sex);
-        return `/subpackages/register/reginfo?id=${ u.id }&nickname=${ u.nickname }&gender=${ u.sex }`;
+        const gender = u.gender ?? u.sex ?? '';
+        console.log("u.gender="+gender);
+        return `/subpackages/register/reginfo?id=${ u.id }&nickname=${ u.nickname }&gender=${ gender }`;
       },
       
       async onWechatLoginSuccess (): Promise<void>

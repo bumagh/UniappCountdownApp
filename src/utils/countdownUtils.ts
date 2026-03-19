@@ -12,8 +12,7 @@ export function calculateDays ( targetDate: string ): number
 
 function buildDateTime ( dateStr: string, timeStr?: string ): Date
 {
-    const safeTime = timeStr || '06:00';
-    return new Date( `${ dateStr } ${ safeTime }` );
+    return timeStr ? new Date( `${ dateStr } ${ timeStr }` ) : new Date( dateStr );
 }
 
 function padTimeUnit ( value: number ): string

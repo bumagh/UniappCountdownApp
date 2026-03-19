@@ -84,7 +84,7 @@ export default defineComponent( {
       return { text: props.countdown.title };
     } );
 
-    const displayDateText = computed( () => formatDate( props.countdown.displayDate, props.countdown.time || '06:00' ) );
+    const displayDateText = computed( () => formatDate( props.countdown.displayDate, props.countdown.time ) );
 
     const statusText = computed( () => getCountdownStatusText( props.countdown.displayDate, props.countdown.time ) );
 
