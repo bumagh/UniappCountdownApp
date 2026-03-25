@@ -308,6 +308,7 @@ export default defineComponent( {
       if (!this.canConfirm) return;
 
       this.loading = true;
+      let loginSucceeded = false;
       uni.showLoading({
         title: '登录中...',
         mask: true
@@ -331,6 +332,7 @@ export default defineComponent( {
             nickname: loginRes.userInfo?.nickname,
             hasToken: !!loginRes.token
           });
+          loginSucceeded = true;
 
           this.syncUserStorage(loginRes.userInfo, loginRes.token);
 
@@ -382,11 +384,12 @@ export default defineComponent( {
           throw new Error('登录code已失效，请重新登录');
         }
       } catch (error: any) {
-        console.error('登录失败:', error);
+        console.error(loginSucceeded ? '资料保存失败:' : '登录失败:', error);
         console.error('[FloatWechatLogin] confirmUserInfo failed', this.buildErrorDebugInfo(error));
         
-        let errorMessage = '登录失败，请重试';
-        if (error?.code) {
+        let modalTitle = loginSucceeded ? '资料保存失败' : '登录失败';
+        let errorMessage = loginSucceeded ? (error?.message || '资料保存失败，请稍后重试') : '登录失败，请重试';
+        if (!loginSucceeded && error?.code) {
           switch (error.code) {
             case 40029:
               errorMessage = '授权码无效或已过期';
@@ -401,7 +404,7 @@ export default defineComponent( {
         }
         
         uni.showModal({
-          title: '登录失败',
+          title: modalTitle,
           content: errorMessage,
           showCancel: false,
           confirmText: '确定'
@@ -535,33 +538,24 @@ export default defineComponent( {
             uni.setStorageSync('userNickname', userInfo.nickName || '');
             uni.setStorageSync('userGender', userInfo.gender || 2);
             
-            // 3. 携带code和用户信息登录到服务器
-            // const result = await apiService.wechatMiniProgramLogin({
-            //   code: loginRes.code,
-            //   userInfo: userInfo,
-            //   encryptedData: encryptedData,
-            //   iv: iv
-            // });
-            
-            // 临时：模拟登录成功
-            const mockResult = {
-              token: 'mock_token_' + Date.now(),
-              userInfo: userInfo
-            };
-            
-            console.log('登录成功:', mockResult);
-            
-            // 4. 触发成功事件
-            this.$emit('success', mockResult);
-            
-            // 5. 显示成功提示
+            // 3. 携带code登录到服务器
+            const result = await apiService.loginByWeixin({ code: loginRes.code });
+            console.log('登录成功:', result);
+
+            // 4. 写入登录态
+            this.syncUserStorage(result.userInfo, result.token);
+
+            // 5. 触发成功事件
+            this.$emit('success', result);
+
+            // 6. 显示成功提示
             uni.showToast({
               title: '登录成功',
               icon: 'success',
               duration: 2000
             });
-            
-            // 6. 跳转到首页
+
+            // 7. 跳转到首页
             if (this.autoRedirect) {
               setTimeout(() => {
                 this.navigateToHome();
@@ -617,20 +611,6 @@ export default defineComponent( {
 
       await this.processWechatLogin( code );
       wxauth.clearAuthParamsFromUrl();
-      // #endif
-      
-      // #ifdef MP-WEIXIN
-      // 微信小程序环境，检查是否有保存的code
-      const savedCode = uni.getStorageSync('code');
-      console.log('[FloatWechatLogin] autoCheckCodeAndLogin mp callback', {
-        hasSavedCode: !!savedCode,
-        code: this.maskCode(savedCode || '')
-      });
-      if (savedCode) {
-        await this.processWechatLogin(savedCode);
-        // 清除已使用的code
-        uni.removeStorageSync('code');
-      }
       // #endif
     },
 
@@ -695,32 +675,8 @@ export default defineComponent( {
 
     // 微信小程序登录方法
     async startMiniProgramLogin(): Promise<void> {
-      if (this.loading) return;
-      
-      this.loading = true;
-      console.log('[FloatWechatLogin] startMiniProgramLogin start');
-      uni.showLoading({
-        title: '微信登录中...',
-        mask: true
-      });
-
-      try {
-        // 调用微信小程序登录
-        wxauth.authorize();
-      } catch (error: any) {
-        console.error('微信小程序登录失败:', error);
-        console.error('[FloatWechatLogin] startMiniProgramLogin failed', this.buildErrorDebugInfo(error));
-        uni.hideLoading();
-        this.loading = false;
-        
-        uni.showToast({
-          title: '微信登录失败，请重试',
-          icon: 'none',
-          duration: 3000
-        });
-        
-        this.$emit('error', error);
-      }
+      console.log('[FloatWechatLogin] startMiniProgramLogin -> handleWechatLogin');
+      await this.handleWechatLogin();
     },
 
     // 处理微信小程序登录成功事件

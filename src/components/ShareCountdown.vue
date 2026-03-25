@@ -303,7 +303,9 @@ export default defineComponent({
         async loadImage(src: string) {
             return await new Promise<HTMLImageElement>((resolve, reject) => {
                 const img = new Image();
-                img.crossOrigin = 'anonymous';
+                // 注意：设置 crossOrigin='anonymous' 要求服务器返回 CORS header
+                // 若 COS bucket 未配置跨域规则会导致加载失败
+                // 背景图仅用于装饰，不需要读取像素，不设置 crossOrigin
                 img.onload = () => resolve(img);
                 img.onerror = (e) => {
                     console.error('图片加载失败', e);
@@ -319,11 +321,23 @@ export default defineComponent({
             return null as any;
             // #endif
 
-            return new Promise<HTMLCanvasElement | null>((resolve, reject) => {
+            // uni-app H5 会把 <canvas> 包在 <uni-canvas> 自定义元素里
+            // getElementById 拿到的是外层包装元素，需要向内找真正的原生 <canvas>
+            const findNativeCanvas = (): HTMLCanvasElement | null => {
+                const byId = document.getElementById(this.canvasId);
+                if (byId) {
+                    if (byId.tagName.toLowerCase() === 'canvas') return byId as HTMLCanvasElement;
+                    const inner = byId.querySelector('canvas');
+                    if (inner) return inner as HTMLCanvasElement;
+                }
+                return document.querySelector('canvas') as HTMLCanvasElement | null;
+            };
+
+            return new Promise<HTMLCanvasElement | null>((resolve) => {
                 const tryGetCanvas = (remainingRetries: number) => {
-                    const c = document.querySelector('canvas');
+                    const c = findNativeCanvas();
                     if (c) {
-                        resolve(c as HTMLCanvasElement);
+                        resolve(c);
                     } else if (remainingRetries > 0) {
                         setTimeout(() => tryGetCanvas(remainingRetries - 1), intervalMs);
                     } else {
@@ -347,17 +361,28 @@ export default defineComponent({
             this.hintText = '';
             this.posterDataUrl = '';
 
-            await new Promise(r => setTimeout(r, 0));
+            // 等待 DOM 渲染完成（canvas 节点在 modelValue=true 后才挂载）
+            await this.$nextTick();
+            await new Promise(r => setTimeout(r, 50));
 
-            // 优先走 uni-app 推荐方式：canvas-id + uni.createCanvasContext
+            // H5 下 uni.createCanvasContext 不抛异常但返回的 context 的 draw() 回调永远不触发
+            // （draw 是小程序专有 API，H5 不支持），会导致 generatePoster 永久挂死
+            // 因此 H5 强制走原生 HTMLCanvasElement 分支
+            // #ifdef H5
+            let ctxUni: any = null;
+            // #endif
+
+            // #ifndef H5
+            // 非 H5 优先走 uni-app 推荐方式：canvas-id + uni.createCanvasContext
             let ctxUni: any = null;
             try {
                 ctxUni = uni.createCanvasContext(this.canvasId);
             } catch (e) {
                 ctxUni = null;
             }
+            // #endif
 
-            // 如果拿不到（极少数 H5 WebView），再尝试原生 canvas 兜底
+            // 如果拿不到（H5 或极少数 WebView），再尝试原生 canvas 兜底
             const nativeCanvas = ctxUni ? null : await this.getNativeCanvasWithRetry(60, 25);
             if (!ctxUni && !nativeCanvas) {
                 this.generating = false;
@@ -395,9 +420,8 @@ export default defineComponent({
 
                     // 底部随机背景图片
                     try {
-                        const bgTypes = ['pic1', 'pic2'];
-                        const randomBg = bgTypes[Math.floor(Math.random() * bgTypes.length)];
-                        const bgImageUrl = await getDataUrl(randomBg);
+                        const bgNames = ['pic1', 'pic2'];
+                        const bgImageUrl = await getDataUrl(bgNames[Math.floor(Math.random() * bgNames.length)]);
 
                         // 背景图片尺寸和等比缩放
                         const bgImgW = 1672;
@@ -505,8 +529,9 @@ export default defineComponent({
                         }
                     }
 
-                    await new Promise<void>(resolve => {
-                        ctx.draw(false, () => resolve());
+                    await new Promise<void>((resolve, reject) => {
+                        const timer = setTimeout(() => reject(new Error('ctx.draw timeout')), 5000);
+                        ctx.draw(false, () => { clearTimeout(timer); resolve(); });
                     });
 
                     const tempPath = await new Promise<string>((resolve, reject) => {
@@ -561,9 +586,8 @@ export default defineComponent({
                 }
             }
 
-            // ====== 原生 canvas 兜底（保持简化实现）======
+            // ====== 原生 canvas 兜底（H5 使用）======
             try {
-                // 重新获取原生 canvas（确保变量在该作用域存在）
                 const c2 = (nativeCanvas || await this.getNativeCanvasWithRetry(10, 16)) as HTMLCanvasElement | null;
                 if (!c2) throw new Error('missing native canvas');
 
@@ -572,51 +596,136 @@ export default defineComponent({
                 const ctx2d = c2.getContext('2d') as CanvasRenderingContext2D | null;
                 if (!ctx2d) throw new Error('ctx null');
 
+                // Chrome 90 不支持 ctx.roundRect，用 arcTo 兼容实现
+                const roundRect2d = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
+                    const radius = Math.min(r, w / 2, h / 2);
+                    ctx.beginPath();
+                    ctx.moveTo(x + radius, y);
+                    ctx.arcTo(x + w, y, x + w, y + h, radius);
+                    ctx.arcTo(x + w, y + h, x, y + h, radius);
+                    ctx.arcTo(x, y + h, x, y, radius);
+                    ctx.arcTo(x, y, x + w, y, radius);
+                    ctx.closePath();
+                };
+
+                // 与 uni canvas 分支保持一致的缩放体系
+                const designW = 1280;
+                const designH = 1720;
+                const scale = Math.min(W / designW, H / designH) * 1.08;
+
+                ctx2d.save();
+                ctx2d.scale(scale, scale);
+
+                const CW = designW;
+                const FONT_PLUS = 10;
+                const yShift = 230;
+
                 // 背景
                 ctx2d.fillStyle = '#f5f9ff';
-                ctx2d.fillRect(0, 0, W, H);
+                ctx2d.fillRect(0, 0, CW, designH);
 
                 // 底部随机背景图片
+                let canvasTainted = false;
                 try {
-                    const bgTypes = ['pic1', 'pic2'];
-                    const randomBg = bgTypes[Math.floor(Math.random() * bgTypes.length)];
-                    const bgImageUrl = await getDataUrl(randomBg);
-                    const img = await this.loadImage(bgImageUrl);
+                    const bgNames = ['pic1', 'pic2'];
+                    const bgImageUrl = await getDataUrl(bgNames[Math.floor(Math.random() * bgNames.length)]);
+                    const bgImg = await this.loadImage(bgImageUrl);
 
-                    // 背景图片尺寸和等比缩放
                     const bgImgW = 1672;
                     const bgImgH = 2508;
-                    const bgScale = W / bgImgW; // 按海报宽度缩放
-                    const bgDrawW = W;
-                    const bgDrawH = bgImgH * bgScale;
-                    const bgX = 0;
-                    const bgY = H - bgDrawH; // 放在底部
+                    const bgScale = CW / bgImgW;
+                    ctx2d.drawImage(bgImg, 0, designH - bgImgH * bgScale, CW, bgImgH * bgScale);
 
-                    // 绘制背景图片（等比截取缩放）
-                    ctx2d.drawImage(img, bgX, bgY, bgDrawW, bgDrawH);
+                    try { c2.toDataURL(); } catch (_) { canvasTainted = true; }
                 } catch (e) {
                     console.warn('背景图片加载失败，使用默认背景');
                 }
 
-                // 二维码 - 无背景填充
-                let qrPngUrl = await getDataUrl('qr');
-                // 原生兜底同样做一次可用性回退
-                try {
-                    await this.loadImage(qrPngUrl);
-                } catch (e) {
-                    qrPngUrl = '/static/qr.png';
+                if (canvasTainted) {
+                    ctx2d.clearRect(0, 0, CW, designH);
+                    ctx2d.fillStyle = '#f5f9ff';
+                    ctx2d.fillRect(0, 0, CW, designH);
                 }
 
-                const img = await this.loadImage(qrPngUrl);
+                const leftMargin = 20;
 
-                // 直接绘制二维码，无背景
-                const iw = 1710;
-                const ih = 624;
-                const dw = W - 40; // 二维码宽度
-                const dh = Math.max(1, Math.floor((ih / iw) * dw));
-                const dx = 20; // 左边距
-                const dy = H - dh - 20; // 底部位置
-                ctx2d.drawImage(img, dx, dy, dw, dh);
+                // 分类徽章背景
+                const badgeX = leftMargin;
+                const badgeY = 170 + yShift;
+                const badgeW = 520;
+                const badgeH = 84;
+                ctx2d.fillStyle = 'rgba(255,255,255,0.28)';
+                roundRect2d(ctx2d, badgeX, badgeY, badgeW, badgeH, 999);
+                ctx2d.fill();
+
+                // 分类图标 + 名称
+                ctx2d.fillStyle = '#fff';
+                ctx2d.strokeStyle = '#000';
+                ctx2d.lineWidth = 4;
+                ctx2d.textBaseline = 'middle';
+                ctx2d.font = `${48 + FONT_PLUS}px sans-serif`;
+                const icon = this.categoryIcon || '';
+                if (icon) {
+                    ctx2d.strokeText(icon, badgeX + 30, badgeY + badgeH / 2);
+                    ctx2d.fillText(icon, badgeX + 30, badgeY + badgeH / 2);
+                }
+                ctx2d.font = `${34 + FONT_PLUS}px sans-serif`;
+                const catText = this.categoryName || '奇妙日';
+                ctx2d.strokeText(catText, badgeX + 35 + (icon ? 64 : 0), badgeY + badgeH / 2);
+                ctx2d.fillText(catText, badgeX + 35 + (icon ? 64 : 0), badgeY + badgeH / 2);
+
+                // 信息卡片透明背景
+                ctx2d.fillStyle = 'rgba(255,255,255,0.30)';
+                roundRect2d(ctx2d, leftMargin - 20, 170 + yShift, designW - 80, 380, 20);
+                ctx2d.fill();
+
+                // 标题
+                ctx2d.fillStyle = '#fff';
+                ctx2d.strokeStyle = '#000';
+                ctx2d.lineWidth = 4;
+                ctx2d.textBaseline = 'top';
+                ctx2d.font = `bold ${72 + FONT_PLUS}px sans-serif`;
+                const titleY = 300 + yShift;
+                const titleText = this.title || '分享一个奇妙日';
+                ctx2d.strokeText(titleText, leftMargin, titleY);
+                const afterTitleY = this.wrapText(ctx2d, titleText, leftMargin, titleY, designW - 200, 88, 2);
+
+                // 天数
+                const days = this.daysText || '';
+                if (days) {
+                    ctx2d.font = `${48 + FONT_PLUS}px sans-serif`;
+                    ctx2d.fillStyle = 'rgba(255,255,255,0.92)';
+                    ctx2d.strokeText(days, leftMargin, afterTitleY + 10);
+                    ctx2d.fillText(days, leftMargin, afterTitleY + 10);
+                }
+
+                // 日期
+                const dateText = this.dateText || '';
+                if (dateText) {
+                    ctx2d.font = `${44 + FONT_PLUS}px sans-serif`;
+                    ctx2d.fillStyle = 'rgba(255,255,255,0.9)';
+                    ctx2d.strokeText(dateText, leftMargin, afterTitleY + 92);
+                    ctx2d.fillText(dateText, leftMargin, afterTitleY + 92);
+                }
+
+                // 二维码（258×258，与 qr.png 实际尺寸一致）
+                const qrValue = (this.qrText || this.shareUrl || '').trim();
+                if (qrValue) {
+                    try {
+                        const qrPngUrl = await getDataUrl('qr');
+                        const qrImg = await this.loadImage(qrPngUrl);
+                        const dw = 258;
+                        const dh = 258;
+                        const dx = 0;
+                        const actualHeight = H * (1 / scale);
+                        const dy = actualHeight - dh - 50;
+                        ctx2d.drawImage(qrImg, dx, dy, dw, dh);
+                    } catch (e) {
+                        console.warn('二维码图片加载失败，跳过二维码绘制');
+                    }
+                }
+
+                ctx2d.restore();
 
                 this.posterDataUrl = c2.toDataURL('image/png');
             } catch (e) {

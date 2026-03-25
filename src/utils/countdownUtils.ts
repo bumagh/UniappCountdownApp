@@ -74,8 +74,9 @@ export function getCountdownStatusText ( dateStr: string, timeStr?: string ): st
         return `已经 ${ hours } 小时 ${ minutes } 分钟`;
     }
 
-    const pastDays = calculateDays( dateStr );
-    return `已经 ${ Math.abs( pastDays ) } 天`;
+    // Derive past days from already-computed diffMs instead of calling calculateDays()
+    const pastDays = Math.abs( Math.ceil( diffMs / ( 1000 * 60 * 60 * 24 ) ) );
+    return `已经 ${ pastDays } 天`;
 }
 
 // 格式化日期

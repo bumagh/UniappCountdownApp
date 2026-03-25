@@ -1,10 +1,61 @@
+const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7天
+
+/**
+ * 获取远程图片的本地缓存路径（微信小程序用 downloadFile，H5 直接返回 URL）
+ */
+export async function getCachedRemoteImage(url: string): Promise<string> {
+    // #ifdef H5
+    return url;
+    // #endif
+
+    // #ifdef MP-WEIXIN
+    const storageKey = `img_cache_${url}`;
+    try {
+        const cached = uni.getStorageSync(storageKey);
+        if (cached && cached.path && cached.expireAt > Date.now()) {
+            return cached.path;
+        }
+    } catch (_) {}
+
+    return new Promise((resolve, reject) => {
+        uni.downloadFile({
+            url,
+            success(res) {
+                if (res.statusCode === 200) {
+                    try {
+                        uni.setStorageSync(storageKey, {
+                            path: res.tempFilePath,
+                            expireAt: Date.now() + CACHE_TTL_MS,
+                        });
+                    } catch (_) {}
+                    resolve(res.tempFilePath);
+                } else {
+                    reject(new Error(`downloadFile failed: ${res.statusCode}`));
+                }
+            },
+            fail: reject,
+        });
+    });
+    // #endif
+}
+
 /**
  * 获取UniApp H5打包后的静态资源URL
  * @param name 资源文件名（不含扩展名）
  * @param extension 文件扩展名，默认为'png'
  * @returns Promise<string> 完整的资源URL路径
  */
+const COS_REMOTE_ASSETS: Record<string, string> = {
+    pic1: 'https://cos.tutlab.tech/qmr/pic1.png',
+    pic2: 'https://cos.tutlab.tech/qmr/pic2.png',
+};
+
 export async function getDataUrl(name: string, extension: string = 'png'): Promise<string> {
+    // 远程 COS 资源直接返回，不走本地路径
+    if (COS_REMOTE_ASSETS[name]) {
+        return getCachedRemoteImage(COS_REMOTE_ASSETS[name]);
+    }
+
     // 参数校验
     if (!name || typeof name !== 'string') {
         console.warn('[getDataUrl] 无效的资源名称:', name);

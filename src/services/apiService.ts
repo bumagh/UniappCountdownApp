@@ -28,7 +28,7 @@ class ApiService {
           topic
         },
         header: token || uni.getStorageSync('token') ? {
-          'ba-user-token': token || uni.getStorageSync('token')
+          'ba-token': token || uni.getStorageSync('token')
         } : {},
         success: (uploadRes) => {
           try {

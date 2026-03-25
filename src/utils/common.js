@@ -90,4 +90,41 @@ export async function getDataUrl(name, extension = 'png') {
     // 最终回退方案: 使用绝对路径
     return Promise.resolve(`/static/${sanitizedName}.${extension}`);
 }
+const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7天
+/**
+ * 获取远程图片的本地缓存路径（微信小程序用 downloadFile，H5 直接返回 URL）
+ */
+export async function getCachedRemoteImage(url) {
+    // #ifdef H5
+    return url;
+    // #endif
+    // #ifdef MP-WEIXIN
+    const storageKey = `img_cache_${url}`;
+    try {
+        const cached = uni.getStorageSync(storageKey);
+        if (cached && cached.path && cached.expireAt > Date.now()) {
+            return cached.path;
+        }
+    } catch (_) {}
+    return new Promise((resolve, reject) => {
+        uni.downloadFile({
+            url,
+            success(res) {
+                if (res.statusCode === 200) {
+                    try {
+                        uni.setStorageSync(storageKey, {
+                            path: res.tempFilePath,
+                            expireAt: Date.now() + CACHE_TTL_MS,
+                        });
+                    } catch (_) {}
+                    resolve(res.tempFilePath);
+                } else {
+                    reject(new Error(`downloadFile failed: ${res.statusCode}`));
+                }
+            },
+            fail: reject,
+        });
+    });
+    // #endif
+}
 //# sourceMappingURL=common.js.map

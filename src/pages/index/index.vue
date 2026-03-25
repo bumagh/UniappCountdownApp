@@ -142,6 +142,7 @@ import { getDataUrl } from '@/utils/common';
 
 interface CountdownWithDisplayDate extends Countdown {
   displayDate: string;
+  timeDiff: number;
 }
 
 interface IndexPageData {
@@ -184,36 +185,46 @@ export default defineComponent({
   },
 
   computed: {
-    countdownsWithDisplayDate(): CountdownWithDisplayDate[] {
-      return this.allCountdowns.map(countdown => {
+    // 单次遍历完成 displayDate 计算、timeDiff 计算和分组，避免三次重复过滤
+    partitionedCountdowns(): { pinned: CountdownWithDisplayDate[]; future: CountdownWithDisplayDate[]; past: CountdownWithDisplayDate[] } {
+      const pinned: CountdownWithDisplayDate[] = [];
+      const future: CountdownWithDisplayDate[] = [];
+      const past: CountdownWithDisplayDate[] = [];
+
+      for (const countdown of this.allCountdowns) {
         let displayDate = countdown.date;
         if (countdown.repeat_cycle > 0 && countdown.repeat_frequency !== '不重复') {
           displayDate = this.getNextRepeatDate(countdown.date, countdown.repeat_cycle, countdown.repeat_frequency);
         }
+        const timeDiff = calculateTimeDiff(displayDate, countdown.time);
+        const item = { ...countdown, displayDate, timeDiff };
 
-        return {
-          ...countdown,
-          displayDate
-        };
-      });
+        if (countdown.is_pinned) {
+          pinned.push(item);
+        } else if (timeDiff > 0) {
+          future.push(item);
+        } else {
+          past.push(item);
+        }
+      }
+
+      pinned.sort((a, b) => new Date(b.updated_at as string).getTime() - new Date(a.updated_at as string).getTime());
+      future.sort((a, b) => a.timeDiff - b.timeDiff);
+      past.sort((a, b) => b.timeDiff - a.timeDiff);
+
+      return { pinned, future, past };
     },
 
     pinnedCountdowns(): CountdownWithDisplayDate[] {
-      return this.countdownsWithDisplayDate
-        .filter(cd => cd.is_pinned)
-        .sort((a, b) => new Date(b.updated_at as string).getTime() - new Date(a.updated_at as string).getTime());
+      return this.partitionedCountdowns.pinned;
     },
 
     futureCountdowns(): CountdownWithDisplayDate[] {
-      const future = this.countdownsWithDisplayDate
-        .filter(cd => !cd.is_pinned && calculateTimeDiff(cd.displayDate, cd.time) > 0);
-      return future.sort((a, b) => calculateTimeDiff(a.displayDate, a.time) - calculateTimeDiff(b.displayDate, b.time));
+      return this.partitionedCountdowns.future;
     },
 
     pastCountdowns(): CountdownWithDisplayDate[] {
-      const past = this.countdownsWithDisplayDate
-        .filter(cd => !cd.is_pinned && calculateTimeDiff(cd.displayDate, cd.time) <= 0);
-      return past.sort((a, b) => calculateTimeDiff(b.displayDate, b.time) - calculateTimeDiff(a.displayDate, a.time));
+      return this.partitionedCountdowns.past;
     }
   },
 
@@ -275,11 +286,10 @@ export default defineComponent({
           }
 
           const mergedUser = {
-            ...currentUser,
             ...localUserInfo,
-            birthday: localUserInfo?.birthday || currentUser.birthday,
-            nickname: localUserInfo?.nickname || currentUser.nickname,
-            avatar: localUserInfo?.avatar || currentUser.avatar
+            ...currentUser,
+            nickname: currentUser.nickname || localUserInfo?.nickname,
+            avatar: currentUser.avatar || localUserInfo?.avatar
           };
 
           this.user = mergedUser;

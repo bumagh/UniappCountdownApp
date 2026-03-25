@@ -47,7 +47,7 @@
           <view class="calendar-day" :class=" {
             'day-other-month': !day.isCurrentMonth,
             'day-today': day.isToday,
-            'day-selected': day.isSelected,
+            'day-selected': day.dateStr === selectedDate,
             'day-has-countdown': day.hasCountdown
           } ">
             <text class="day-number">{{ day.day }}</text>
@@ -243,6 +243,25 @@ export default defineComponent( {
     currentMonthDisplay (): string
     {
       return `${ this.currentYear }年${ this.currentMonth }月`;
+    },
+
+    // 按日期索引的倒数日 Map，O(1) 查找
+    countdownsByDate (): Map<string, Countdown[]>
+    {
+      const map = new Map<string, Countdown[]>();
+      for ( const cd of this.countdowns )
+      {
+        const list = map.get( cd.date ) ?? [];
+        list.push( cd );
+        map.set( cd.date, list );
+      }
+      return map;
+    },
+
+    // 按 ID 索引的分类 Map，O(1) 查找
+    categoryById (): Map<number, Category>
+    {
+      return new Map( this.categories.map( ( c: Category ) => [ c.id, c ] ) );
     }
   },
 
@@ -441,7 +460,7 @@ export default defineComponent( {
      */
     hasCountdownOnDate ( dateStr: string ): boolean
     {
-      return this.countdowns.some( ( cd: Countdown ) => cd.date === dateStr );
+      return this.countdownsByDate.has( dateStr );
     },
 
     /**
@@ -449,17 +468,15 @@ export default defineComponent( {
      */
     getCountdownColors ( dateStr: string ): string[]
     {
-      const countdownsOnDate = this.countdowns.filter( ( cd: Countdown ) => cd.date === dateStr );
+      const countdownsOnDate = this.countdownsByDate.get( dateStr ) ?? [];
       const colors: string[] = [];
 
-      countdownsOnDate.forEach( ( cd: Countdown ) =>
+      for ( const cd of countdownsOnDate )
       {
-        const category = this.categories.find( ( c: Category ) => c.id === cd.category_id );
-        if ( category && colors.length < 3 )
-        {
-          colors.push( category.color );
-        }
-      } );
+        if ( colors.length >= 3 ) break;
+        const category = this.categoryById.get( cd.category_id );
+        if ( category ) colors.push( category.color );
+      }
 
       return colors;
     },
@@ -471,7 +488,7 @@ export default defineComponent( {
     {
       if ( !day.isCurrentMonth )
       {
-        // 如果不是当前月份的日期，可以跳转到对应的月份
+        // 跳转到对应月份时需要重新生成日历
         const date = new Date( day.dateStr );
         this.currentYear = date.getFullYear();
         this.currentMonth = date.getMonth() + 1;
@@ -481,8 +498,8 @@ export default defineComponent( {
         return;
       }
 
+      // 同月内只需更新选中状态，无需重建整个日历
       this.selectedDate = day.dateStr;
-      this.generateCalendar();
       this.loadSelectedCountdowns();
 
       // 触发事件
@@ -601,8 +618,7 @@ export default defineComponent( {
      */
     getCategoryColor ( categoryId: number ): string
     {
-      const category = this.categories.find( ( c: Category ) => c.id === categoryId );
-      return category ? category.color : '#ff6b9d';
+      return this.categoryById.get( categoryId )?.color ?? '#ff6b9d';
     },
 
     /**
@@ -610,8 +626,7 @@ export default defineComponent( {
      */
     getCategoryIcon ( categoryId: number ): string
     {
-      const category = this.categories.find( ( c: Category ) => c.id === categoryId );
-      return category ? category.icon : '📋';
+      return this.categoryById.get( categoryId )?.icon ?? '📋';
     },
 
     /**
@@ -619,8 +634,7 @@ export default defineComponent( {
      */
     getCategoryName ( categoryId: number ): string
     {
-      const category = this.categories.find( ( c: Category ) => c.id === categoryId );
-      return category ? category.name : '未分类';
+      return this.categoryById.get( categoryId )?.name ?? '未分类';
     },
 
     /**
