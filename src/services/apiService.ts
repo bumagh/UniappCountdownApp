@@ -28,7 +28,7 @@ class ApiService {
           topic
         },
         header: token || uni.getStorageSync('token') ? {
-          'ba-token': token || uni.getStorageSync('token')
+          'ba-user-token': token || uni.getStorageSync('token')
         } : {},
         success: (uploadRes) => {
           try {
@@ -93,8 +93,12 @@ class ApiService {
     const res = await request.post<User>(API.user.register, data);
     return res;
   }
-  async updateUser(data: Partial<User>): Promise<CommonResponse> {
-    const res = await request.post<User>(API.user.update, data);
+  async updateUser(data: Partial<User>, token?: string): Promise<CommonResponse> {
+    const res = await request.request<User>(API.user.update, 'POST', data, {
+      header: token ? {
+        'ba-user-token': token
+      } : undefined
+    });
     return res;
   }
   async initInfo(data: Partial<User>): Promise<User> {

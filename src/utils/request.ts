@@ -32,7 +32,7 @@ class Request
         const token = uni.getStorageSync( 'token' );
         if ( !token ) return {};
         return {
-            'ba-token': `${ token }`
+            'ba-user-token': `${ token }`
         };
     }
 

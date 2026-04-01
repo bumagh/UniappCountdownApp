@@ -8,6 +8,7 @@ import { defineComponent } from 'vue';
 import apiService from './services/apiService';
 import { Version } from 'types'
 import { getUrl } from './utils/axios';
+import { trackEvent } from './utils/analytics';
 export default defineComponent({
   name: 'App',
   data() {
@@ -18,6 +19,9 @@ export default defineComponent({
   onLaunch() {
     console.log(getUrl());
     console.log('App Launch');
+    trackEvent('app_launch', {
+      baseUrl: getUrl()
+    });
     this.initApp();
     if (!uni.getStorageSync('userid')) {
       // uni.navigateTo( {
@@ -28,9 +32,11 @@ export default defineComponent({
   },
   onShow() {
     console.log('App Show');
+    trackEvent('app_show');
   },
   onHide() {
     console.log('App Hide');
+    trackEvent('app_hide');
   },
   methods: {
     async initApp() {
@@ -61,6 +67,7 @@ export default defineComponent({
 
       try {
         const latest: Version = await apiService.getLatestVersion();
+
         // 兼容 getLatestVersion 返回 string 或 { version: string }
         const latestVersion = latest.version;
 
@@ -70,6 +77,10 @@ export default defineComponent({
         }
 
         const localVersion = uni.getStorageSync(VERSION_KEY);
+        trackEvent('version_check_completed', {
+          localVersion: localVersion || '',
+          latestVersion
+        });
 
         // 首次启动：写入版本，不做清理
         if (!localVersion) {
@@ -80,8 +91,12 @@ export default defineComponent({
         console.log("服务器版本:" + latestVersion);
         // 非最新版：清理本地数据 + 提示重新登录 + 写入最新版本
         if (localVersion !== latestVersion) {
+          trackEvent('version_update_required', {
+            localVersion,
+            latestVersion
+          });
           try {
-           await this.clearAllForUpdate();
+            await this.clearAllForUpdate();
           } catch (err) {
             // 某些端上clearStorageSync可能失败，兜底用异步清理
           }
@@ -120,13 +135,13 @@ export default defineComponent({
         }
       } catch (err) {
         console.error('版本检测失败：', err);
+        trackEvent('version_check_failed', {
+          message: (err as any)?.message || ''
+        });
         // 版本检测失败不阻塞启动
       }
     },
 
-    /**
-     * 清理所有存储和缓存用于应用更新
-     */
     async clearAllForUpdate(): Promise<void> {
       try {
         // 1. 清理 uni 存储

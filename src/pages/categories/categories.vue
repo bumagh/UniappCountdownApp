@@ -625,12 +625,17 @@ export default defineComponent( {
 .drawer-content {
   flex: 1;
   padding: 20rpx;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
 }
 
 .category-list {
   display: flex;
   flex-direction: column;
   gap: 20rpx;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .category-drawer-item {
@@ -640,6 +645,11 @@ export default defineComponent( {
   background-color: #f5f9ff;
   border-radius: 12rpx;
   transition: all 0.3s;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .category-drawer-icon {
@@ -651,12 +661,17 @@ export default defineComponent( {
   justify-content: center;
   font-size: 32rpx;
   margin-right: 20rpx;
+  flex-shrink: 0;
 }
 
 .category-drawer-name {
   flex: 1;
   font-size: 28rpx;
   color: #333333;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .category-drawer-count {
@@ -665,6 +680,7 @@ export default defineComponent( {
   background-color: #e8f4ff;
   padding: 4rpx 16rpx;
   border-radius: 999rpx;
+  flex-shrink: 0;
 }
 
 .detail-mask {

@@ -78,8 +78,12 @@ class ApiService {
         const res = await request.post(API.user.register, data);
         return res;
     }
-    async updateUser(data) {
-        const res = await request.post(API.user.update, data);
+    async updateUser(data, token) {
+        const res = await request.request(API.user.update, 'POST', data, {
+            header: token ? {
+                'ba-user-token': token
+            } : undefined
+        });
         return res;
     }
     async initInfo(data) {

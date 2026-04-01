@@ -112,6 +112,7 @@ import apiService from '@/services/apiService';
 import { formatDate, getRepeatText } from '@/utils/countdownUtils';
 import { Category, CountdownForm } from 'types';
 import RepeatSelector, { type RepeatData } from '@/components/RepeatSelector.vue';
+import { trackEvent } from '@/utils/analytics';
 
 declare const wx: any;
 
@@ -304,6 +305,10 @@ export default defineComponent({
     },
     selectCategory(category_id: number): void {
       this.formData.category_id = category_id;
+      trackEvent('countdown_category_selected', {
+        categoryId: category_id,
+        scene: this.isEdit ? 'edit_page' : 'create_page'
+      });
     },
     onPinnedChange(e: any): void {
       this.formData.is_pinned = e.detail.value;
@@ -509,11 +514,20 @@ export default defineComponent({
           if (res.confirm) {
             try {
               await apiService.archiveCountdown(this.countdownId!);
+              trackEvent('countdown_archive_success', {
+                countdownId: this.countdownId,
+                title: this.formData.title,
+                categoryId: this.formData.category_id
+              });
               uni.showToast({ title: '归档成功', icon: 'success' });
               setTimeout(() => {
                 this.goBack();
               }, 1000);
             } catch (error) {
+              trackEvent('countdown_archive_failed', {
+                countdownId: this.countdownId,
+                title: this.formData.title
+              });
               uni.showToast({ title: '归档失败', icon: 'none' });
             }
           }
@@ -529,9 +543,18 @@ export default defineComponent({
           if (res.confirm) {
             try {
               await apiService.deleteCountdown(this.countdownId!);
+              trackEvent('countdown_delete_success', {
+                countdownId: this.countdownId,
+                title: this.formData.title,
+                categoryId: this.formData.category_id
+              });
               uni.showToast({ title: '删除成功', icon: 'success' });
               this.goBack(2);
             } catch (error) {
+              trackEvent('countdown_delete_failed', {
+                countdownId: this.countdownId,
+                title: this.formData.title
+              });
               uni.showToast({ title: '删除失败', icon: 'none' });
             }
           }
@@ -567,6 +590,14 @@ export default defineComponent({
             repeat_cycle: this.formData.repeat_cycle,
             repeat_frequency: this.formData.repeat_frequency
           });
+          trackEvent('countdown_update_success', {
+            countdownId: this.countdownId,
+            title: this.formData.title,
+            categoryId: this.formData.category_id,
+            isPinned: this.formData.is_pinned,
+            repeatCycle: this.formData.repeat_cycle,
+            repeatFrequency: this.formData.repeat_frequency
+          });
           uni.showToast({ title: '修改成功', icon: 'success' });
         } else {
           await apiService.createCountdown({
@@ -580,6 +611,13 @@ export default defineComponent({
             repeat_cycle: this.formData.repeat_cycle,
             repeat_frequency: this.formData.repeat_frequency
           });
+          trackEvent('countdown_create_success', {
+            title: this.formData.title,
+            categoryId: this.formData.category_id,
+            isPinned: this.formData.is_pinned,
+            repeatCycle: this.formData.repeat_cycle,
+            repeatFrequency: this.formData.repeat_frequency
+          });
           uni.showToast({ title: '添加成功', icon: 'success' });
         }
 
@@ -588,6 +626,11 @@ export default defineComponent({
         }, 1000);
       } catch (error) {
         console.error('操作失败:', error);
+        trackEvent(this.isEdit ? 'countdown_update_failed' : 'countdown_create_failed', {
+          countdownId: this.countdownId,
+          title: this.formData.title,
+          categoryId: this.formData.category_id
+        });
         uni.showToast({ title: '操作失败', icon: 'none' });
       }
     }

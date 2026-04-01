@@ -73,12 +73,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
+import { defineComponent } from 'vue';
 import apiService from '@/services/apiService';
 import wxauth from '@/utils/wxauth';
-
-// 声明wx全局变量
-declare const wx: any;
+import { trackEvent } from '@/utils/analytics';
+import type { PropType } from 'vue';
 
 type ZIndex = number | string;
 
@@ -92,6 +91,8 @@ interface UniLoginSuccess {
   code: string;
   errMsg: string;
 }
+
+declare const wx: any;
 
 export default defineComponent( {
   name: 'FloatWechatLogin',
@@ -269,7 +270,7 @@ export default defineComponent( {
         updatePayload.avatar = avatar;
       }
 
-      const updateRes = await apiService.updateUser(updatePayload);
+      const updateRes = await apiService.updateUser(updatePayload, loginRes.token);
       console.log('[FloatWechatLogin] completeUserProfile update result', {
         code: updateRes.code,
         msg: updateRes.msg,
@@ -309,6 +310,11 @@ export default defineComponent( {
 
       this.loading = true;
       let loginSucceeded = false;
+      trackEvent('wechat_login_confirm_start', {
+        hasNickname: !!this.tempNickname,
+        hasAvatar: !!this.tempAvatarUrl,
+        scene: 'confirm_user_info'
+      });
       uni.showLoading({
         title: '登录中...',
         mask: true
@@ -333,11 +339,21 @@ export default defineComponent( {
             hasToken: !!loginRes.token
           });
           loginSucceeded = true;
+          trackEvent('wechat_login_success', {
+            userId: loginRes.userInfo?.id,
+            isFirst: loginRes.userInfo?.isfirst,
+            scene: 'confirm_user_info'
+          });
 
           this.syncUserStorage(loginRes.userInfo, loginRes.token);
 
           const completedUserInfo = await this.completeUserProfile(loginRes);
           loginRes.userInfo = completedUserInfo;
+          trackEvent('profile_completion_success', {
+            userId: loginRes.userInfo?.id,
+            hasAvatar: !!loginRes.userInfo?.avatar,
+            hasNickname: !!loginRes.userInfo?.nickname
+          });
 
           // 存储登录态
           this.syncUserStorage(loginRes.userInfo, loginRes.token);
@@ -386,6 +402,12 @@ export default defineComponent( {
       } catch (error: any) {
         console.error(loginSucceeded ? '资料保存失败:' : '登录失败:', error);
         console.error('[FloatWechatLogin] confirmUserInfo failed', this.buildErrorDebugInfo(error));
+        trackEvent(loginSucceeded ? 'profile_completion_failed' : 'wechat_login_failed', {
+          scene: 'confirm_user_info',
+          code: error?.code,
+          message: error?.message || '',
+          status: error?.response?.status
+        });
         
         let modalTitle = loginSucceeded ? '资料保存失败' : '登录失败';
         let errorMessage = loginSucceeded ? (error?.message || '资料保存失败，请稍后重试') : '登录失败，请重试';
@@ -424,6 +446,9 @@ export default defineComponent( {
       if (this.disabled || this.loading) return;
       
       this.loading = true;
+      trackEvent('wechat_login_start', {
+        scene: 'mini_program_button'
+      });
       console.log('[FloatWechatLogin] handleWechatLogin start');
       
       try {
@@ -443,6 +468,9 @@ export default defineComponent( {
           console.log('[FloatWechatLogin] handleWechatLogin code received', {
             loginCode: this.maskCode(loginRes.code)
           });
+          trackEvent('wechat_login_code_received', {
+            scene: 'mini_program_button'
+          });
           
           // 2. 保存code，显示头像昵称设置弹窗
           this.loginCode = loginRes.code;
@@ -455,6 +483,11 @@ export default defineComponent( {
       } catch (error: any) {
         console.error('微信登录失败:', error);
         console.error('[FloatWechatLogin] handleWechatLogin failed', this.buildErrorDebugInfo(error));
+        trackEvent('wechat_login_failed', {
+          scene: 'mini_program_button',
+          code: error?.code,
+          message: error?.message || error?.errMsg || ''
+        });
         
         // 检查是否是授权拒绝
         if (error.errMsg && error.errMsg.includes('auth deny')) {
@@ -693,6 +726,9 @@ export default defineComponent( {
       console.log('[FloatWechatLogin] processWechatLogin start', {
         code: this.maskCode(code)
       });
+      trackEvent('wechat_login_start', {
+        scene: 'oauth_callback'
+      });
 
       this.loading = true;
       uni.showLoading( {
@@ -710,6 +746,11 @@ export default defineComponent( {
           isFirst: loginRes.userInfo?.isfirst,
           nickname: loginRes.userInfo?.nickname,
           hasToken: !!loginRes.token
+        });
+        trackEvent('wechat_login_success', {
+          userId: loginRes.userInfo?.id,
+          isFirst: loginRes.userInfo?.isfirst,
+          scene: 'oauth_callback'
         });
 
         // 存储登录态
@@ -758,6 +799,12 @@ export default defineComponent( {
       } catch ( error: any ) {
         console.error( '微信登录失败:', error );
         console.error('[FloatWechatLogin] processWechatLogin failed', this.buildErrorDebugInfo(error));
+        trackEvent('wechat_login_failed', {
+          scene: 'oauth_callback',
+          code: error?.code,
+          message: error?.message || '',
+          status: error?.response?.status
+        });
 
         let errorMessage = '微信登录失败，请重试';
         if ( error?.code ) {

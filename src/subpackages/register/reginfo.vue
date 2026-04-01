@@ -117,6 +117,7 @@ import { defineComponent } from 'vue';
 import apiService from '@/services/apiService';
 import { validateUsername } from '@/utils/validate';
 import { showToast } from '@/utils/uniUtils';
+import { trackEvent } from '@/utils/analytics';
 
 interface RegInfoForm
 {
@@ -182,6 +183,10 @@ export default defineComponent( {
   onLoad ( options: any )
   {
     // 页面加载时可以初始化一些数据
+    trackEvent( 'profile_completion_page_view', {
+      userId: options.id,
+      hasNickname: !!options.nickname
+    } );
     if ( options.nickname )
     {
       const rawGender = options.gender ?? options.sex ?? '';
@@ -296,6 +301,10 @@ export default defineComponent( {
       // 防止重复提交
       if ( this.loading ) return;
       this.loading = true;
+      trackEvent( 'profile_completion_start', {
+        userId: this.userid,
+        gender: this.form.gender
+      } );
 
       // 2. 显示加载状态
       uni.showLoading( {
@@ -347,6 +356,12 @@ export default defineComponent( {
           uni.setStorageSync( 'user_avatar', mergedUserInfo.avatar );
         }
         uni.setStorageSync( 'userGender', mergedUserInfo.gender );
+
+        trackEvent( 'profile_completion_success', {
+          userId: mergedUserInfo.id,
+          gender: mergedUserInfo.gender,
+          hasAvatar: !!mergedUserInfo.avatar
+        } );
 
         // 4. 注册成功处理
         uni.hideLoading();
@@ -403,6 +418,12 @@ export default defineComponent( {
           // 请求配置出错
           errorMessage = error.message || '请求发送失败';
         }
+
+        trackEvent( 'profile_completion_failed', {
+          userId: this.userid,
+          message: errorMessage,
+          status: error?.response?.status
+        } );
 
         // 8. 显示错误提示
         showToast( errorMessage, 'none' );

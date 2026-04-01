@@ -138,6 +138,7 @@ import { formatDate } from '@/utils/countdownUtils';
 import db from '../../utils/db.js';
 import { Category, Countdown } from 'types';
 import ShareCountdown from '@/components/ShareCountdown.vue';
+import { trackEvent } from '@/utils/analytics';
 
 interface DetailPageData
 {
@@ -220,6 +221,11 @@ export default defineComponent( {
     const title = this.countdown?.title ? `分享：${ this.countdown.title }` : '分享一个奇妙日';
     // 让对方通过链接进入：携带 countdownId（如需做权限/可见性控制，请在服务端校验 shareToken）
     const path = `/subpackages/detail/sharedetail?id=${ this.countdownId }`;
+    trackEvent( 'share_countdown_success', {
+      countdownId: this.countdownId,
+      channel: 'app_message',
+      title: this.countdown?.title
+    } );
     return {
       title,
       path
@@ -229,6 +235,11 @@ export default defineComponent( {
   {
     const title = this.countdown?.title ? `分享：${ this.countdown.title }` : '分享一个奇妙日';
     const query = `id=${ this.countdownId }`;
+    trackEvent( 'share_countdown_success', {
+      countdownId: this.countdownId,
+      channel: 'timeline',
+      title: this.countdown?.title
+    } );
     return {
       title,
       query
@@ -280,6 +291,11 @@ export default defineComponent( {
       // this.countdown = db.getCountdown( 1 ) ?? null;
       if ( !this.countdown )
       {
+        trackEvent( 'share_countdown_failed', {
+          countdownId: this.countdownId,
+          channel: 'share_panel',
+          reason: 'countdown_missing'
+        } );
         uni.showToast( { title: '暂无可分享内容', icon: 'none' } );
         return;
       }
@@ -288,6 +304,11 @@ export default defineComponent( {
       this.shareUrl = this.buildShareUrl();
       this.shareImageUrl = null;
       this.shareVisible = true;
+      trackEvent( 'share_countdown_click', {
+        countdownId: this.countdownId,
+        channel: 'share_panel',
+        title: this.countdown.title
+      } );
     },
 
     formatFullDate ( dateStr: string, timeStr?: string )

@@ -307,6 +307,7 @@ import { defineComponent } from 'vue';
 import { Category, Countdown } from 'types';
 import { getDataUrl } from '@/utils/common';
 import { themeManager } from '@/utils/theme';
+import { trackEvent } from '@/utils/analytics';
 
 interface ProfilePageData {
   user: {
@@ -558,10 +559,16 @@ export default defineComponent({
     },
     handleCategoryClick(category: Category) {
       this.drawerVisible = false;
+      trackEvent('category_click', {
+        categoryId: category.id,
+        categoryName: category.name,
+        scene: 'profile_drawer'
+      });
       uni.navigateTo({
         url: `/pages/categories/categories?categoryId=${category.id}`
       });
     },
+
     handleAvatarClick() {
       uni.showModal({
         title: '提示',
@@ -721,6 +728,10 @@ export default defineComponent({
       this.careModeEnabled = e.detail.value;
       // 保存到本地存储
       uni.setStorageSync('careMode', this.careModeEnabled);
+      trackEvent('care_mode_toggle', {
+        enabled: this.careModeEnabled,
+        scene: 'profile_page'
+      });
       uni.showToast({
         title: this.careModeEnabled ? '已开启关怀模式' : '已关闭关怀模式',
         icon: 'success'
@@ -728,6 +739,9 @@ export default defineComponent({
     },
     handleArchiveManagement() {
       this.archiveVisible = true;
+      trackEvent('archive_manage_open', {
+        scene: 'profile_page'
+      });
       this.loadArchivedCountdowns();
     },
     closeArchive() {
@@ -741,16 +755,28 @@ export default defineComponent({
           if (res.confirm) {
             const updated = await apiService.unarchiveCountdown(countdown.id ?? 0);
             if (updated) {
+              trackEvent('countdown_unarchive_success', {
+                countdownId: countdown.id,
+                title: countdown.title,
+                scene: 'profile_archive'
+              });
               uni.showToast({
                 title: '恢复成功',
                 icon: 'success'
               });
               this.loadArchivedCountdowns();
               this.calculateStats();
+            } else {
+              trackEvent('countdown_unarchive_failed', {
+                countdownId: countdown.id,
+                title: countdown.title,
+                scene: 'profile_archive'
+              });
             }
           }
         }
       });
+
     },
     handleDeleteArchived(countdown: Countdown) {
       uni.showModal({
@@ -761,12 +787,22 @@ export default defineComponent({
           if (res.confirm) {
             const success = await apiService.deleteCountdown(countdown.id ?? 0);
             if (success?.code === 200) {
+              trackEvent('countdown_delete_success', {
+                countdownId: countdown.id,
+                title: countdown.title,
+                scene: 'profile_archive'
+              });
               uni.showToast({
                 title: '删除成功',
                 icon: 'success'
               });
               this.loadArchivedCountdowns();
             } else {
+              trackEvent('countdown_delete_failed', {
+                countdownId: countdown.id,
+                title: countdown.title,
+                scene: 'profile_archive'
+              });
               uni.showToast({
                 title: '删除失败',
                 icon: 'none'
@@ -1396,9 +1432,35 @@ export default defineComponent({
   display: flex;
   align-items: center;
   padding: 20rpx;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.category-drawer-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
   background-color: #f5f9ff;
   border-radius: 12rpx;
   transition: all 0.3s;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.category-drawer-item:hover {
+  background-color: #e8f4ff;
 }
 
 .category-drawer-icon {
@@ -1408,206 +1470,29 @@ export default defineComponent({
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32rpx;
+  font-size: 28rpx;
+  color: #ffffff;
   margin-right: 20rpx;
+  flex-shrink: 0;
 }
 
 .category-drawer-name {
   flex: 1;
   font-size: 28rpx;
   color: #333333;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .category-drawer-count {
   font-size: 24rpx;
   color: #666666;
   background-color: #e8f4ff;
-  padding: 4rpx 16rpx;
-  border-radius: 999rpx;
-}
-
-.nickname-input {
-  width: 100%;
-  height: 80rpx;
-  background-color: #f5f9ff;
-  border: 2rpx solid #e8f4ff;
+  padding: 4rpx 12rpx;
   border-radius: 12rpx;
-  padding: 0 20rpx;
-  font-size: 28rpx;
-  color: #333333;
-  box-sizing: border-box;
-}
-
-.archive-mask {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  display: flex;
-  align-items: flex-end;
-}
-
-.archive-content {
-  width: 100%;
-  height: 85vh;
-  background-color: #f5f9ff;
-  border-radius: 40rpx 40rpx 0 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.archive-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 40rpx 30rpx 20rpx;
-  border-bottom: 2rpx solid #e8f4ff;
-}
-
-.archive-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333333;
-}
-
-.archive-close {
-  width: 60rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40rpx;
-  color: #666666;
-}
-
-.archive-body {
-  flex: 1;
-  padding: 20rpx 30rpx;
-}
-
-.archived-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-}
-
-.archived-item {
-  background-color: #ffffff;
-  border-radius: 20rpx;
-  overflow: hidden;
-}
-
-.archived-item-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 30rpx;
-}
-
-.archived-item-left {
-  display: flex;
-  align-items: center;
-  flex: 1;
-}
-
-.archived-icon {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40rpx;
-  margin-right: 20rpx;
-}
-
-.archived-info {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.archived-title {
-  font-size: 28rpx;
-  font-weight: bold;
-  color: #333333;
-  margin-bottom: 8rpx;
-}
-
-.archived-date {
-  font-size: 24rpx;
-  color: #666666;
-  margin-bottom: 4rpx;
-}
-
-.archived-category {
-  font-size: 22rpx;
-  color: #999999;
-}
-
-.archived-item-right {
-  display: flex;
-  flex-direction: column;
-  gap: 10rpx;
-}
-
-.archived-btn {
-  padding: 10rpx 24rpx;
-  background-color: #1890ff;
-  color: #ffffff;
-  border-radius: 8rpx;
-  font-size: 24rpx;
-  text-align: center;
-}
-
-.delete-btn {
-  background-color: #e54d42;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 100rpx 0;
-  color: #aaaaaa;
-}
-
-.empty-icon {
-  font-size: 120rpx;
-  margin-bottom: 20rpx;
-}
-
-.empty-text {
-  font-size: 28rpx;
-}
-
-.shadow-lg {
-  box-shadow: 0 8rpx 32rpx rgba(24, 144, 255, 0.12);
-}
-
-.shadow {
-  box-shadow: 0 4rpx 16rpx rgba(24, 144, 255, 0.08);
-}
-
-.birthday-right {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.birthday-content {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.picker-birthday {
-  display: flex;
-  align-items: center;
+  flex-shrink: 0;
 }
 
 /* 关怀模式样式 */
@@ -1880,6 +1765,125 @@ export default defineComponent({
 
 .care-mode .delete-btn {
   background: linear-gradient(135deg, #e54d42 0%, #ff6b6b 100%);
+}
+
+/* 侧边抽屉样式 */
+.drawer {
+  position: fixed;
+  top: 0;
+  left: -600rpx;
+  width: 600rpx;
+  height: 100vh;
+  background-color: #ffffff;
+  transition: left 0.3s ease;
+  z-index: 9999;
+  box-shadow: 4rpx 0 16rpx rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-open {
+  left: 0;
+}
+
+.drawer-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx;
+  border-bottom: 2rpx solid #e8f4ff;
+}
+
+.drawer-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.drawer-close {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: #666666;
+}
+
+.drawer-content {
+  flex: 1;
+  padding: 20rpx;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.category-drawer-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background-color: #f5f9ff;
+  border-radius: 12rpx;
+  transition: all 0.3s;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.category-drawer-item:hover {
+  background-color: #e8f4ff;
+}
+
+.category-drawer-icon {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #ffffff;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.category-drawer-name {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333333;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-drawer-count {
+  font-size: 24rpx;
+  color: #666666;
+  background-color: #e8f4ff;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  flex-shrink: 0;
 }
 
 /* 侧边抽屉关怀模式样式 */

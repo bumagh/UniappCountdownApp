@@ -21,19 +21,23 @@ export default defineConfig( ( { mode } ) => {
     name: 'copy-static-files',
     generateBundle() {
       const staticDir = join(process.cwd(), 'dist/build/static');
+      const mpWeixinStaticDir = join(process.cwd(), 'dist/build/mp-weixin/static');
       if (!existsSync(staticDir)) {
         mkdirSync(staticDir, { recursive: true });
+      }
+      if (!existsSync(mpWeixinStaticDir)) {
+        mkdirSync(mpWeixinStaticDir, { recursive: true });
       }
       
       // 复制 src/static 中的文件到 dist/build/static
       const srcStaticDir = join(process.cwd(), 'src/static');
-      const files = ['home.png', 'home-active.png', 'book.png', 'book-active.png', 'calendar.png', 'calendar-active.png', 'profile.png', 'profile-active.png'];
+      const files = ['home.png', 'home-active.png', 'book.png', 'book-active.png', 'calendar.png', 'calendar-active.png', 'profile.png', 'profile-active.png', 'pic1.png', 'pic2.png', 'qr_search.png', 'qr.png'];
       
       files.forEach(file => {
         const srcFile = join(srcStaticDir, file);
-        const destFile = join(staticDir, file);
         if (existsSync(srcFile)) {
-          copyFileSync(srcFile, destFile);
+          copyFileSync(srcFile, join(staticDir, file));
+          copyFileSync(srcFile, join(mpWeixinStaticDir, file));
         }
       });
     },
@@ -41,20 +45,14 @@ export default defineConfig( ( { mode } ) => {
       // 清理 h5/static 目录 - 在所有文件写入后执行
       const h5StaticDir = join(process.cwd(), 'dist/build/h5/static');
       cleanupDirectories( [
-        h5StaticDir,
-        join( process.cwd(), 'dist/build/mp-weixin/static/pic1.png' ),
-        join( process.cwd(), 'dist/build/mp-weixin/static/pic2.png' ),
-        join( process.cwd(), 'dist/build/mp-weixin/static/qr_search.png' )
+        h5StaticDir
       ], '构建产物目录' );
     },
     closeBundle() {
       // 最终清理 - 确保在构建完全结束后执行
       const h5StaticDir = join(process.cwd(), 'dist/build/h5/');
       cleanupDirectories( [
-        h5StaticDir,
-        join( process.cwd(), 'dist/build/mp-weixin/static/pic1.png' ),
-        join( process.cwd(), 'dist/build/mp-weixin/static/pic2.png' ),
-        join( process.cwd(), 'dist/build/mp-weixin/static/qr_search.png' )
+        h5StaticDir
       ], '最终产物目录' );
     }
   };

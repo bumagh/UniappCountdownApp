@@ -997,15 +997,74 @@ export default defineComponent( {
   margin-bottom: 40rpx;
 }
 
+.drawer {
+  position: fixed;
+  top: 0;
+  left: -600rpx;
+  width: 600rpx;
+  height: 100vh;
+  background-color: #ffffff;
+  transition: left 0.3s ease;
+  z-index: 9999;
+  box-shadow: 4rpx 0 16rpx rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.drawer-open {
+  left: 0;
+}
+
+.drawer-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx;
+  border-bottom: 2rpx solid #f0ebe6;
+}
+
+.drawer-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #5c4033;
+}
+
+.drawer-close {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: #8f7a66;
+}
+
 .drawer-content {
   flex: 1;
   padding: 20rpx;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
 }
 
 .category-list {
   display: flex;
   flex-direction: column;
   gap: 20rpx;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .category-drawer-item {
@@ -1015,6 +1074,11 @@ export default defineComponent( {
   background-color: #fffef9;
   border-radius: 12rpx;
   transition: all 0.3s;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .category-drawer-icon {
@@ -1026,12 +1090,17 @@ export default defineComponent( {
   justify-content: center;
   font-size: 32rpx;
   margin-right: 20rpx;
+  flex-shrink: 0;
 }
 
 .category-drawer-name {
   flex: 1;
   font-size: 28rpx;
   color: #5c4033;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .category-drawer-count {
@@ -1040,6 +1109,7 @@ export default defineComponent( {
   background-color: #f0ebe6;
   padding: 4rpx 16rpx;
   border-radius: 999rpx;
+  flex-shrink: 0;
 }
 
 .picker-content {
