@@ -273,7 +273,16 @@ export default defineComponent({
 
       try {
         const userid = uni.getStorageSync('userid');
-        const currentUser = await apiService.getCurrentUser(userid || '1');
+
+        const [currentUser, countdownsRes, categoriesRes] = await Promise.all([
+          apiService.getCurrentUser(userid || '1').catch(() => null),
+          apiService.getCountdowns({ userid }),
+          apiService.getCategories(userid || '1')
+        ]);
+
+        this.allCountdowns = countdownsRes;
+        this.categories = categoriesRes;
+
         if (currentUser != null) {
           const cachedUserInfo = uni.getStorageSync('userInfo');
           let localUserInfo: Record<string, any> = {};
@@ -312,13 +321,6 @@ export default defineComponent({
             });
           }
         }
-
-        const [countdownsRes, categoriesRes] = await Promise.all([
-          apiService.getCountdowns({ userid }),
-          apiService.getCategories(userid || '1')
-        ]);
-        this.allCountdowns = countdownsRes;
-        this.categories = categoriesRes;
       } catch (error) {
         console.error('加载数据失败:', error);
         uni.showToast({
