@@ -168,6 +168,7 @@ export default defineComponent({
             }
 
             lines.forEach((l, idx) => {
+                if (ctx.lineWidth > 0) ctx.strokeText(l, x, y + idx * lineHeight);
                 ctx.fillText(l, x, y + idx * lineHeight);
             });
 
@@ -679,18 +680,24 @@ export default defineComponent({
                 roundRect2d(ctx2d, leftMargin - 20, 170 + yShift, designW - 80, 380, 20);
                 ctx2d.fill();
 
-                // 标题
-                ctx2d.fillStyle = '#fff';
-                ctx2d.strokeStyle = '#000';
-                ctx2d.lineWidth = 4;
+                // 标题：先描边再填充，保证每行都有描边效果
                 ctx2d.textBaseline = 'top';
                 ctx2d.font = `bold ${72 + FONT_PLUS}px sans-serif`;
                 const titleY = 300 + yShift;
                 const titleText = this.title || '分享一个奇妙日';
-                ctx2d.strokeText(titleText, leftMargin, titleY);
+                // 第一遍：只描边（fillStyle 透明）
+                ctx2d.fillStyle = 'rgba(0,0,0,0)';
+                ctx2d.strokeStyle = '#000';
+                ctx2d.lineWidth = 4;
+                this.wrapText(ctx2d, titleText, leftMargin, titleY, designW - 200, 88, 2);
+                // 第二遍：只填充（lineWidth 0）
+                ctx2d.fillStyle = '#fff';
+                ctx2d.lineWidth = 0;
                 const afterTitleY = this.wrapText(ctx2d, titleText, leftMargin, titleY, designW - 200, 88, 2);
 
                 // 天数
+                ctx2d.strokeStyle = '#000';
+                ctx2d.lineWidth = 3;
                 const days = this.daysText || '';
                 if (days) {
                     ctx2d.font = `${48 + FONT_PLUS}px sans-serif`;
@@ -708,16 +715,18 @@ export default defineComponent({
                     ctx2d.fillText(dateText, leftMargin, afterTitleY + 92);
                 }
 
-                // 二维码（258×258，与 qr.png 实际尺寸一致）
+                // 二维码：坐标与 uni canvas 分支保持一致
+                // qr.png 实际 258×258，在设计稿空间里放大到 400×400 更清晰
                 const qrValue = (this.qrText || this.shareUrl || '').trim();
                 if (qrValue) {
                     try {
                         const qrPngUrl = await getDataUrl('qr');
                         const qrImg = await this.loadImage(qrPngUrl);
-                        const dw = 258;
-                        const dh = 258;
+                        const dw = 400;
+                        const dh = 400;
                         const dx = 0;
-                        const actualHeight = H * (1 / scale);
+                        // 与 uni canvas 分支一致：H * 2.86 反推设计稿高度
+                        const actualHeight = H * 2.86;
                         const dy = actualHeight - dh - 50;
                         ctx2d.drawImage(qrImg, dx, dy, dw, dh);
                     } catch (e) {
