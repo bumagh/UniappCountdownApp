@@ -184,24 +184,8 @@
             </view>
           </view>
 
-          <!-- #ifdef MP-WEIXIN -->
-          <button
-            class="menu-item contact-btn"
-            open-type="contact"
-            session-from="profile_about"
-            @contact="handleContact"
-          >
-            <view class="menu-item-left">
-              <view class="menu-icon" style="background-color: #07c160;">
-                <text>💬</text>
-              </view>
-              <text class="menu-label">联系客服</text>
-            </view>
-            <view class="menu-item-right">
-              <text class="menu-arrow">›</text>
-            </view>
-          </button>
-          <!-- #endif -->
+          <!-- 联系客服 - H5和小程序统一组件 -->
+          <CustomerServiceH5 />
 
           <view class="menu-item" @click="handleLogout">
             <view class="menu-item-left">
@@ -327,6 +311,7 @@ import { Category, Countdown } from 'types';
 import { getDataUrl } from '@/utils/common';
 import { themeManager } from '@/utils/theme';
 import { trackEvent } from '@/utils/analytics';
+import CustomerServiceH5 from '@/components/CustomerServiceH5.vue';
 
 interface ProfilePageData {
   user: {
@@ -359,6 +344,9 @@ interface ProfilePageData {
 
 export default defineComponent({
   name: 'Profile',
+  components: {
+    CustomerServiceH5
+  },
   data(): ProfilePageData {
     return {
       user: {
@@ -1166,15 +1154,6 @@ export default defineComponent({
         });
       }
     },
-    // #ifdef MP-WEIXIN
-    handleContact(e: any) {
-      const path = e.detail?.path;
-      const query = e.detail?.query;
-      if (path) {
-        uni.navigateTo({ url: `/${path}${query ? '?' + Object.entries(query).map(([k, v]) => `${k}=${v}`).join('&') : ''}` });
-      }
-    },
-    // #endif
     handleAbout() {
       uni.showModal({
         title: '关于时光奇妙',
@@ -1402,22 +1381,6 @@ export default defineComponent({
   justify-content: space-between;
   padding: 30rpx;
   border-bottom: 2rpx solid #e8f4ff;
-}
-
-.contact-btn {
-  background: none;
-  border-radius: 0;
-  margin: 0;
-  line-height: normal;
-  font-size: inherit;
-  color: inherit;
-  text-align: left;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.contact-btn::after {
-  border: none;
 }
 
 .menu-item:last-child {
